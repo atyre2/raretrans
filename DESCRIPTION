@@ -1,0 +1,17 @@
+Package: raretrans
+Type: Package
+Title: Bayesian Priors for Matrix Population Models
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Tyre", "Andrew", email = "atyre2@unl.edu", role = "cre"),
+    person("Tremblay", "Raymond", email = "raymond.tremblay@upr.edu", role = "aut"),
+    person("Perez", "Maria-Eglee", email = "mariaeglee@gmail.com", role = "aut")) 
+Description: Functions to create matrix population models from a combination
+    of data on stage/age transitions and Bayesian prior information. This 
+    compensates for structural problems caused by missing observatons of rare
+    transitions. 
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports: dplyr,
+    popbio
