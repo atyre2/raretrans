@@ -25,3 +25,5 @@
 #' @name L_elto
 #' @usage data(L_elto)
 #' @format A data frame with 5233 rows and 15 variables
+#' @source Raymond L. Tremblay, University of Puerto Rico, Unpublished data.
+"L_elto"

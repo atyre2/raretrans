@@ -6,7 +6,7 @@
 #' This is just an intermediate version to test package structure. Does
 #' not yet use the prior argument P.
 #'
-#' @param TF A list of two matrices, T and F, as ouput by \code{\link{[popbio]projection.matrix}}.
+#' @param TF A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.
 #' @param P A matrix of the priors for each column.
 #' @param N A vector of observed transitions.
 #' @param returnType A character vector describing the desired return value.
@@ -54,7 +54,7 @@ fill_transitions <- function(TF, P, N, returnType = "A"){
 #' This is just an intermediate version to test package structure. Does
 #' not yet use the prior argument P.
 #'
-#' @param TF A list of two matrices, T and F, as ouput by \code{\link{[popbio]projection.matrix}}.
+#' @param TF A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.
 #' @param P A matrix of the priors for each column.
 #' @param N A vector of observed transitions.
 #' @param returnType A character vector describing the desired return value.

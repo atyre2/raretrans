@@ -7,7 +7,7 @@
 fill_fecundity(TF, P, N, returnType = "A")
 }
 \arguments{
-\item{TF}{A list of two matrices, T and F, as ouput by \code{\link{[popbio]projection.matrix}}.}
+\item{TF}{A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.}
 
 \item{P}{A matrix of the priors for each column.}
 
