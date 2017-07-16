@@ -9,13 +9,15 @@ vignette: >
   %\VignetteIndexEntry{Effect of prior information on transition probabilities}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
+
 ---
 
 ## Borrowing strength
 
 Tremblay and McCarthy [-@tremblay2014bayesian] estimated transition probabilities and recruitment rates for another epiphytic orchid from a series of small populations. Although some transitions were not observed in all populations, the presence of a few observations in other populations allowed the statistical models to "borrow strength" from each other and generate estimated probabilities for all transitions. Unfortunately, many (45%; [@SalgueroCompadre2015]) of plant demography studies are carried out at single sites . In those cases there is no information to fill in the blanks for non-observed transitions. 
 
-Here we explore the population consequences of 3 different ways of solving the unobserved transition problem: ignore it, set a prior distribution ignoring constraints, or set a prior accounting for counting constraints. The first solution treats the transition as a fixed zero. This can have severe consequences for matrix structure [@stott2010reducibility]. The second solution uses a prior beta distribution to quantify the uncertainty in the transition probability. The beta prior is easy to parameterize from the actual observations. However, this solution ignores the inherent correlations between observations of different transitions. A seedling that remains a seedling does not become a juvenile. The observed transitions are multinomial rather than binomial events. This can be accommodated by using a Dirichlet prior distribution, albeit at the cost of increased complexity in the calculations. 
+Here we explore the population consequences of setting a prior accounting for counting constraints. Ignoring the problem treats the transition as a fixed zero. This can have severe consequences for matrix structure [@stott2010reducibility]. The observed transitions are multinomial rather than binomial events. This can be accommodated by using a Dirichlet prior distribution, albeit at the cost of increased complexity in the calculations. 
 
 [@eberhardt1986grizzly] had a small sample size of grizzlies in some age classes. Morris and Doak [pg 197, -@morris2002quantitative] recognized the potential problem with small sample sizes for rare transitions, but their recommendation is to use the mathematically more complex approach of Tremblay and McCarthy [-@tremblay2014bayesian]. Is there anything that can be done on the simple side?
 
