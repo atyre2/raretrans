@@ -1,0 +1,13 @@
+---
+title: "Effect of prior information on transition probabilities"
+author: "Drew Tyre"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    fig_caption: yes
+vignette: >
+  %\VignetteIndexEntry{Effect of prior information on transition probabilities}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
