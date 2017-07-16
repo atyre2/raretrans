@@ -11,3 +11,142 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+## Borrowing strength
+
+Tremblay and McCarthy [-@tremblay2014bayesian] estimated transition probabilities and recruitment rates for another epiphytic orchid from a series of small populations. Although some transitions were not observed in all populations, the presence of a few observations in other populations allowed the statistical models to "borrow strength" from each other and generate estimated probabilities for all transitions. Unfortunately, many (45%; [@SalgueroCompadre2015]) of plant demography studies are carried out at single sites . In those cases there is no information to fill in the blanks for non-observed transitions. 
+
+Here we explore the population consequences of 3 different ways of solving the unobserved transition problem: ignore it, set a prior distribution ignoring constraints, or set a prior accounting for counting constraints. The first solution treats the transition as a fixed zero. This can have severe consequences for matrix structure [@stott2010reducibility]. The second solution uses a prior beta distribution to quantify the uncertainty in the transition probability. The beta prior is easy to parameterize from the actual observations. However, this solution ignores the inherent correlations between observations of different transitions. A seedling that remains a seedling does not become a juvenile. The observed transitions are multinomial rather than binomial events. This can be accommodated by using a Dirichlet prior distribution, albeit at the cost of increased complexity in the calculations. 
+
+[@eberhardt1986grizzly] had a small sample size of grizzlies in some age classes. Morris and Doak [pg 197, -@morris2002quantitative] recognized the potential problem with small sample sizes for rare transitions, but their recommendation is to use the mathematically more complex approach of Tremblay and McCarthy [-@tremblay2014bayesian]. Is there anything that can be done on the simple side?
+
+## The matrix
+
+We will use observations of an epiphytic Orchid *L. elto*. 
+
+```{r, message=FALSE}
+library(tidyverse)
+library(popbio)
+library(raretrans)
+data("L_elto")
+A <- projection.matrix(as.data.frame(L_elto), stage="stage", fate="next_stage", fertility="fertility",
+                       sort=c("p","j","a"))
+knitr::kable(A, digits=2)
+```
+
+The average population growth rate over all years and populations is `r format(popbio::lambda(A), digits=2)`, suggesting a rapid decline. 
+
+```{r pop_by_time, fig.cap = "Population size over time.", fig.show='hold'}
+plotdata <- L_elto %>% group_by(POPNUM, year, stage) %>%
+  tally() %>%
+  group_by(POPNUM, year) %>%
+  summarise(N = sum(n))
+
+gg1 <- ggplot(plotdata, aes(x=year, y=N, group=POPNUM)) +
+  geom_line()
+plotsumm <- plotdata %>% group_by(year) %>%
+  summarize(N=sum(N))
+gg2 <- ggplot(plotsumm, aes(x=year, y=N)) +
+  geom_line()
+# gridExtra::grid.arrange(gg1, gg2)
+gg1
+gg2
+```
+
+OK, now we want to generate matrices for each year and popnum. We have to change the variables into factors and control the levels so that the resulting matrices end up with the right shape with zeros for the missing transitions. Also have to coerce each grouped tbl_df to a regular data.frame before passing to projection matrix. 
+```{r}
+allA <- L_elto %>% 
+  mutate(stage = factor(stage, levels=c("p","j","a","m")),
+         fate = factor(next_stage, levels=c("p","j","a","m"))) %>%
+  group_by(POPNUM, year) %>%
+  do(A = projection.matrix(as.data.frame(.), 
+                           stage="stage", fate="fate", 
+                           fertility="fertility", sort=c("p","j","a")),
+     TF = projection.matrix(as.data.frame(.), 
+                           stage="stage", fate="fate", 
+                           fertility="fertility", sort=c("p","j","a"), TF = TRUE),
+     N = get_state_vector(as.data.frame(.), 
+                           stage="stage", sort=c("p","j","a"))) %>%
+  
+  filter(year < 12) # last year all zero for obvious reason
+
+```
+
+We end up with all the matrices for each population and year in a `list-column` of the result. Working with this thing is a bit awkward. I think the easiest strategy is to use `by_row()` because then we get POPNUM and year as columns in the result. NO. following [Jenny Bryans' talk on list columns](https://speakerdeck.com/jennybc/putting-square-pegs-in-round-holes-using-list-cols-in-your-dataframe) use mutate with map_*(listcolumn, function).
+
+```{r}
+# bigly ugly
+# mylambda <- function(x) lambda(x$A[[1]])
+# lambdas <- by_row(allA, mylambda,  .to="lambda", .collate="rows")
+library(popdemo)
+allA <- ungroup(allA) %>% 
+  mutate(A = map(A, matrix, nrow=3, ncol=3,
+                 dimnames=list(c("p","j","a"),c("p","j","a")))) %>%
+  mutate(lmbda = map_dbl(A, lambda),
+         ergodic = map_dbl(A, is.matrix_ergodic),
+         irreduc = map_dbl(A, is.matrix_irreducible),
+         primitv = map_dbl(A, is.matrix_primitive))
+ggplot(allA, aes(x=lmbda)) + geom_histogram() + facet_wrap(~year)
+```
+
+Now, we need to figure out how many matrices are missing transitions. The full matrix has observed transitions in every cell. 
+
+```{r}
+allA <- ungroup(allA) %>% mutate(missing = map(A, ~which(.x==0)),
+                                 n_missing = map_dbl(missing, length))
+missing_summary <- summary(allA$n_missing)
+ergo_irr <- as.data.frame(with(allA, table(ergodic, irreduc)))
+
+knitr::kable(ergo_irr, caption = "Ergodicity and irreducibility of individual transition matrices.")
+```
+
+Out of 11 years and `r length(unique(allA$POPNUM))` populations there are a total of `r nrow(allA)` transition matrices. Some years are missing for some populations. Only `r ergo_irr[4,3]` of these matrices are irreducible. All of the matrices have 2 or more transitions that are zero but known to be possible. 
+
+## Ignore the problem
+
+Ignoring this problem and calculating stochastic $\lambda$ for each population could yield non-sensical results. For example, the geometric mean $\lambda$ calculated using simulation often fails. 
+
+```{r}
+sgr <- allA %>% split(.$POPNUM) %>%
+  map(~stoch.growth.rate(.x$A, verbose = FALSE))
+
+xtrc <- function(x){
+  data.frame(approx=x$approx,
+                sim = x$sim,
+                lowerci = x$sim.CI[1],
+                upperci = x$sim.CI[2])
+}
+ignored <- bind_rows(map(sgr, xtrc), .id="POPNUM") 
+filter(ignored, !is.na(sim)) %>%
+ggplot(aes(x=approx, y = sim)) + geom_point() + 
+  geom_errorbar(aes(ymin=lowerci, ymax=upperci)) + 
+  geom_abline(slope = 1, intercept=0)
+```
+
+The six populations where the simulated values are unavailable have very low approximate growth rates as well. 
+
+## Fill in including constraints
+
+This strategy uses the transitions in a smarter way that maintains the constraint that all survival/transition probabilities have to add up to 1. We do this by using a dirichlet prior with the function `fill_transitions()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Dirichlet prior only applies to the $T$ matrix. If not specified, the function assumes a uniform prior across the $m+1$ fates for each stage. The extra category is for individuals that do not survive. 
+
+```{r fillDirichlet}
+testing <- allA %>% mutate(Adirch = map2(TF, N, fill_transitions),
+                           ldirch = map_dbl(Adirch, lambda),                 
+         irrdirch = map_dbl(Adirch, is.matrix_irreducible),
+         ergdirch = map_dbl(Adirch, is.matrix_ergodic),
+         TN = map2(TF, N, fill_transitions, returnType = "TN"))
+
+ggplot(testing, aes(x=lmbda, y=ldirch)) + geom_point() + 
+  geom_abline(slope = 1, intercept=0) 
+```
+
+
+The matrices with $\lambda = 0$ typically have very few individuals. Matrices with $\lambda = 1$ usually have transitions only on the main diagonal. 
+
+```{r checkErgIrr}
+ergo_irr <- as.data.frame(with(testing, table(ergdirch, irrdirch)))
+
+knitr::kable(ergo_irr, caption = "Ergodicity and irreducibility of individual transition matrices.")
+
+```
+
+So using a Dirichlet prior to fill in the gaps works, and doesn't appear to distort the average population growth rate too much. All resulting matrices are now ergodic and irreducible, which is great.
