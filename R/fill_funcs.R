@@ -117,9 +117,9 @@ get_state_vector <- function (transitions, stage = NULL,
     stop("No stage column matching ", stage)
   }
   if (missing(sort)) {
-    sort <- levels(transitions[, stage])
+    sort <- levels(transitions[[stage]])
   }
-  tf <- table(transitions[, stage])[sort]
+  tf <- table(transitions[[stage]])[sort]
   return(as.vector(tf))
 }
 

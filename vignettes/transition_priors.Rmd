@@ -76,9 +76,7 @@ allA <- L_elto %>%
 We end up with all the matrices for each population and year in a `list-column` of the result. Working with this thing is a bit awkward. I think the easiest strategy is to use `by_row()` because then we get POPNUM and year as columns in the result. NO. following [Jenny Bryans' talk on list columns](https://speakerdeck.com/jennybc/putting-square-pegs-in-round-holes-using-list-cols-in-your-dataframe) use mutate with map_*(listcolumn, function).
 
 ```{r}
-# bigly ugly
-# mylambda <- function(x) lambda(x$A[[1]])
-# lambdas <- by_row(allA, mylambda,  .to="lambda", .collate="rows")
+
 library(popdemo)
 allA <- ungroup(allA) %>% 
   mutate(A = map(A, matrix, nrow=3, ncol=3,
@@ -92,7 +90,7 @@ ggplot(allA, aes(x=lmbda)) + geom_histogram() + facet_wrap(~year)
 
 Now, we need to figure out how many matrices are missing transitions. The full matrix has observed transitions in every cell. 
 
-```{r}
+```{r checkErgIrr1}
 allA <- ungroup(allA) %>% mutate(missing = map(A, ~which(.x==0)),
                                  n_missing = map_dbl(missing, length))
 missing_summary <- summary(allA$n_missing)
@@ -101,7 +99,7 @@ ergo_irr <- as.data.frame(with(allA, table(ergodic, irreduc)))
 knitr::kable(ergo_irr, caption = "Ergodicity and irreducibility of individual transition matrices.")
 ```
 
-Out of 11 years and `r length(unique(allA$POPNUM))` populations there are a total of `r nrow(allA)` transition matrices. Some years are missing for some populations. Only `r ergo_irr[4,3]` of these matrices are irreducible. All of the matrices have 2 or more transitions that are zero but known to be possible. 
+Out of 11 years and `r length(unique(allA$POPNUM))` populations there are a total of `r nrow(allA)` transition matrices. Some years are missing for some populations. Only `r ergo_irr[4,3]` of these matrices are irreducible (\@(tab:checkErgIrr1)). All of the matrices have 2 or more transitions that are zero but known to be possible. 
 
 ## Ignore the problem
 
@@ -111,20 +109,21 @@ Ignoring this problem and calculating stochastic $\lambda$ for each population c
 sgr <- allA %>% split(.$POPNUM) %>%
   map(~stoch.growth.rate(.x$A, verbose = FALSE))
 
+# distribute results of stoch.growth.rate() into a tbl
 xtrc <- function(x){
   data.frame(approx=x$approx,
                 sim = x$sim,
                 lowerci = x$sim.CI[1],
                 upperci = x$sim.CI[2])
 }
-ignored <- bind_rows(map(sgr, xtrc), .id="POPNUM") 
-filter(ignored, !is.na(sim)) %>%
+sgr <- bind_rows(map(sgr, xtrc), .id="POPNUM") 
+filter(sgr, !is.na(sim)) %>%
 ggplot(aes(x=approx, y = sim)) + geom_point() + 
   geom_errorbar(aes(ymin=lowerci, ymax=upperci)) + 
   geom_abline(slope = 1, intercept=0)
 ```
 
-The six populations where the simulated values are unavailable have very low approximate growth rates as well. 
+The six populations where the simulated values are unavailable have very low approximate growth rates as well. All the stochastic growth rates are less than 1.
 
 ## Fill in including constraints
 
@@ -138,7 +137,9 @@ testing <- allA %>% mutate(Adirch = map2(TF, N, fill_transitions),
          TN = map2(TF, N, fill_transitions, returnType = "TN"))
 
 ggplot(testing, aes(x=lmbda, y=ldirch)) + geom_point() + 
-  geom_abline(slope = 1, intercept=0) 
+  geom_abline(slope = 1, intercept=0) +
+  xlab(expression(paste(lambda, " ignoring zeros"))) + 
+  ylab(expression(paste(lambda, " using a uniform prior")))
 ```
 
 
@@ -151,4 +152,38 @@ knitr::kable(ergo_irr, caption = "Ergodicity and irreducibility of individual tr
 
 ```
 
-So using a Dirichlet prior to fill in the gaps works, and doesn't appear to distort the average population growth rate too much. All resulting matrices are now ergodic and irreducible, which is great.
+```{r}
+sgr_unif <- testing %>% split(.$POPNUM) %>%
+  map(~stoch.growth.rate(.x$Adirch, verbose = FALSE))
+
+sgr_unif <- bind_rows(map(sgr_unif, xtrc), .id="POPNUM") 
+compare_approx <- data_frame(unif = sgr_unif$approx,
+                             ignored = sgr$approx)
+ggplot(compare_approx, aes(x=ignored, y = unif)) + 
+  geom_point() + 
+  geom_abline(slope = 1, intercept=0) + 
+  xlab(expression(paste("log(",lambda,") ignoring zeros"))) + 
+  ylab(expression(paste("log(",lambda,") with uniform prior")))
+```
+
+So using a Dirichlet prior to fill in the gaps works, and doesn't appear to distort the stochastic population growth rate; all populations still have negative growth. Most populations end up with stochastic growth rates that are lower than with the problematic matrices. All resulting matrices are now ergodic and irreducible.
+
+## Effects of informative priors
+
+We extracted an informative prior from an expert on epiphytic orchids (RLT) to compare with the uniform prior. In particular, we considered the effects of weighting the prior by different fractions of the actual sample size for each population and year. 
+
+```{r}
+RLT_Tprior <- matrix(c(0.25, 0.025, 0.0,
+                       0.05, 0.9,   0.025,
+                       0.01, 0.025, 0.95,
+                       0.69, 0.05,  0.025), 
+                     byrow = TRUE, nrow = 4, ncol = 3)
+RLT_Fprior <- matrix(c(0.0, 0.0, 0.025,
+                       0.0, 0.0, 0.0,
+                       0.0, 0.0, 0.0), 
+                     byrow = TRUE, nrow = 3, ncol = 3)
+```
+
+The RLT prior gives $\lambda = `r format(lambda(RLT_Tprior[-4,] + RLT_Fprior), digits = 2)`$
+
+# References
