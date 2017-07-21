@@ -4,14 +4,14 @@
 \alias{fill_transitions}
 \title{Combine prior and data for transition matrix}
 \usage{
-fill_transitions(TF, P, N, returnType = "A")
+fill_transitions(TF, N, P = NULL, returnType = "A")
 }
 \arguments{
 \item{TF}{A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.}
 
-\item{P}{A matrix of the priors for each column.}
-
 \item{N}{A vector of observed transitions.}
+
+\item{P}{A matrix of the priors for each column. Defaults to uniform.}
 
 \item{returnType}{A character vector describing the desired return value.}
 }
@@ -26,8 +26,4 @@ The return value depends on parameter returnType.
 \description{
 \code{fill_transition} returns the expected value of the transition
 matrix combining observed transitions for one time step and a prior
-}
-\details{
-This is just an intermediate version to test package structure. Does
-not yet use the prior argument P.
 }
