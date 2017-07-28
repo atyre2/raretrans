@@ -8,7 +8,7 @@ output:
 vignette: >
   %\VignetteIndexEntry{Effect of prior information on transition probabilities}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+  \VignetteEncoding{UTF-8}
 bibliography: references.bib
 
 ---
@@ -101,6 +101,44 @@ knitr::kable(ergo_irr, caption = "Ergodicity and irreducibility of individual tr
 
 Out of 11 years and `r length(unique(allA$POPNUM))` populations there are a total of `r nrow(allA)` transition matrices. Some years are missing for some populations. Only `r ergo_irr[4,3]` of these matrices are irreducible (\@(tab:checkErgIrr1)). All of the matrices have 2 or more transitions that are zero but known to be possible. 
 
+```{r exampleMatrices, echo=FALSE}
+#144 popn 905 year 9 10 individuals go extinct
+badA144 <- allA$A[[144]]
+badN144 <- allA$N[[144]]
+#205 popn 914 year 6 lambda == 1 
+badA205 <- allA$A[[205]]
+badN205 <- allA$N[[205]]
+
+BaseTable <- 
+  tribble(~Population, ~Year, ~Stage,     ~N,        ~seedling,    ~juvenile,   ~adult,
+          905,             9, "seedling", badN144[1], badA144[1,1],badA144[1,2],badA144[1,3],
+          905,             9, "juvenile", badN144[2], badA144[2,1],badA144[2,2],badA144[2,3],
+          905,             9, "adult",    badN144[3], badA144[3,1],badA144[3,2],badA144[3,3],
+          914,             9, "seedling", badN205[1], badA205[1,1],badA205[1,2],badA205[1,3],
+          914,             9, "juvenile", badN205[2], badA205[2,1],badA205[2,2],badA205[2,3],
+          914,             9, "adult",    badN205[3], badA205[3,1],badA205[3,2],badA205[3,3])
+
+
+# make some space for the prior versions
+RLT_Tprior <- matrix(c(0.25, 0.025, 0.0,
+                       0.05, 0.9,   0.025,
+                       0.01, 0.025, 0.95,
+                       0.69, 0.05,  0.025), 
+                     byrow = TRUE, nrow = 4, ncol = 3)
+RLT_Fprior <- matrix(c(0.0, 0.0, 0.025,
+                       0.0, 0.0, 0.0,
+                       0.0, 0.0, 0.0), 
+                     byrow = TRUE, nrow = 3, ncol = 3)
+
+wUnifTable <- bind_cols(BaseTable, BaseTable[,5:7], BaseTable[,5:7])
+wUnifTable[1:3, 8:10] <- fill_transitions(allA$TF[[144]], allA$N[[144]])
+wUnifTable[4:6, 8:10] <- fill_transitions(allA$TF[[205]], allA$N[[205]])
+wUnifTable[1:3, 11:13] <- fill_transitions(allA$TF[[144]], allA$N[[144]], P = RLT_Tprior, priorweight = 1)
+wUnifTable[4:6, 11:13] <- fill_transitions(allA$TF[[205]], allA$N[[205]], P = RLT_Tprior, priorweight = 1)
+knitr::kable(wUnifTable, caption = "Two problematic matrices and the effects of a uniform and RLT prior with total weight equal to the sample size. &lmbd; = 0 for population 905 and &lmbd; = 1 for population 914 before applying the prior information.")
+```
+
+
 ## Ignore the problem
 
 Ignoring this problem and calculating stochastic $\lambda$ for each population could yield non-sensical results. For example, the geometric mean $\lambda$ calculated using simulation often fails. 
@@ -172,7 +210,7 @@ So using a Dirichlet prior to fill in the gaps works, and doesn't appear to dist
 
 We extracted an informative prior from an expert on epiphytic orchids (RLT) to compare with the uniform prior. In particular, we considered the effects of weighting the prior by different fractions of the actual sample size for each population and year. 
 
-```{r}
+```{r makePriors, eval=FALSE}
 RLT_Tprior <- matrix(c(0.25, 0.025, 0.0,
                        0.05, 0.9,   0.025,
                        0.01, 0.025, 0.95,
@@ -184,6 +222,34 @@ RLT_Fprior <- matrix(c(0.0, 0.0, 0.025,
                      byrow = TRUE, nrow = 3, ncol = 3)
 ```
 
-The RLT prior gives $\lambda = `r format(lambda(RLT_Tprior[-4,] + RLT_Fprior), digits = 2)`$
+The RLT prior gives $\lambda = `r format(lambda(RLT_Tprior[-4,] + RLT_Fprior), digits = 2)`$. In an ideal world this prior would be extracted prior to collecting the data. In this case the prior is only being used to demonstrate the technique.
+
+```{r fillDirichlet_prior1}
+prior1 <- testing %>% mutate(Aprior1 = map2(TF, N, fill_transitions, 
+                                            P=RLT_Tprior),
+                             lprior1 = map_dbl(Aprior1, lambda),                 
+                             irrdirch = map_dbl(Aprior1, is.matrix_irreducible),
+                             ergdirch = map_dbl(Aprior1, is.matrix_ergodic),
+                             TN = map2(TF, N, fill_transitions, returnType = "TN"))
+
+ggplot(prior1, aes(x=ldirch, y=lprior1)) + geom_point() + 
+  geom_abline(slope = 1, intercept=0) +
+  ylab(expression(paste(lambda, " with RLT prior, weight = 1"))) + 
+  xlab(expression(paste(lambda, " using a uniform prior")))
+```
+
+```{r fillDirichlet_prior0.5N}
+prior0.5N <- testing %>% mutate(Aprior0.5N = map2(TF, N, fill_transitions, 
+                                            P=RLT_Tprior, priorweight = 1),
+                             lprior0.5N = map_dbl(Aprior0.5N, lambda),
+                             TN = map2(TF, N, fill_transitions, returnType = "TN"))
+
+ggplot(prior0.5N, aes(x=lmbda, y=lprior0.5N)) + geom_point() + 
+  geom_abline(slope = 1, intercept=0) +
+  ylab(expression(paste(lambda, " with RLT prior, weight = 0.5N"))) + 
+  xlab(expression(paste(lambda, " using a uniform prior"))) + 
+  geom_hline(yintercept = 0.96, color="red", linetype =2 )
+```
+
 
 # References
