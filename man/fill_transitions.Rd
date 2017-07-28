@@ -4,7 +4,7 @@
 \alias{fill_transitions}
 \title{Combine prior and data for transition matrix}
 \usage{
-fill_transitions(TF, N, P = NULL, returnType = "A")
+fill_transitions(TF, N, P = NULL, priorweight = -1, returnType = "A")
 }
 \arguments{
 \item{TF}{A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.}
@@ -12,6 +12,8 @@ fill_transitions(TF, N, P = NULL, returnType = "A")
 \item{N}{A vector of observed transitions.}
 
 \item{P}{A matrix of the priors for each column. Defaults to uniform.}
+
+\item{priorweight}{total weight for each column of prior as a percentage of sample size or 1 if negative}
 
 \item{returnType}{A character vector describing the desired return value.}
 }

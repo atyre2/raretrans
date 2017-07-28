@@ -6,6 +6,7 @@
 #' @param TF A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.
 #' @param N A vector of observed transitions.
 #' @param P A matrix of the priors for each column. Defaults to uniform.
+#' @param priorweight total weight for each column of prior as a percentage of sample size or 1 if negative
 #' @param returnType A character vector describing the desired return value.
 #'
 #' @return The return value depends on parameter returnType.
@@ -17,13 +18,13 @@
 #'
 #' @export
 #'
-fill_transitions <- function(TF, N, P = NULL, returnType = "A"){
+fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "A"){
   Tmat <- TF$T
   Fmat <- TF$F
   order <- dim(Tmat)[1]
   if(missing(P)){
-    # fill in with a uniform prior
-    P <- matrix(1, nrow=order+1, ncol = order)
+    # fill in with a uniform prior <- <- <-
+    P <- matrix(1/(order+1), nrow=order+1, ncol = order)
   } else {
     if(ncol(P)!=order | nrow(P) != (order+1)) {
       stop("Bad dimensions on P")
@@ -33,6 +34,9 @@ fill_transitions <- function(TF, N, P = NULL, returnType = "A"){
   TN <- matrix(NA, nrow=order+1, ncol = order)
   for (i in 1:order){
     observed <- Tmat[,i] * N[i]
+    if (priorweight > 0 & N[i] > 0){
+      P[,i] <- P[,i]*priorweight*N[i]
+    }
     allfates <- c(observed, N[i]-sum(observed)) + P[,i]
     # missing <- allfates == 0
     # allfates[missing] <- 1
