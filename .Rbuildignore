@@ -4,3 +4,4 @@
 ^data-raw$
 ^\.\./test_bd/static/raretrans$
 ^vignettes/images
+^.httr-oauth

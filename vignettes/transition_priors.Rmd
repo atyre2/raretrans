@@ -330,7 +330,9 @@ xx <- left_join(xx, params, by = c("prior", "transition")) %>%
 xx$prior <- factor(xx$prior, levels = c("None", "Uniform", "RLT, weight = 1", "RLT, weight = 0.5N", "RLT, weight = N"))
 xx$transition <- factor(xx$transition, levels = c("p to p", "p to j", "p to a", "p to m"))
 ggplot(filter(xx, transition != "p to m"), aes(x = prob, y=dens)) + geom_area() + 
-  facet_grid(prior~transition)
+  facet_grid(prior~transition) + 
+  xlab("Transition Probability") + 
+  ylab("Probability Density")
 if(!knitting){
   ggsave("credibleIntervals1.png", path=pathtoimages)
 }
@@ -338,6 +340,33 @@ if(!knitting){
 
 ```{r uploadGoogleDrive, eval=!knitting, echo=FALSE, include=FALSE}
 library(googledrive)
+images <- list.files(path=pathtoimages, full.names=TRUE)
+# first time do this
+# imgDrive <- list()
+# for (i in seq_along(images)){
+#   imgDrive[[i]] <- drive_upload(media=images[i],
+#                path="raretrans/images/")  
+# }
+# imgIDs <- map_chr(imgDrive,"id")
+# doesn't work with multiple ids
+#drive_share(as_id(imgIDs[1]), role="reader", type="anyone")
+# need to remove the /view?usp=drivesdk at the end?
+# drive_share_link(as_id(imgIDs)) 
+
+# dput(imgIDs)
+
+imgIDs <- c("0Bxs6Le-YI-kdakkza0Zld1FXR2c", "0Bxs6Le-YI-kdbFBGamdEY093d28", 
+"0Bxs6Le-YI-kdR3dSMzd5cVBiZlE", "0Bxs6Le-YI-kdRXZMdWFRZTFmeWc", 
+"0Bxs6Le-YI-kda3FyM0wtY3hfdFk", "0Bxs6Le-YI-kdWDctbVJQTzZjZm8", 
+"0Bxs6Le-YI-kdUmt4aXB2RkoyYmc")
+
+if (length(images) != length(imgIDs)) {
+  stop("you've added new images, delete everything and rerun startup code.")
+}
+
+for (i in seq_along(images)){
+  imgDrive[[i]] <- drive_update(file=as_id(imgIDs[i]),media=images[i])
+}
 
 ```
 
