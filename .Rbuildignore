@@ -3,3 +3,4 @@
 ^docs$
 ^data-raw$
 ^\.\./test_bd/static/raretrans$
+^.httr-oauth
