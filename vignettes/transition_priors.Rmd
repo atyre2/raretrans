@@ -57,8 +57,7 @@ plotsumm <- plotdata %>% group_by(year) %>%
 gg2 <- ggplot(plotsumm, aes(x=year, y=N)) +
   geom_line()
 ggboth <- gridExtra::grid.arrange(gg1, gg2)
-# gg1
-# gg2
+
 if(!knitting){
   ggsave("pop_by_time.png", plot=ggboth, device="png", path=pathtoimages)
 } 
@@ -87,7 +86,7 @@ allA <- L_elto %>%
 
 We end up with all the matrices for each population and year in a `list-column` of the result. Working with this thing is a bit awkward. The best strategy is from [Jenny Bryans' talk on list columns](https://speakerdeck.com/jennybc/putting-square-pegs-in-round-holes-using-list-cols-in-your-dataframe) and uses mutate with map_*(listcolumn, function).
 
-```{r}
+```{r histLmbdaByYear}
 
 library(popdemo)
 allA <- ungroup(allA) %>% 
@@ -98,6 +97,9 @@ allA <- ungroup(allA) %>%
          irreduc = map_dbl(A, is.matrix_irreducible),
          primitv = map_dbl(A, is.matrix_primitive))
 ggplot(allA, aes(x=lmbda)) + geom_histogram() + facet_wrap(~year)
+if(!knitting){
+  ggsave("histLmbdaByYear.png", path=pathtoimages)
+}
 ```
 
 Now, we need to figure out how many matrices are missing transitions. The full matrix has observed transitions in every cell. 
@@ -161,7 +163,7 @@ knitr::kable(wUnifTable, caption = "Two problematic matrices and the matrix with
 
 Ignoring this problem and calculating stochastic $\lambda$ for each population could yield non-sensical results. For example, the geometric mean $\lambda$ calculated using simulation often fails. 
 
-```{r}
+```{r stochGrowthRateBad}
 sgr <- allA %>% split(.$POPNUM) %>%
   map(~stoch.growth.rate(.x$A, verbose = FALSE))
 
@@ -177,6 +179,9 @@ filter(sgr, !is.na(sim)) %>%
 ggplot(aes(x=approx, y = sim)) + geom_point() + 
   geom_errorbar(aes(ymin=lowerci, ymax=upperci)) + 
   geom_abline(slope = 1, intercept=0)
+if(!knitting){
+  ggsave("stochGrowthRateBad.png", path=pathtoimages)
+}
 ```
 
 The six populations where the simulated values are unavailable have very low approximate growth rates as well. All the stochastic growth rates are less than 1.
@@ -198,6 +203,9 @@ ggplot(testing, aes(x=lmbda, y=ldirch)) + geom_point() +
   geom_abline(slope = 1, intercept=0) +
   xlab(expression(paste(lambda, " ignoring zeros"))) + 
   ylab(expression(paste(lambda, " using a uniform prior")))
+if(!knitting){
+  ggsave("fillDirichlet.png", path=pathtoimages)
+}
 ```
 
 
@@ -210,7 +218,7 @@ knitr::kable(ergo_irr, caption = "Ergodicity and irreducibility of individual tr
 
 ```
 
-```{r}
+```{r stochDirchVsBad}
 sgr_unif <- testing %>% split(.$POPNUM) %>%
   map(~stoch.growth.rate(.x$Adirch, verbose = FALSE))
 
@@ -222,6 +230,9 @@ ggplot(compare_approx, aes(x=ignored, y = unif)) +
   geom_abline(slope = 1, intercept=0) + 
   xlab(expression(paste("log(",lambda,") ignoring zeros"))) + 
   ylab(expression(paste("log(",lambda,") with uniform prior")))
+if(!knitting){
+  ggsave("stochDirchVsBad.png", path=pathtoimages)
+}
 ```
 
 So using a Dirichlet prior to fill in the gaps works, and doesn't appear to distort the stochastic population growth rate; all populations still have negative growth. Most populations end up with stochastic growth rates that are lower than with the problematic matrices. All resulting matrices are now ergodic and irreducible.
@@ -244,7 +255,7 @@ RLT_Fprior <- matrix(c(0.0, 0.0, 0.025,
 
 The RLT prior gives $\lambda = `r format(lambda(RLT_Tprior[-4,] + RLT_Fprior), digits = 2)`$. In an ideal world this prior would be extracted prior to collecting the data. In this case the prior is only being used to demonstrate the technique.
 
-```{r fillDirichlet_prior1, fig.cap="Asymptotic growth rates using prior information vs. the raw observations alone. The horizontal red line indicates $\\lambda$ for the RLT prior. Points for all four priors shown in transparent grey."}
+```{r fillDirichletPrior1, fig.cap="Asymptotic growth rates using prior information vs. the raw observations alone. The horizontal red line indicates $\\lambda$ for the RLT prior. Points for all four priors shown in transparent grey."}
 diffPriors <- list()
 diffPriors[["Uniform"]] <- testing %>% mutate(Aprior = map2(TF, N, fill_transitions),
                                               lprior = map_dbl(Aprior, lambda))
@@ -274,7 +285,9 @@ ggplot(diffPriors, aes(x=lmbda, y=lprior)) +
   facet_wrap(~prior) + 
   geom_hline(yintercept = 0.96, color="red", linetype = 2 ) + 
   theme_bw()
-
+if(!knitting){
+  ggsave("fillDirichletPrior1.png", path=pathtoimages)
+}
 ```
 
 # Obtaining credible intervals on vital rates and $\lambda$
@@ -318,6 +331,9 @@ xx$prior <- factor(xx$prior, levels = c("None", "Uniform", "RLT, weight = 1", "R
 xx$transition <- factor(xx$transition, levels = c("p to p", "p to j", "p to a", "p to m"))
 ggplot(filter(xx, transition != "p to m"), aes(x = prob, y=dens)) + geom_area() + 
   facet_grid(prior~transition)
+if(!knitting){
+  ggsave("credibleIntervals1.png", path=pathtoimages)
+}
 ```
 
 
