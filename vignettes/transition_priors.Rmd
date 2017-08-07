@@ -15,10 +15,9 @@ bibliography: references.bib
 
 ## Borrowing strength
 
-Tremblay and McCarthy [-@tremblay2014bayesian] estimated transition probabilities and recruitment rates for another epiphytic orchid from a series of small populations. Although some transitions were not observed in all populations, the presence of a few observations in other populations allowed the statistical models to "borrow strength" from each other and generate estimated probabilities for all transitions. Unfortunately, many (45%; @SalgueroCompadre2015) of plant demography studies are carried out at single sites . In those cases there is no information to fill in the blanks for non-observed transitions. 
+Tremblay and McCarthy [-@tremblay2014bayesian] estimated transition probabilities and recruitment rates for another epiphytic orchid from a series of small populations. Although some transitions were not observed in all populations, the presence of a few observations in other populations allowed the statistical models to "borrow strength" from each other and generate estimated probabilities for all transitions. Unfortunately, many (45%; @SalgueroCompadre2015) plant demography studies are carried out at single sites . In those cases there is no information to fill in the blanks for non-observed transitions. 
 
 Here we explore the population consequences of setting a prior accounting for counting constraints. Ignoring the problem treats the transition as a fixed zero. This can have severe consequences for matrix structure [@stott2010reducibility]. The observed transitions are multinomial rather than binomial events. This can be accommodated by using a Dirichlet prior distribution, albeit at the cost of increased complexity in the calculations. 
-
 @eberhardt1986grizzly had a small sample size of grizzlies in some age classes. Morris and Doak [pg 197, -@morris2002quantitative] recognized the potential problem with small sample sizes for rare transitions, but their recommendation is to use the mathematically more complex approach of Tremblay and McCarthy [-@tremblay2014bayesian]. Is there anything that can be done on the simple side?
 
 ## The matrix
@@ -99,7 +98,7 @@ ergo_irr <- as.data.frame(with(allA, table(ergodic, irreduc)))
 knitr::kable(ergo_irr, caption = "Ergodicity and irreducibility of individual transition matrices.")
 ```
 
-Out of 11 years and `r length(unique(allA$POPNUM))` populations there are a total of `r nrow(allA)` transition matrices. Some years are missing for some populations. Only `r ergo_irr[4,3]` of these matrices are irreducible (\@(tab:checkErgIrr1)). All of the matrices have 2 or more transitions that are zero but known to be possible. 
+Out of 11 years and `r length(unique(allA$POPNUM))` populations there are a total of `r nrow(allA)` transition matrices. Some years are missing for some populations. Only `r ergo_irr[4,3]` of these matrices are irreducible. All of the matrices have 2 or more transitions that are zero but known to be possible. 
 
 ```{r exampleMatrices, echo=FALSE}
 #144 popn 905 year 9 10 individuals go extinct
@@ -108,7 +107,9 @@ badN144 <- allA$N[[144]]
 #205 popn 914 year 6 lambda == 1 
 badA205 <- allA$A[[205]]
 badN205 <- allA$N[[205]]
-
+badA71 <- allA$A[[71]]
+badN71 <- allA$N[[71]]
+#71 popn 250 year 5 lambda = 0.93
 BaseTable <- 
   tribble(~Population, ~Year, ~Stage,     ~N,        ~seedling,    ~juvenile,   ~adult,
           905,             9, "seedling", badN144[1], badA144[1,1],badA144[1,2],badA144[1,3],
@@ -116,7 +117,10 @@ BaseTable <-
           905,             9, "adult",    badN144[3], badA144[3,1],badA144[3,2],badA144[3,3],
           914,             6, "seedling", badN205[1], badA205[1,1],badA205[1,2],badA205[1,3],
           914,             6, "juvenile", badN205[2], badA205[2,1],badA205[2,2],badA205[2,3],
-          914,             6, "adult",    badN205[3], badA205[3,1],badA205[3,2],badA205[3,3])
+          914,             6, "adult",    badN205[3], badA205[3,1],badA205[3,2],badA205[3,3],
+          250,             5, "seedling", badN71[1], badA71[1,1],badA71[1,2],badA71[1,3],
+          250,             5, "juvenile", badN71[2], badA71[2,1],badA71[2,2],badA71[2,3],
+          250,             5, "adult",    badN71[3], badA71[3,1],badA71[3,2],badA71[3,3])
 
 
 # make some space for the prior versions
@@ -133,11 +137,12 @@ RLT_Fprior <- matrix(c(0.0, 0.0, 0.025,
 wUnifTable <- bind_cols(BaseTable, BaseTable[,5:7], BaseTable[,5:7])
 wUnifTable[1:3, 8:10] <- fill_transitions(allA$TF[[144]], allA$N[[144]])
 wUnifTable[4:6, 8:10] <- fill_transitions(allA$TF[[205]], allA$N[[205]])
-wUnifTable[1:3, 11:13] <- fill_transitions(allA$TF[[144]], allA$N[[144]], P = RLT_Tprior, priorweight = 1)
-wUnifTable[4:6, 11:13] <- fill_transitions(allA$TF[[205]], allA$N[[205]], P = RLT_Tprior, priorweight = 1)
-knitr::kable(wUnifTable, caption = "Two problematic matrices and the effects of a uniform and RLT prior with total weight equal to the sample size. &lambda; = 0 for population 905 and &lambda; = 1 for population 914 before applying the prior information. Where columns do not sum to 1 the remaining probability represents mortality.", digits=3)
+wUnifTable[7:9, 8:10] <- fill_transitions(allA$TF[[71]], allA$N[[71]])
+wUnifTable[1:3, 11:13] <- fill_transitions(allA$TF[[144]], allA$N[[144]], P = RLT_Tprior, priorweight = -1)
+wUnifTable[4:6, 11:13] <- fill_transitions(allA$TF[[205]], allA$N[[205]], P = RLT_Tprior, priorweight = -1)
+wUnifTable[7:9, 11:13] <- fill_transitions(allA$TF[[71]], allA$N[[71]], P = RLT_Tprior, priorweight = -1)
+knitr::kable(wUnifTable, caption = "Two problematic matrices and the matrix with the largest sample size; $\\lambda$ = 0, 1, and 0.92 for population 905, 914 and 205 respectively. The six columns on the right show the effect of assuming a uniform prior for transitions with a total weight of 1, and an RLT prior with total weight equal to 1.  Where columns do not sum to 1 the remaining probability represents mortality.", digits=3, escape = TRUE)
 ```
-
 
 ## Ignore the problem
 
@@ -167,7 +172,9 @@ The six populations where the simulated values are unavailable have very low app
 
 This strategy uses the transitions in a smarter way that maintains the constraint that all survival/transition probabilities have to add up to 1. We do this by using a dirichlet prior with the function `fill_transitions()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Dirichlet prior only applies to the $T$ matrix. If not specified, the function assumes a uniform prior across the $m+1$ fates for each stage. The extra category is for individuals that do not survive. 
 
-```{r fillDirichlet}
+Show the steps from an observed transition matrix through calculating the priors
+
+```{r fillDirichlet, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data."}
 testing <- allA %>% mutate(Adirch = map2(TF, N, fill_transitions),
                            ldirch = map_dbl(Adirch, lambda),                 
          irrdirch = map_dbl(Adirch, is.matrix_irreducible),
@@ -224,31 +231,37 @@ RLT_Fprior <- matrix(c(0.0, 0.0, 0.025,
 
 The RLT prior gives $\lambda = `r format(lambda(RLT_Tprior[-4,] + RLT_Fprior), digits = 2)`$. In an ideal world this prior would be extracted prior to collecting the data. In this case the prior is only being used to demonstrate the technique.
 
-```{r fillDirichlet_prior1}
-prior1 <- testing %>% mutate(Aprior1 = map2(TF, N, fill_transitions, 
+```{r fillDirichlet_prior1, fig.cap="Asymptotic growth rates using prior information vs. the raw observations alone. The horizontal red line indicates $\\lambda$ for the RLT prior. Points for all four priors shown in transparent grey."}
+diffPriors <- list()
+diffPriors[["Uniform"]] <- testing %>% mutate(Aprior = map2(TF, N, fill_transitions),
+                                              lprior = map_dbl(Aprior, lambda))
+
+
+diffPriors[["RLT, weight = 1"]] <- testing %>% mutate(Aprior = map2(TF, N, fill_transitions, 
                                             P=RLT_Tprior),
-                             lprior1 = map_dbl(Aprior1, lambda),                 
-                             irrdirch = map_dbl(Aprior1, is.matrix_irreducible),
-                             ergdirch = map_dbl(Aprior1, is.matrix_ergodic),
-                             TN = map2(TF, N, fill_transitions, returnType = "TN"))
+                             lprior = map_dbl(Aprior, lambda))
 
-ggplot(prior1, aes(x=ldirch, y=lprior1)) + geom_point() + 
-  geom_abline(slope = 1, intercept=0) +
-  ylab(expression(paste(lambda, " with RLT prior, weight = 1"))) + 
-  xlab(expression(paste(lambda, " using a uniform prior")))
-```
+diffPriors[["RLT, weight = 0.5N"]] <- testing %>% mutate(Aprior = map2(TF, N, fill_transitions, 
+                                            P=RLT_Tprior, priorweight = 0.5),
+                             lprior = map_dbl(Aprior, lambda))
 
-```{r fillDirichlet_prior0.5N}
-prior0.5N <- testing %>% mutate(Aprior0.5N = map2(TF, N, fill_transitions, 
+diffPriors[["RLT, weight = N"]] <- testing %>% mutate(Aprior = map2(TF, N, fill_transitions, 
                                             P=RLT_Tprior, priorweight = 1),
-                             lprior0.5N = map_dbl(Aprior0.5N, lambda),
-                             TN = map2(TF, N, fill_transitions, returnType = "TN"))
+                             lprior = map_dbl(Aprior, lambda))
 
-ggplot(prior0.5N, aes(x=lmbda, y=lprior0.5N)) + geom_point() + 
-  geom_abline(slope = 1, intercept=0) +
-  ylab(expression(paste(lambda, " with RLT prior, weight = 0.5N"))) + 
-  xlab(expression(paste(lambda, " using a uniform prior"))) + 
-  geom_hline(yintercept = 0.96, color="red", linetype =2 )
+diffPriors <- bind_rows(diffPriors, .id="prior")
+diffPriors$prior <- factor(diffPriors$prior, levels = c("Uniform", "RLT, weight = 1",
+                                                        "RLT, weight = 0.5N", "RLT, weight = N"))
+ggplot(diffPriors, aes(x=lmbda, y=lprior)) + 
+  geom_point() + 
+  geom_point(data=select(diffPriors, -prior), alpha=0.1) + 
+  geom_abline(slope = 1, intercept=0, linetype = 2) +
+  ylab(expression(paste(lambda, " including prior information"))) + 
+  xlab(expression(paste(lambda, " from raw observations"))) + 
+  facet_wrap(~prior) + 
+  geom_hline(yintercept = 0.96, color="red", linetype = 2 ) + 
+  theme_bw()
+
 ```
 
 
