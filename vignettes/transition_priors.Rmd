@@ -33,6 +33,7 @@ if(!knitting){
   # login to imgur
   library(imguR)
   imgurtkn <- imgur_login()
+  imgurtkn$refresh()
 }
 data("L_elto")
 A <- projection.matrix(as.data.frame(L_elto), stage="stage", fate="next_stage", fertility="fertility",
@@ -57,12 +58,14 @@ gg2 <- ggplot(plotsumm, aes(x=year, y=N)) +
 if(!knitting){
   i <- imgur(token=imgurtkn)
 }
-gridExtra::grid.arrange(gg1, gg2)
+ggboth <- gridExtra::grid.arrange(gg1, gg2)
 # gg1
 # gg2
 if(!knitting){
-  
+  ggsave(i$file, plot=ggboth, device="png")
   imgur_off(i)
+} else{
+  ggboth
 }
 ```
 
