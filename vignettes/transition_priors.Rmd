@@ -264,5 +264,46 @@ ggplot(diffPriors, aes(x=lmbda, y=lprior)) +
 
 ```
 
+# Obtaining credible intervals on vital rates and $\lambda$
+
+Recognizing that the observed transitions are realizations of a Dirichlet distribution gives us a very simple way to derive credible intervals for the transition probabilities in our matrix. The marginal distribution of a single transition is a beta distribution as described above, and we can simply report the 2.5% and 97.5% percentiles of that distribution to provide a credible interval on a transition rate. These intervals do shift and shrink as the weight on the prior increases.
+
+```{r credibleIntervals1}
+xx <- crossing(prior = c("None", "Uniform", "RLT, weight = 1", "RLT, weight = 0.5N", "RLT, weight = N"),
+         transition = c("p to p", "p to j", "p to a", "p to m"),
+         prob = seq(0.01,0.99, 0.01))
+params <- tribble(
+  ~prior, ~transition, ~a,
+  "None", "p to p",     1,    
+  "None", "p to j",     7,
+  "None", "p to a",     0,
+  "None", "p to m",     3,
+  "Uniform", "p to p",     1.25,    
+  "Uniform", "p to j",     7.25,
+  "Uniform", "p to a",     0.25,
+  "Uniform", "p to m",     3.25,
+  "RLT, weight = 1", "p to p",     1.25,    
+  "RLT, weight = 1", "p to j",     7.05,
+  "RLT, weight = 1", "p to a",     0.01,
+  "RLT, weight = 1", "p to m",     3.69,
+  "RLT, weight = 0.5N", "p to p",     2.375,    
+  "RLT, weight = 0.5N", "p to j",     7.275,
+  "RLT, weight = 0.5N", "p to a",     0.055,
+  "RLT, weight = 0.5N", "p to m",     6.795,
+  "RLT, weight = N", "p to p",     3.75,    
+  "RLT, weight = N", "p to j",     7.55,
+  "RLT, weight = N", "p to a",     0.11,
+  "RLT, weight = N", "p to m",     10.59
+) 
+xx <- left_join(xx, params, by = c("prior", "transition")) %>%
+  group_by(prior) %>%
+  mutate(b = sum(a) - a,
+         dens = dbeta(prob, a, b)) %>%
+    ungroup()
+
+ggplot(xx, aes(x = prob, y=dens)) + geom_line() + 
+  facet_grid(prior~transition)
+```
+
 
 # References
