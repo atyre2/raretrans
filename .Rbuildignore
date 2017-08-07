@@ -3,4 +3,4 @@
 ^docs$
 ^data-raw$
 ^\.\./test_bd/static/raretrans$
-^images
+^vignettes/images

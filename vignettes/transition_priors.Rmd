@@ -30,10 +30,11 @@ library(popbio)
 library(raretrans)
 knitting <- isTRUE(getOption('knitr.in.progress'))
 if(!knitting){
-  # login to imgur
-  library(imguR)
-  imgurtkn <- imgur_login()
-  imgurtkn$refresh()
+  pathtoimages="images"
+#   # login to imgur
+#   library(imguR)
+#   imgurtkn <- imgur_login()
+#   imgurtkn$refresh()
 }
 data("L_elto")
 A <- projection.matrix(as.data.frame(L_elto), stage="stage", fate="next_stage", fertility="fertility",
@@ -55,18 +56,14 @@ plotsumm <- plotdata %>% group_by(year) %>%
   summarize(N=sum(N))
 gg2 <- ggplot(plotsumm, aes(x=year, y=N)) +
   geom_line()
-if(!knitting){
-  i <- imgur(token=imgurtkn)
-}
 ggboth <- gridExtra::grid.arrange(gg1, gg2)
 # gg1
 # gg2
 if(!knitting){
-  ggsave(i$file, plot=ggboth, device="png")
-  imgur_off(i)
-} else{
-  ggboth
-}
+  ggsave("pop_by_time.png", plot=ggboth, device="png", path=pathtoimages)
+} 
+ggboth
+
 ```
 
 OK, now we want to generate matrices for each year and popnum. We have to change the variables into factors and control the levels so that the resulting matrices end up with the right shape with zeros for the missing transitions. Also have to coerce each grouped tbl_df to a regular data.frame before passing to `projection.matrix()`. 
