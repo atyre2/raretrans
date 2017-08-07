@@ -336,5 +336,9 @@ if(!knitting){
 }
 ```
 
+```{r uploadGoogleDrive, eval=!knitting, echo=FALSE, include=FALSE}
+library(googledrive)
+
+```
 
 # References
