@@ -354,13 +354,22 @@ ggplot(fulldist, aes(x = prob, y=dens)) +
             mapping = aes(label=label), x=0.75, y=12, size=3) +
   facet_grid(prior~transition) + 
   xlab("Transition Probability") + 
-  ylab("Probability Density")
+  ylab("Probability Density") + 
+  theme_bw()
 if(!knitting){
   ggsave("credibleIntervals1.png", path=pathtoimages)
 }
 ```
 
 Obtaining credible intervals on $\lambda$ requires simulation, because it is difficult (or maybe impossible) to use the characteristic equation to combine the probability distributions of the matrix entries to obtain the distribution of $\lambda$. 
+
+```{r lambda_ci}
+#71 popn 250 year 5 lambda = 0.93
+
+Tparms <- sim_transitions(allA$TF[[71]], allA$N[[71]], samples = 10)
+
+```
+
 
 ```{r uploadGoogleDrive, eval=!knitting, echo=FALSE, include=FALSE}
 library(googledrive)
