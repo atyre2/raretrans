@@ -33,7 +33,6 @@ rdirichlet <- function (n, alpha){
 #' @return Always returns a list.
 #' @export
 #'
-#' @examples
 sim_transitions <- function(TF, N, P = NULL, priorweight = -1, samples = 1){
   Tmat <- TF$T
   Fmat <- TF$F

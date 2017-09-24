@@ -363,11 +363,35 @@ if(!knitting){
 
 Obtaining credible intervals on $\lambda$ requires simulation, because it is difficult (or maybe impossible) to use the characteristic equation to combine the probability distributions of the matrix entries to obtain the distribution of $\lambda$. 
 
-```{r lambda_ci}
+```{r lambda_ci, fig.cap="Distribution of asymptotic population growth rates for population 250, year 5, with different prior information."}
 #71 popn 250 year 5 lambda = 0.93
+diffPriors_lci <- list()
+samples = 10000
+diffPriors_lci[["Uniform"]] <- data_frame(A = sim_transitions(allA$TF[[71]], allA$N[[71]], samples = samples), 
+                                          lprior = map_dbl(A, lambda))
 
-Tparms <- sim_transitions(allA$TF[[71]], allA$N[[71]], samples = 10)
 
+diffPriors_lci[["RLT, weight = 1"]] <- data_frame(A = sim_transitions(allA$TF[[71]], allA$N[[71]], P=RLT_Tprior, samples = samples), 
+                                          lprior = map_dbl(A, lambda))
+
+diffPriors_lci[["RLT, weight = 0.5N"]] <- data_frame(A = sim_transitions(allA$TF[[71]], allA$N[[71]], 
+                                                                        P=RLT_Tprior, priorweight = 0.5,
+                                                                        samples = samples), 
+                                                    lprior = map_dbl(A, lambda))
+
+diffPriors_lci[["RLT, weight = N"]] <- data_frame(A = sim_transitions(allA$TF[[71]], allA$N[[71]], 
+                                                                        P=RLT_Tprior, priorweight = 1,
+                                                                        samples = samples), 
+                                                    lprior = map_dbl(A, lambda))
+
+diffPriors_lci <- bind_rows(diffPriors_lci, .id="prior")
+diffPriors_lci$prior <- factor(diffPriors_lci$prior, levels = c("Uniform", "RLT, weight = 1",
+                                                        "RLT, weight = 0.5N", "RLT, weight = N"))
+
+ggplot(diffPriors_lci, aes(x=lprior)) + 
+  geom_density(fill="black") + 
+  facet_wrap(~prior) + 
+  theme_bw()
 ```
 
 
