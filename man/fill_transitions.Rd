@@ -22,7 +22,7 @@ The return value depends on parameter returnType.
 \itemize{
   \item A - the summed matrix "filled in" using a dirichlet prior
   \item T - just the filled in transition matrix
-  \item TN - the augmented matrix of fates -- use in calculating the CI
+  \item TN - the augmented matrix of fates -- use in calculating the CI or for simulation
 }
 }
 \description{
