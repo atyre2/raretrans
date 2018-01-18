@@ -294,6 +294,8 @@ if(!knitting){
 
 Recognizing that the observed transitions are realizations of a Dirichlet distribution gives us a very simple way to derive credible intervals for the transition probabilities in our matrix. The marginal distribution of a single transition is a beta distribution as described above, and we can simply report the 2.5% and 97.5% percentiles of that distribution to provide a credible interval on a transition rate. These intervals do shift and shrink as the weight on the prior increases.
 
+Add visual indication of credible interval, median and mean as text
+
 ```{r credibleIntervals1}
 xx <- crossing(prior = c("None", "Uniform", "RLT, weight = 1", "RLT, weight = 0.5N", "RLT, weight = N"),
          transition = c("p to p", "p to j", "p to a", "p to m"),
@@ -322,21 +324,39 @@ params <- tribble(
   "RLT, weight = N", "p to m",     10.59
 ) 
 params <- group_by(params, prior) %>%
-  mutate(b = sum(a) - a) %>%
+  mutate(b = sum(a) - a,
+         lowerci = qbeta(0.025, a, b),
+         median = paste0("median=",format(qbeta(0.5, a, b),digits=0,nsmall=3)),
+         upperci = qbeta(0.975, a, b),
+         expected = paste0("mean=",format(a / (a+b), digits=0, nsmall=3)),
+         x = 0.9, y=12) %>%
   ungroup()
 
 xx <- left_join(xx, params, by = c("prior", "transition")) %>%
-  mutate(dens = dbeta(prob, a, b)) 
+  mutate(dens = dbeta(prob, a, b),
+         inci = prob > lowerci & prob < upperci) 
 xx$prior <- factor(xx$prior, levels = c("None", "Uniform", "RLT, weight = 1", "RLT, weight = 0.5N", "RLT, weight = N"))
 xx$transition <- factor(xx$transition, levels = c("p to p", "p to j", "p to a", "p to m"))
-ggplot(filter(xx, transition != "p to m"), aes(x = prob, y=dens)) + geom_area() + 
+
+params$transition <- factor(params$transition, levels = c("p to p", "p to j", "p to a", "p to m"))
+ggplot(filter(xx, transition != "p to m"), aes(x = prob, y=dens)) + geom_area(alpha = 0.75) +
+  geom_area(data=function(x){x[x$inci,]}) +
+  theme_classic() +
   facet_grid(prior~transition) + 
   xlab("Transition Probability") + 
-  ylab("Probability Density")
+  ylab("Probability Density") + 
+  geom_text(data=filter(params, transition != "p to m"), 
+            mapping=aes(x=x,y=y, label=expected),
+            size=2, hjust=1) +
+  geom_text(data=filter(params, transition != "p to m"), 
+            mapping=aes(x=x,y=y-3, label=median),
+            size=2, hjust=1)
 if(!knitting){
   ggsave("credibleIntervals1.png", path=pathtoimages)
 }
 ```
+
+Credible interval for lambda figure 
 
 ```{r uploadGoogleDrive, eval=!knitting, echo=FALSE, include=FALSE}
 library(googledrive)
