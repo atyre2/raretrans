@@ -96,7 +96,14 @@ allA <- ungroup(allA) %>%
          ergodic = map_dbl(A, is.matrix_ergodic),
          irreduc = map_dbl(A, is.matrix_irreducible),
          primitv = map_dbl(A, is.matrix_primitive))
-ggplot(allA, aes(x=lmbda)) + geom_histogram() + facet_wrap(~year)
+ggplot(allA, aes(x=lmbda)) + geom_histogram() + facet_wrap(~year)+
++
+ ylab("Proportion of invasive \n to native species")+
+  xlab("Predicted Proportion")+
+  theme(axis.title.y = element_text(colour="grey20",size=15,face="bold"),
+        axis.text.x = element_text(colour="grey20",size=15, face="bold"),
+        axis.text.y = element_text(colour="grey20",size=15,face="bold"),  
+        axis.title.x = element_text(colour="grey20",size=15,face="bold"))
 if(!knitting){
   ggsave("histLmbdaByYear.png", path=pathtoimages)
 }
