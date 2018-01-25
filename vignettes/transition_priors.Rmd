@@ -402,7 +402,10 @@ diffPriors_lci$prior <- factor(diffPriors_lci$prior, levels = c("Uniform", "RLT,
 ggplot(diffPriors_lci, aes(x=lprior)) + 
   geom_density(fill="black") + 
   facet_wrap(~prior) + 
-  theme_bw()
+  theme_bw() + 
+  rlt_theme + 
+  xlab(expression(paste(lambda," asymptotic population growth"))) +
+  ylab("prior density")
 if(!knitting){
   ggsave("credible_lambda.png", path=pathtoimages)
 }
@@ -411,24 +414,31 @@ if(!knitting){
 ```{r uploadGoogleDrive, eval=!knitting, echo=FALSE, include=FALSE}
 library(googledrive)
 images <- list.files(path=pathtoimages, full.names=TRUE)
-# first time do this
+# # first time do this
 # imgDrive <- list()
 # for (i in seq_along(images)){
 #   imgDrive[[i]] <- drive_upload(media=images[i],
-#                path="raretrans/images/")  
+#                path="raretrans/images/")
 # }
 # imgIDs <- map_chr(imgDrive,"id")
-# doesn't work with multiple ids
-#drive_share(as_id(imgIDs[1]), role="reader", type="anyone")
-# need to remove the /view?usp=drivesdk at the end?
-# drive_share_link(as_id(imgIDs)) 
-
+# # doesn't work with multiple ids
+# drive_share(as_id(imgIDs[1]), role="reader", type="anyone")
+# # need to remove the /view?usp=drivesdk at the end?
+# drive_share_link(as_id(imgIDs))
 # dput(imgIDs)
-
-imgIDs <- c("0Bxs6Le-YI-kdakkza0Zld1FXR2c", "0Bxs6Le-YI-kdbFBGamdEY093d28", 
-"0Bxs6Le-YI-kdR3dSMzd5cVBiZlE", "0Bxs6Le-YI-kdRXZMdWFRZTFmeWc", 
-"0Bxs6Le-YI-kda3FyM0wtY3hfdFk", "0Bxs6Le-YI-kdWDctbVJQTzZjZm8", 
-"0Bxs6Le-YI-kdUmt4aXB2RkoyYmc")
+# [1] "https://drive.google.com/file/d/1sfmMokYMmdlA6wtgl_ogu3_Gg-djeOw6/view?usp=drivesdk"
+# [2] "https://drive.google.com/file/d/1qDk5z8tXaFyzVp2461-q7poHz5ffgTHA/view?usp=drivesdk"
+# [3] "https://drive.google.com/file/d/1Yez_8pjYnh0Q-Cgqv1Ro2d8ycIeYpotk/view?usp=drivesdk"
+# [4] "https://drive.google.com/file/d/1Y-KULUZSdqCt6oHlvmU_o8XQboNYzNNb/view?usp=drivesdk"
+# [5] "https://drive.google.com/file/d/1Ha9jXBCHLdynz_zvp5B8HfFTy13Dg_OD/view?usp=drivesdk"
+# [6] "https://drive.google.com/file/d/1e5D1IDLbAo-M9Kq646Sb4b3b89MpdRDf/view?usp=drivesdk"
+# [7] "https://drive.google.com/file/d/1qFNKkEHx7UFTY7uZ7zMwvbhezVcyg8em/view?usp=drivesdk"
+# [8] "https://drive.google.com/file/d/1Da5vi-J6y7eNgM2px6NKmk0zclIgD7ra/view?usp=drivesdk"
+imgIDs <- c("1sfmMokYMmdlA6wtgl_ogu3_Gg-djeOw6", "1qDk5z8tXaFyzVp2461-q7poHz5ffgTHA", 
+"1Yez_8pjYnh0Q-Cgqv1Ro2d8ycIeYpotk", "1Y-KULUZSdqCt6oHlvmU_o8XQboNYzNNb", 
+"1Ha9jXBCHLdynz_zvp5B8HfFTy13Dg_OD", "1e5D1IDLbAo-M9Kq646Sb4b3b89MpdRDf", 
+"1qFNKkEHx7UFTY7uZ7zMwvbhezVcyg8em", "1Da5vi-J6y7eNgM2px6NKmk0zclIgD7ra"
+)
 
 if (length(images) != length(imgIDs)) {
   stop("you've added new images, delete everything and rerun startup code.")
