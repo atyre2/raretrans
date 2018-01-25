@@ -405,7 +405,7 @@ ggplot(diffPriors_lci, aes(x=lprior)) +
   theme_bw() + 
   rlt_theme + 
   xlab(expression(paste(lambda," asymptotic population growth"))) +
-  ylab("prior density")
+  ylab("Posterior density")
 if(!knitting){
   ggsave("credible_lambda.png", path=pathtoimages)
 }
