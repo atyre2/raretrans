@@ -402,7 +402,7 @@ diffPriors_lci$prior <- factor(diffPriors_lci$prior, levels = c("Uniform", "RLT,
 ggplot(diffPriors_lci, aes(x=lprior)) + 
   geom_density(fill="black") + 
   facet_wrap(~prior) + 
-  theme_bw() + 
+  theme_classic() + 
   rlt_theme + 
   xlab(expression(paste(lambda," asymptotic population growth"))) +
   ylab("Posterior density")
