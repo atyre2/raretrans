@@ -306,7 +306,7 @@ if(!knitting){
 
 Recognizing that the observed transitions are realizations of a Dirichlet distribution gives us a very simple way to derive credible intervals for the transition probabilities in our matrix. The marginal distribution of a single transition is a beta distribution as described above, and we can simply report the 2.5% and 97.5% percentiles of that distribution to provide a credible interval on a transition rate. These intervals do shift and shrink as the weight on the prior increases.
 
-```{r credibleIntervals1, echo=FALSE, fig.cap="Credible intervals for transition probabilities out of seedling stage in Population 250, year 5. Shaded bands correspond to 50% (darkest), 90%, 95% and 99.9% (lightest) credible intervals. Smaller intervals are not visible in the p->a transitions when the upper boundary of the interval is smaller than 0.01. Labels are median (lower 95% CI, upper 95% CI). Note that where the median and lower interval are equal to 0.01, the actual value is < 0.01."}
+```{r credibleIntervals1, echo=FALSE, fig.width = 5, fig.height = 5, fig.cap="Credible intervals for transition probabilities out of seedling stage in Population 250, year 5. Shaded bands correspond to 50% (darkest), 90%, 95% and 99.9% (lightest) credible intervals. Smaller intervals are not visible in the p->a transitions when the upper boundary of the interval is smaller than 0.01. Labels are median (lower 95% CI, upper 95% CI). Note that where the median and lower interval are equal to 0.01, the actual value is < 0.01."}
 xx <- crossing(prior = c("None", "Uniform", "RLT, weight = 1", "RLT, weight = 0.5N", "RLT, weight = N"),
          transition = c("p to p", "p to j", "p to a", "p to m"),
          prob = seq(0.01,0.99, 0.01))
@@ -320,18 +320,18 @@ params <- tribble(
   "Uniform", "p to j",     7.25,
   "Uniform", "p to a",     0.25,
   "Uniform", "p to m",     3.25,
-  "RLT, \\nweight = 1", "p to p",     1.25,    
-  "RLT, \\nweight = 1", "p to j",     7.05,
-  "RLT, \\nweight = 1", "p to a",     0.01,
-  "RLT, \\nweight = 1", "p to m",     3.69,
-  "RLT, \\nweight = 0.5N", "p to p",     2.375,    
-  "RLT, \\nweight = 0.5N", "p to j",     7.275,
-  "RLT, \\nweight = 0.5N", "p to a",     0.055,
-  "RLT, \\nweight = 0.5N", "p to m",     6.795,
-  "RLT, \\nweight = N", "p to p",     3.75,    
-  "RLT, \\nweight = N", "p to j",     7.55,
-  "RLT, \\nweight = N", "p to a",     0.11,
-  "RLT, \\nweight = N", "p to m",     10.59
+  "RLT, weight = 1", "p to p",     1.25,    
+  "RLT, weight = 1", "p to j",     7.05,
+  "RLT, weight = 1", "p to a",     0.01,
+  "RLT, weight = 1", "p to m",     3.69,
+  "RLT, weight = 0.5N", "p to p",     2.375,    
+  "RLT, weight = 0.5N", "p to j",     7.275,
+  "RLT, weight = 0.5N", "p to a",     0.055,
+  "RLT, weight = 0.5N", "p to m",     6.795,
+  "RLT, weight = N", "p to p",     3.75,    
+  "RLT, weight = N", "p to j",     7.55,
+  "RLT, weight = N", "p to a",     0.11,
+  "RLT, weight = N", "p to m",     10.59
 ) 
 params <- group_by(params, prior) %>%
   mutate(b = sum(a) - a,
@@ -345,25 +345,26 @@ params <- group_by(params, prior) %>%
 xx <- left_join(xx, params, by = c("prior", "transition")) %>%
   mutate(dens = dbeta(prob, a, b),
          inci = prob > lowerci & prob < upperci) 
-xx$prior <- factor(xx$prior, levels = c("None", "Uniform", "RLT, \\nweight = 1", "RLT, \\nweight = 0.5N", "RLT, \\nweight = N"))
+xx$prior <- factor(xx$prior, levels = c("None", "Uniform", "RLT, weight = 1", "RLT, weight = 0.5N", "RLT, weight = N"))
 xx$transition <- factor(xx$transition, levels = c("p to p", "p to j", "p to a", "p to m"))
 
 params$transition <- factor(params$transition, levels = c("p to p", "p to j", "p to a", "p to m"))
 # fix alphas
+# see discussions at https://stackoverflow.com/questions/17311917/ggplot2-the-unit-of-size 
+# to see where I get the conversion factor for points - size to keep fonts the same.
 ggplot(filter(xx, transition != "p to m"), aes(x = prob, y=dens)) + geom_area(alpha = 0.75) +
   geom_area(data=function(x){x[x$inci,]}) +
   theme_classic() +
-  facet_grid(prior~transition) + 
+  facet_grid(prior~transition) + #, labeller=label_wrap_gen(width = 15)) + 
   xlab("Transition Probability") + 
   ylab("Probability Density") + 
   geom_text(data=filter(params, transition != "p to m"), 
             mapping=aes(x=x,y=y, label=expected),
-            size=3, hjust=1) +
+            size=12/.pt, hjust=1) +
   geom_text(data=filter(params, transition != "p to m"), 
             mapping=aes(x=x,y=y-3, label=median),
-            size=3, hjust=1) + 
-  rlt_theme + theme(panel.spacing.y = unit(1, "lines"),
-                    panel.spacing.x = unit(1, "lines"),
+            size=12/.pt, hjust=1) + 
+  rlt_theme + theme(panel.spacing = unit(1, "lines"),
                     strip.text = element_text(size=12)) +
   scale_x_continuous(breaks = c(0,0.5,1.0))
 if(!knitting){
