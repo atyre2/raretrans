@@ -1,7 +1,7 @@
 ---
 title: "Effect of prior information on transition probabilities"
 author: "Drew Tyre"
-date: "`r Sys.Date()`"
+date: "`r format(Sys.Date(), '%b %d, %Y')`"
 output:
   rmarkdown::html_vignette:
     fig_caption: yes
@@ -35,6 +35,11 @@ if(!knitting){
 #   imgurtkn <- imgur_login()
 #   imgurtkn$refresh()
 }
+# Raymond's theme modifications
+rlt_theme <- theme(axis.title.y = element_text(colour="grey20",size=15,face="bold"),
+        axis.text.x = element_text(colour="grey20",size=15, face="bold"),
+        axis.text.y = element_text(colour="grey20",size=15,face="bold"),  
+        axis.title.x = element_text(colour="grey20",size=15,face="bold"))
 data("L_elto")
 A <- projection.matrix(as.data.frame(L_elto), stage="stage", fate="next_stage", fertility="fertility",
                        sort=c("p","j","a"))
@@ -50,11 +55,11 @@ plotdata <- L_elto %>% group_by(POPNUM, year, stage) %>%
   summarise(N = sum(n))
 
 gg1 <- ggplot(plotdata, aes(x=year, y=N, group=POPNUM)) +
-  geom_line()
+  geom_line() + rlt_theme
 plotsumm <- plotdata %>% group_by(year) %>%
   summarize(N=sum(N))
 gg2 <- ggplot(plotsumm, aes(x=year, y=N)) +
-  geom_line()
+  geom_line() + rlt_theme
 ggboth <- gridExtra::grid.arrange(gg1, gg2)
 
 if(!knitting){
@@ -85,7 +90,7 @@ allA <- L_elto %>%
 
 We end up with all the matrices for each population and year in a `list-column` of the result. Working with this thing is a bit awkward. The best strategy is from [Jenny Bryans' talk on list columns](https://speakerdeck.com/jennybc/putting-square-pegs-in-round-holes-using-list-cols-in-your-dataframe) and uses mutate with map_*(listcolumn, function).
 
-```{r histLmbdaByYear}
+```{r histLmbdaByYear, message=FALSE, fig.cap="histograms of asymptotic population growth for each year."}
 
 library(popdemo)
 allA <- ungroup(allA) %>% 
@@ -96,13 +101,9 @@ allA <- ungroup(allA) %>%
          irreduc = map_dbl(A, is.matrix_irreducible),
          primitv = map_dbl(A, is.matrix_primitive))
 ggplot(allA, aes(x=lmbda)) + geom_histogram() + facet_wrap(~year)+
-+
- ylab("Proportion of invasive \n to native species")+
-  xlab("Predicted Proportion")+
-  theme(axis.title.y = element_text(colour="grey20",size=15,face="bold"),
-        axis.text.x = element_text(colour="grey20",size=15, face="bold"),
-        axis.text.y = element_text(colour="grey20",size=15,face="bold"),  
-        axis.title.x = element_text(colour="grey20",size=15,face="bold"))
+ ylab("Frequency")+
+  xlab(expression(paste(lambda, ", asymptotic population growth"))) + rlt_theme
+  
 if(!knitting){
   ggsave("histLmbdaByYear.png", path=pathtoimages)
 }
@@ -184,7 +185,10 @@ sgr <- bind_rows(map(sgr, xtrc), .id="POPNUM")
 filter(sgr, !is.na(sim)) %>%
 ggplot(aes(x=approx, y = sim)) + geom_point() + 
   geom_errorbar(aes(ymin=lowerci, ymax=upperci)) + 
-  geom_abline(slope = 1, intercept=0)
+  geom_abline(slope = 1, intercept=0) + 
+  rlt_theme +
+  xlab(expression(paste("Tuljapurkar's approximate stochastic ", log(lambda)))) +
+  ylab(expression(paste("Stochastic ", log(lambda), " by simulation")))
 if(!knitting){
   ggsave("stochGrowthRateBad.png", path=pathtoimages)
 }
@@ -208,7 +212,8 @@ testing <- allA %>% mutate(Adirch = map2(TF, N, fill_transitions),
 ggplot(testing, aes(x=lmbda, y=ldirch)) + geom_point() + 
   geom_abline(slope = 1, intercept=0) +
   xlab(expression(paste(lambda, " ignoring zeros"))) + 
-  ylab(expression(paste(lambda, " using a uniform prior")))
+  ylab(expression(paste(lambda, " using a uniform prior"))) +
+  rlt_theme
 if(!knitting){
   ggsave("fillDirichlet.png", path=pathtoimages)
 }
@@ -235,7 +240,8 @@ ggplot(compare_approx, aes(x=ignored, y = unif)) +
   geom_point() + 
   geom_abline(slope = 1, intercept=0) + 
   xlab(expression(paste("log(",lambda,") ignoring zeros"))) + 
-  ylab(expression(paste("log(",lambda,") with uniform prior")))
+  ylab(expression(paste("log(",lambda,") with uniform prior"))) +
+  rlt_theme
 if(!knitting){
   ggsave("stochDirchVsBad.png", path=pathtoimages)
 }
@@ -290,7 +296,7 @@ ggplot(diffPriors, aes(x=lmbda, y=lprior)) +
   xlab(expression(paste(lambda, " from raw observations"))) + 
   facet_wrap(~prior) + 
   geom_hline(yintercept = 0.96, color="red", linetype = 2 ) + 
-  theme_bw()
+  theme_bw() + rlt_theme
 if(!knitting){
   ggsave("fillDirichletPrior1.png", path=pathtoimages)
 }
@@ -314,18 +320,18 @@ params <- tribble(
   "Uniform", "p to j",     7.25,
   "Uniform", "p to a",     0.25,
   "Uniform", "p to m",     3.25,
-  "RLT, weight = 1", "p to p",     1.25,    
-  "RLT, weight = 1", "p to j",     7.05,
-  "RLT, weight = 1", "p to a",     0.01,
-  "RLT, weight = 1", "p to m",     3.69,
-  "RLT, weight = 0.5N", "p to p",     2.375,    
-  "RLT, weight = 0.5N", "p to j",     7.275,
-  "RLT, weight = 0.5N", "p to a",     0.055,
-  "RLT, weight = 0.5N", "p to m",     6.795,
-  "RLT, weight = N", "p to p",     3.75,    
-  "RLT, weight = N", "p to j",     7.55,
-  "RLT, weight = N", "p to a",     0.11,
-  "RLT, weight = N", "p to m",     10.59
+  "RLT, \\nweight = 1", "p to p",     1.25,    
+  "RLT, \\nweight = 1", "p to j",     7.05,
+  "RLT, \\nweight = 1", "p to a",     0.01,
+  "RLT, \\nweight = 1", "p to m",     3.69,
+  "RLT, \\nweight = 0.5N", "p to p",     2.375,    
+  "RLT, \\nweight = 0.5N", "p to j",     7.275,
+  "RLT, \\nweight = 0.5N", "p to a",     0.055,
+  "RLT, \\nweight = 0.5N", "p to m",     6.795,
+  "RLT, \\nweight = N", "p to p",     3.75,    
+  "RLT, \\nweight = N", "p to j",     7.55,
+  "RLT, \\nweight = N", "p to a",     0.11,
+  "RLT, \\nweight = N", "p to m",     10.59
 ) 
 params <- group_by(params, prior) %>%
   mutate(b = sum(a) - a,
@@ -339,10 +345,11 @@ params <- group_by(params, prior) %>%
 xx <- left_join(xx, params, by = c("prior", "transition")) %>%
   mutate(dens = dbeta(prob, a, b),
          inci = prob > lowerci & prob < upperci) 
-xx$prior <- factor(xx$prior, levels = c("None", "Uniform", "RLT, weight = 1", "RLT, weight = 0.5N", "RLT, weight = N"))
+xx$prior <- factor(xx$prior, levels = c("None", "Uniform", "RLT, \\nweight = 1", "RLT, \\nweight = 0.5N", "RLT, \\nweight = N"))
 xx$transition <- factor(xx$transition, levels = c("p to p", "p to j", "p to a", "p to m"))
 
 params$transition <- factor(params$transition, levels = c("p to p", "p to j", "p to a", "p to m"))
+# fix alphas
 ggplot(filter(xx, transition != "p to m"), aes(x = prob, y=dens)) + geom_area(alpha = 0.75) +
   geom_area(data=function(x){x[x$inci,]}) +
   theme_classic() +
@@ -351,10 +358,14 @@ ggplot(filter(xx, transition != "p to m"), aes(x = prob, y=dens)) + geom_area(al
   ylab("Probability Density") + 
   geom_text(data=filter(params, transition != "p to m"), 
             mapping=aes(x=x,y=y, label=expected),
-            size=2, hjust=1) +
+            size=3, hjust=1) +
   geom_text(data=filter(params, transition != "p to m"), 
             mapping=aes(x=x,y=y-3, label=median),
-            size=2, hjust=1)
+            size=3, hjust=1) + 
+  rlt_theme + theme(panel.spacing.y = unit(1, "lines"),
+                    panel.spacing.x = unit(1, "lines"),
+                    strip.text = element_text(size=12)) +
+  scale_x_continuous(breaks = c(0,0.5,1.0))
 if(!knitting){
   ggsave("credibleIntervals1.png", path=pathtoimages)
 }
@@ -391,6 +402,9 @@ ggplot(diffPriors_lci, aes(x=lprior)) +
   geom_density(fill="black") + 
   facet_wrap(~prior) + 
   theme_bw()
+if(!knitting){
+  ggsave("credible_lambda.png", path=pathtoimages)
+}
 ```
 
 ```{r uploadGoogleDrive, eval=!knitting, echo=FALSE, include=FALSE}
