@@ -306,13 +306,20 @@ if(!knitting){
 
 Recognizing that the observed transitions are realizations of a Dirichlet distribution gives us a very simple way to derive credible intervals for the transition probabilities in our matrix. The marginal distribution of a single transition is a beta distribution as described above, and we can simply report the 2.5% and 97.5% percentiles of that distribution to provide a credible interval on a transition rate. These intervals do shift and shrink as the weight on the prior increases.
 
-TODO: Add line on left hand side of each plot where necessary. 
-Fix shading. 
+TODO: Fix shading. 
 Add priors for comparison. 
 Check that fertility is used somewhere! 
 
 
 ```{r credibleIntervals1, echo=FALSE, fig.width = 7, fig.height = 7, fig.cap="Credible intervals for transition probabilities out of seedling stage in Population 250, year 5. Shaded bands correspond to 50% (darkest), 90%, 95% and 99.9% (lightest) credible intervals. Smaller intervals are not visible in the p->a transitions when the upper boundary of the interval is smaller than 0.01. Labels are median (lower 95% CI, upper 95% CI). Note that where the median and lower interval are equal to 0.01, the actual value is < 0.01."}
+# get multinomial confidence interval for Likelihood based interval on NONE
+mnCI <- MultinomialCI::multinomialCI(c(1, 7, 0, 3), alpha = 0.05)
+colnames(mnCI) <- c("lcl", "ucl")
+mnCI <- as_data_frame(mnCI) %>%
+  mutate(p = c(1, 7, 0, 3) / 11,
+         prior = factor("None", levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N")), 
+         transition =  factor(c("p to p", "p to j", "p to a", "p to m"), levels = c("p to p", "p to j", "p to a", "p to m"))) %>%
+  filter(transition != "p to m")
 xx <- crossing(prior = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N"),
          transition = c("p to p", "p to j", "p to a", "p to m"),
          prob = seq(0.001,0.999, 0.001))
@@ -348,20 +355,37 @@ params <- group_by(params, prior) %>%
          x = 0.9, y=12) %>%
   ungroup()
 
+# cut strategy doesn't work
+# build T/F column for each polygon
 xx <- left_join(xx, params, by = c("prior", "transition")) %>%
   mutate(dens = dbeta(prob, a, b),
-         inci = prob > lowerci & prob < upperci) 
-xx$prior <- factor(xx$prior, levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N"))
-xx$transition <- factor(xx$transition, levels = c("p to p", "p to j", "p to a", "p to m"))
+         #         layer = cut(prob, breaks = c(0.0, 0.025, 0.05, 0.25, 0.75, 0.95, 0.975,1),
+         #                     labels =       c("full","95%","90%","50%","u90%","u95%","ufull" )),
+         in95 = prob > 0.025 & prob < 0.975,
+         in90 = prob > 0.05 & prob < 0.95,
+         in50 = prob > 0.25 & prob < 0.75,
+         prior = factor(prior, levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N")),
+         transition = factor(transition, levels = c("p to p", "p to j", "p to a", "p to m"))) 
 
+#xx$layer <- forcats::fct_collapse(xx$layer,
+#                                  full = c("full", "ufull"),
+#                                  `95%` = c("95%", "u95%"),
+#                                  `90%` = c("90%", "u90%"))
 params$prior <- factor(params$prior, levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N"))
 params$transition <- factor(params$transition, levels = c("p to p", "p to j", "p to a", "p to m"))
+
+
 # fix alphas
 # see discussions at https://stackoverflow.com/questions/17311917/ggplot2-the-unit-of-size 
 # to see where I get the conversion factor for points - size to keep fonts the same.
-ggplot(filter(xx, transition != "p to m"), aes(x = prob, y=dens)) + geom_area(alpha = 0.75, fill="red") +
-  geom_area(data=function(x){x[x$inci,]}) +
+ggplot(filter(xx, transition != "p to m", prior != "None"), aes(x = prob, y=dens)) + #geom_area(aes(alpha = layer)) +
+  geom_area(alpha = 0.25) +
+  geom_area(data = function(x)x[x$in95,], alpha = 0.5) + 
+  geom_area(data = function(x)x[x$in90,], alpha = 0.75) + 
+  geom_area(data = function(x)x[x$in50,], alpha = 1) + 
   theme_classic() +
+  geom_point(data = mnCI, mapping = aes(x=p, y=1)) +
+  geom_errorbarh(data = mnCI, mapping = aes(x = p, xmin=lcl, xmax=ucl, y=1))+
   facet_grid(prior~transition) + #, labeller=label_wrap_gen(width = 15)) + 
   xlab("Transition Probability") + 
   ylab("Probability Density") + 
