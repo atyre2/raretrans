@@ -306,48 +306,57 @@ if(!knitting){
 
 Recognizing that the observed transitions are realizations of a Dirichlet distribution gives us a very simple way to derive credible intervals for the transition probabilities in our matrix. The marginal distribution of a single transition is a beta distribution as described above, and we can simply report the 2.5% and 97.5% percentiles of that distribution to provide a credible interval on a transition rate. These intervals do shift and shrink as the weight on the prior increases.
 
-TODO: Fix shading. 
-Add priors for comparison. 
-Check that fertility is used somewhere! 
+TODO: Check that fertility is used somewhere! 
 
 
-```{r credibleIntervals1, echo=FALSE, fig.width = 7, fig.height = 7, fig.cap="Credible intervals for transition probabilities out of seedling stage in Population 250, year 5. Shaded bands correspond to 50% (darkest), 90%, 95% and 99.9% (lightest) credible intervals. Smaller intervals are not visible in the p->a transitions when the upper boundary of the interval is smaller than 0.01. Labels are median (lower 95% CI, upper 95% CI). Note that where the median and lower interval are equal to 0.01, the actual value is < 0.01."}
+```{r credibleIntervals1, echo=FALSE, fig.width = 7, fig.height = 7, fig.cap="Confidence limits or Credible intervals for transition probabilities out of seedling stage in Population 250, year 5. Shaded bands correspond to 50% (darkest), 90%, 95% and 99.9% (lightest) credible intervals. Smaller intervals are not visible in the p->a transitions when the upper boundary of the interval is smaller than 0.01. Labels are median (lower 95% CI, upper 95% CI). Note that where the median and lower interval are equal to 0.001, the actual value is < 0.001."}
 # get multinomial confidence interval for Likelihood based interval on NONE
-mnCI <- MultinomialCI::multinomialCI(c(1, 7, 0, 3), alpha = 0.05)
-colnames(mnCI) <- c("lcl", "ucl")
-mnCI <- as_data_frame(mnCI) %>%
-  mutate(p = c(1, 7, 0, 3) / 11,
+myfunc <- function(x){
+  colnames(x) <- c("lcl", "ucl")
+  x
+}
+mnCI <- list(ci_95 = MultinomialCI::multinomialCI(c(1, 7, 0, 3), alpha = 0.05),
+             ci_90 = MultinomialCI::multinomialCI(c(1, 7, 0, 3), alpha = 0.1),
+             ci_50 = MultinomialCI::multinomialCI(c(1, 7, 0, 3), alpha = 0.5)) %>%
+  map(myfunc) %>%
+  map(as_data_frame) %>%
+  bind_rows(.id = "interval_width")%>%
+  mutate(p = rep(c(1, 7, 0, 3) / 11, times=3),
          prior = factor("None", levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N")), 
-         transition =  factor(c("p to p", "p to j", "p to a", "p to m"), levels = c("p to p", "p to j", "p to a", "p to m"))) %>%
+         transition =  factor(rep(c("p to p", "p to j", "p to a", "p to m"), times=3), levels = c("p to p", "p to j", "p to a", "p to m"))) %>%
   filter(transition != "p to m")
+
 xx <- crossing(prior = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N"),
          transition = c("p to p", "p to j", "p to a", "p to m"),
          prob = seq(0.001,0.999, 0.001))
 params <- tribble(
-  ~prior, ~transition, ~a,
-  "None", "p to p",     1,    
-  "None", "p to j",     7,
-  "None", "p to a",     0,
-  "None", "p to m",     3,
-  "Uniform", "p to p",     1.25,    
-  "Uniform", "p to j",     7.25,
-  "Uniform", "p to a",     0.25,
-  "Uniform", "p to m",     3.25,
-  "RLT, w = 1", "p to p",     1.25,    
-  "RLT, w = 1", "p to j",     7.05,
-  "RLT, w = 1", "p to a",     0.01,
-  "RLT, w = 1", "p to m",     3.69,
-  "RLT, w = 0.5N", "p to p",     2.375,    
-  "RLT, w = 0.5N", "p to j",     7.275,
-  "RLT, w = 0.5N", "p to a",     0.055,
-  "RLT, w = 0.5N", "p to m",     6.795,
-  "RLT, w = N", "p to p",     3.75,    
-  "RLT, w = N", "p to j",     7.55,
-  "RLT, w = N", "p to a",     0.11,
-  "RLT, w = N", "p to m",     10.59
+  ~prior, ~transition, ~a_obs, ~a_prior,
+  "None", "p to p",     1,    0,
+  "None", "p to j",     7,    0,
+  "None", "p to a",     0,    0,
+  "None", "p to m",     3,    0,
+  "Uniform", "p to p",     1,.25,    
+  "Uniform", "p to j",     7,.25,
+  "Uniform", "p to a",     0,.25,
+  "Uniform", "p to m",     3,.25,
+  "RLT, w = 1", "p to p",     1,.25,    
+  "RLT, w = 1", "p to j",     7,.05,
+  "RLT, w = 1", "p to a",     0,.01,
+  "RLT, w = 1", "p to m",     3,.69,
+  "RLT, w = 0.5N", "p to p",     1, 1.375,    
+  "RLT, w = 0.5N", "p to j",     7, .275,
+  "RLT, w = 0.5N", "p to a",     0, .055,
+  "RLT, w = 0.5N", "p to m",     3, 3.795,
+  "RLT, w = N", "p to p",     1, 2.75,    
+  "RLT, w = N", "p to j",     7, .55,
+  "RLT, w = N", "p to a",     0, .11,
+  "RLT, w = N", "p to m",     3, 7.59
 ) 
 params <- group_by(params, prior) %>%
-  mutate(b = sum(a) - a,
+  mutate(b_obs = sum(a_obs) - a_obs,
+         b_prior = sum(a_prior) - a_prior,
+         a = a_obs + a_prior,
+         b = b_obs + b_prior,
          lowerci = qbeta(0.025, a, b),
          median = paste0("median=",format(qbeta(0.5, a, b),digits=0,nsmall=3)),
          upperci = qbeta(0.975, a, b),
@@ -359,11 +368,11 @@ params <- group_by(params, prior) %>%
 # build T/F column for each polygon
 xx <- left_join(xx, params, by = c("prior", "transition")) %>%
   mutate(dens = dbeta(prob, a, b),
-         #         layer = cut(prob, breaks = c(0.0, 0.025, 0.05, 0.25, 0.75, 0.95, 0.975,1),
-         #                     labels =       c("full","95%","90%","50%","u90%","u95%","ufull" )),
-         in95 = prob > 0.025 & prob < 0.975,
-         in90 = prob > 0.05 & prob < 0.95,
-         in50 = prob > 0.25 & prob < 0.75,
+         prior_dens = dbeta(prob, a_prior, b_prior),
+         cump = pbeta(prob, a, b),
+         in95 = cump > 0.025 & cump < 0.975,
+         in90 = cump > 0.05 & cump < 0.95,
+         in50 = cump > 0.25 & cump < 0.75,
          prior = factor(prior, levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N")),
          transition = factor(transition, levels = c("p to p", "p to j", "p to a", "p to m"))) 
 
@@ -383,9 +392,10 @@ ggplot(filter(xx, transition != "p to m", prior != "None"), aes(x = prob, y=dens
   geom_area(data = function(x)x[x$in95,], alpha = 0.5) + 
   geom_area(data = function(x)x[x$in90,], alpha = 0.75) + 
   geom_area(data = function(x)x[x$in50,], alpha = 1) + 
+  geom_line(aes(y=prior_dens)) + 
   theme_classic() +
   geom_point(data = mnCI, mapping = aes(x=p, y=1)) +
-  geom_errorbarh(data = mnCI, mapping = aes(x = p, xmin=lcl, xmax=ucl, y=1))+
+  geom_errorbarh(data = mnCI, mapping = aes(x = p, xmin=lcl, xmax=ucl, size=interval_width, y=1), width=0)+
   facet_grid(prior~transition) + #, labeller=label_wrap_gen(width = 15)) + 
   xlab("Transition Probability") + 
   ylab("Probability Density") + 
@@ -398,7 +408,10 @@ ggplot(filter(xx, transition != "p to m", prior != "None"), aes(x = prob, y=dens
             size=12/.pt, hjust=1) + 
   rlt_theme + theme(panel.spacing = unit(1, "lines"),
                     strip.text = element_text(size=11)) +
-  scale_x_continuous(breaks = c(0,0.5,1.0))
+  scale_x_continuous(breaks = c(0,0.5,1.0)) + 
+  scale_size_manual(values = 
+                      c("ci_50"=3, "ci_90" = 2, "ci_95" = 1),
+                    guide = FALSE)
 if(!knitting){
   ggsave("credibleIntervals1.png", path=pathtoimages)
 }
