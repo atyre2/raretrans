@@ -43,10 +43,10 @@ rlt_theme <- theme(axis.title.y = element_text(colour="grey20",size=15,face="bol
 data("L_elto")
 A <- projection.matrix(as.data.frame(L_elto), stage="stage", fate="next_stage", fertility="fertility",
                        sort=c("p","j","a"))
-knitr::kable(A, digits=2)
+knitr::kable(A, digits=2, caption = "Average transition matrix over all census periods and populations.")
 ```
 
-The average population growth rate over all years and populations is `r format(popbio::lambda(A), digits=2)`, suggesting a rapid decline. 
+Data was collected from 1850 individuals which were permanently identified and tracked over a 6 year period in intervals of 6 months. Thus transitions are for six month intervals and not yearly transitions as is more frequently published.  The life history stages included in this analysis are seedlings (individuals without a lepanthiform sheet on any of the leaves), juveniles (individuals with no evidence of present or past reproductive effort, the base of the inflorescence are persistent), and adult (with presence of active or inactive inflorescences). The average population growth rate over all years and populations is `r format(popbio::lambda(A), digits=2)`, suggesting a rapid decline. 
 
 ```{r pop_by_time, fig.cap = "Population size over time.", fig.show='hold'}
 plotdata <- L_elto %>% group_by(POPNUM, year, stage) %>%
