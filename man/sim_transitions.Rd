@@ -4,7 +4,8 @@
 \alias{sim_transitions}
 \title{Simulate population projection matrices}
 \usage{
-sim_transitions(TF, N, P = NULL, priorweight = -1, samples = 1)
+sim_transitions(TF, N, P = NULL, alpha = 1e-05, beta = 1e-05,
+  priorweight = -1, samples = 1)
 }
 \arguments{
 \item{TF}{A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.}
@@ -12,6 +13,10 @@ sim_transitions(TF, N, P = NULL, priorweight = -1, samples = 1)
 \item{N}{A vector of observed stages at start of transition.}
 
 \item{P}{A matrix of the priors for each column. Defaults to uniform.}
+
+\item{alpha}{A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_}
+
+\item{beta}{A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_}
 
 \item{priorweight}{total weight for each column of prior as a percentage of sample size or 1 if negative}
 

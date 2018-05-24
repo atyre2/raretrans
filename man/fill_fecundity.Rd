@@ -4,29 +4,33 @@
 \alias{fill_fecundity}
 \title{Combine prior and data for fertility matrix}
 \usage{
-fill_fecundity(TF, P, N, returnType = "A")
+fill_fecundity(TF, N, alpha = 1e-05, beta = 1e-05, priorweight = -1,
+  returnType = "A")
 }
 \arguments{
 \item{TF}{A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.}
 
-\item{P}{A matrix of the priors for each column.}
+\item{N}{A vector of observed stage distribution.}
 
-\item{N}{A vector of observed transitions.}
+\item{alpha}{A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_}
+
+\item{beta}{A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_}
+
+\item{priorweight}{total weight for each column of prior as a percentage of sample size or 1 if negative}
 
 \item{returnType}{A character vector describing the desired return value.}
 }
 \value{
 The return value depends on parameter returnType.
 \itemize{
-  \item A - the summed matrix "filled in" using a dirichlet prior
+  \item A - the summed matrix "filled in" using a Gamma prior
   \item F - just the filled in fertility matrix
 }
 }
 \description{
 \code{fill_fertility} returns the expected value of the fertility
-matrix combining observed recruits for one time step and a prior
+matrix combining observed recruits for one time step and a Gamma prior for each column.
 }
 \details{
-This is just an intermediate version to test package structure. Does
-not yet use the prior argument P.
+Assumes that the reproductive individuals are in stage 3 ... needs generalizing.
 }
