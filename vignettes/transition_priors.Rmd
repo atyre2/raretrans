@@ -196,7 +196,7 @@ if(!knitting){
 
 The six populations where the simulated values are unavailable have very low approximate growth rates as well. All the stochastic growth rates are less than 1.
 
-## Fill in including constraints
+## Fill in including constraints on transitions
 
 This strategy uses the transitions in a smarter way that maintains the constraint that all survival/transition probabilities have to add up to 1. We do this by using a dirichlet prior with the function `fill_transitions()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Dirichlet prior only applies to the $T$ matrix. If not specified, the function assumes a uniform prior across the $m+1$ fates for each stage. The extra category is for individuals that do not survive. 
 
@@ -248,6 +248,58 @@ if(!knitting){
 ```
 
 So using a Dirichlet prior to fill in the gaps works, and doesn't appear to distort the stochastic population growth rate; all populations still have negative growth. Most populations end up with stochastic growth rates that are lower than with the problematic matrices. All resulting matrices are now ergodic and irreducible.
+
+## Fill in using uninformative priors on fertility
+
+The other component of the matrix is the fertility. We do this by using a Gamma prior with the function `fill_fertility()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Gamma prior only applies to the $F$ matrix. If not specified, the function assumes an uniformative prior with $\alpha = 0.0001, \beta = 0.0001$ across all stages. Stages that do not reproduce are marked with `NA_real_` in the prior probability vectors.
+
+```{r fillDirichlet, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data."}
+testing <- allA %>% mutate(Agamma = map2(TF, N, fill_fertility),
+                           lgamma = map_dbl(Agamma, lambda),                 
+         irrgamma = map_dbl(Agamma, is.matrix_irreducible),
+         erggamma = map_dbl(Agamma, is.matrix_ergodic))
+
+ggplot(testing, aes(x=lmbda, y=ldirch)) + geom_point() + 
+  geom_abline(slope = 1, intercept=0) +
+  xlab(expression(paste(lambda, " ignoring zeros"))) + 
+  ylab(expression(paste(lambda, " using a uniform prior"))) +
+  rlt_theme
+if(!knitting){
+  ggsave("fillDirichlet.png", path=pathtoimages)
+}
+```
+
+
+The matrices with $\lambda = 0$ typically have very few individuals. Matrices with $\lambda = 1$ usually have transitions only on the main diagonal. 
+
+```{r checkErgIrr}
+ergo_irr <- as.data.frame(with(testing, table(ergdirch, irrdirch)))
+
+knitr::kable(ergo_irr, caption = "Ergodicity and irreducibility of individual transition matrices.")
+
+```
+
+```{r stochDirchVsBad}
+sgr_unif <- testing %>% split(.$POPNUM) %>%
+  map(~stoch.growth.rate(.x$Adirch, verbose = FALSE))
+
+sgr_unif <- bind_rows(map(sgr_unif, xtrc), .id="POPNUM") 
+compare_approx <- data_frame(unif = sgr_unif$approx,
+                             ignored = sgr$approx)
+ggplot(compare_approx, aes(x=ignored, y = unif)) + 
+  geom_point() + 
+  geom_abline(slope = 1, intercept=0) + 
+  xlab(expression(paste("log(",lambda,") ignoring zeros"))) + 
+  ylab(expression(paste("log(",lambda,") with uniform prior"))) +
+  rlt_theme
+if(!knitting){
+  ggsave("stochDirchVsBad.png", path=pathtoimages)
+}
+```
+
+So using a Dirichlet prior to fill in the gaps works, and doesn't appear to distort the stochastic population growth rate; all populations still have negative growth. Most populations end up with stochastic growth rates that are lower than with the problematic matrices. All resulting matrices are now ergodic and irreducible.
+
+
 
 ## Effects of informative priors
 
