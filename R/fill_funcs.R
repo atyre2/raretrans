@@ -63,9 +63,10 @@ fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "A"
 #' Assumes that the reproductive individuals are in stage 3 ... needs generalizing.
 #'
 #' @param TF A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.
+#' @param N A vector of observed stage distribution.
 #' @param alpha A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_
 #' @param beta A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_
-#' @param N A vector of observed transitions.
+#' @param priorweight total weight for each column of prior as a percentage of sample size or 1 if negative
 #' @param returnType A character vector describing the desired return value.
 #'
 #' @return The return value depends on parameter returnType.
@@ -86,11 +87,16 @@ fill_fecundity <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
     beta <- rep(beta[1], order)
   }
   Ffilled <- matrix(NA, nrow=order, ncol = order)
-  babies_next_year <- sum(Fmat[1,] * N[3])
+  babies_next_year <- Fmat[1,] * N
 
-  if ((all(N[!is.na(alpha)] > 0) | sum(beta, na.rm = TRUE) > 0) & priorweight > 0){
-    Ffilled[1,] <- (alpha*priorweight + babies_next_year) / (beta*priorweight + N) # I don't think this is right if more than one stage reproduces
+  if ((all(N[!is.na(alpha)] > 0) | sum(beta, na.rm = TRUE) > 0)){
+    if (priorweight > 0){
+      Ffilled[1,] <- (alpha*priorweight*N + babies_next_year) / (beta*priorweight*N + N) # I don't think this is right if more than one stage reproduces
+    } else {
+      Ffilled[1,] <- (alpha + babies_next_year) / (beta + N) # I don't think this is right if more than one stage reproduces
+    }
   }
+
   Ffilled[is.na(Ffilled)] <- 0 #stages that can't reproduce are marked with NA_real_ in alpha and beta
 
   if (returnType == "A"){
