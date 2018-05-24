@@ -299,25 +299,37 @@ The RLT prior gives $\lambda = `r format(lambda(RLT_Tprior[-4,] + RLT_Fprior), d
 
 ```{r fillDirichletPrior1, fig.cap="Asymptotic growth rates using prior information on transitions and fecundity vs. the raw observations alone. The horizontal red line indicates $\\lambda$ for the RLT prior. Points for all four priors shown in transparent grey."}
 diffPriors <- list()
-diffPriors[["Uniform"]] stuff<- testing %>% mutate(Tprior = map2(TF, N, fill_transitions, returnType = "T"),
+diffPriors[["Uniform"]] <- testing %>% mutate(Tprior = map2(TF, N, fill_transitions, returnType = "T"),
                                               Fprior = map2(TF, N, fill_fecundity,
                                                             alpha = c(NA_real_, NA_real_, 0.00001),
                                                             beta = c(NA_real_, NA_real_, 0.00001), priorweight = 1, returnType = "F"),
-                                              A prior
+                                              Aprior = map2(Tprior, Fprior, `+`),
                                               lprior = map_dbl(Aprior, lambda))
 
 
-diffPriors[["RLT, weight = 1"]] <- testing %>% mutate(Aprior = map2(TF, N, fill_transitions, 
-                                            P=RLT_Tprior),
-                             lprior = map_dbl(Aprior, lambda))
+diffPriors[["RLT, weight = 1"]] <- testing %>% mutate(Tprior = map2(TF, N, fill_transitions, 
+                                                                    P = RLT_Tprior, returnType = "T"),
+                                              Fprior = map2(TF, N, fill_fecundity,
+                                                            alpha = c(NA_real_, NA_real_, 0.025),
+                                                            beta = c(NA_real_, NA_real_, 1), priorweight = 1, returnType = "F"),
+                                              Aprior = map2(Tprior, Fprior, `+`),
+                                              lprior = map_dbl(Aprior, lambda))
 
-diffPriors[["RLT, weight = 0.5N"]] <- testing %>% mutate(Aprior = map2(TF, N, fill_transitions, 
-                                            P=RLT_Tprior, priorweight = 0.5),
-                             lprior = map_dbl(Aprior, lambda))
+diffPriors[["RLT, weight = 0.5N"]] <- testing %>% mutate(Tprior = map2(TF, N, fill_transitions, 
+                                                                    P = RLT_Tprior, priorweight = 0.5, returnType = "T"),
+                                              Fprior = map2(TF, N, fill_fecundity,
+                                                            alpha = c(NA_real_, NA_real_, 0.025),
+                                                            beta = c(NA_real_, NA_real_, 1), priorweight = 0.5, returnType = "F"),
+                                              Aprior = map2(Tprior, Fprior, `+`),
+                                              lprior = map_dbl(Aprior, lambda))
 
-diffPriors[["RLT, weight = N"]] <- testing %>% mutate(Aprior = map2(TF, N, fill_transitions, 
-                                            P=RLT_Tprior, priorweight = 1),
-                             lprior = map_dbl(Aprior, lambda))
+diffPriors[["RLT, weight = N"]] <- testing %>% mutate(Tprior = map2(TF, N, fill_transitions, 
+                                                                    P = RLT_Tprior, priorweight = 1, returnType = "T"),
+                                              Fprior = map2(TF, N, fill_fecundity,
+                                                            alpha = c(NA_real_, NA_real_, 0.025),
+                                                            beta = c(NA_real_, NA_real_, 1), priorweight = 1, returnType = "F"),
+                                              Aprior = map2(Tprior, Fprior, `+`),
+                                              lprior = map_dbl(Aprior, lambda))
 
 diffPriors <- bind_rows(diffPriors, .id="prior")
 diffPriors$prior <- factor(diffPriors$prior, levels = c("Uniform", "RLT, weight = 1",
@@ -357,34 +369,34 @@ mnCI <- list(ci_95 = MultinomialCI::multinomialCI(c(1, 7, 0, 3), alpha = 0.05),
   bind_rows(.id = "interval_width")%>%
   mutate(p = rep(c(1, 7, 0, 3) / 11, times=3),
          prior = factor("None", levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N")), 
-         transition =  factor(rep(c("p to p", "p to j", "p to a", "p to m"), times=3), levels = c("p to p", "p to j", "p to a", "p to m"))) %>%
-  filter(transition != "p to m")
+         transition =  factor(rep(c("s to p", "s to j", "s to a", "s to m"), times=3), levels = c("s to p", "s to j", "s to a", "s to m"))) %>%
+  filter(transition != "s to m")
 
 xx <- crossing(prior = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N"),
-         transition = c("p to p", "p to j", "p to a", "p to m"),
+         transition = c("s to p", "s to j", "s to a", "s to m"),
          prob = seq(0.001,0.999, 0.001))
 params <- tribble(
   ~prior, ~transition, ~a_obs, ~a_prior,
-  "None", "p to p",     1,    0,
-  "None", "p to j",     7,    0,
-  "None", "p to a",     0,    0,
-  "None", "p to m",     3,    0,
-  "Uniform", "p to p",     1,.25,    
-  "Uniform", "p to j",     7,.25,
-  "Uniform", "p to a",     0,.25,
-  "Uniform", "p to m",     3,.25,
-  "RLT, w = 1", "p to p",     1,.25,    
-  "RLT, w = 1", "p to j",     7,.05,
-  "RLT, w = 1", "p to a",     0,.01,
-  "RLT, w = 1", "p to m",     3,.69,
-  "RLT, w = 0.5N", "p to p",     1, 1.375,    
-  "RLT, w = 0.5N", "p to j",     7, .275,
-  "RLT, w = 0.5N", "p to a",     0, .055,
-  "RLT, w = 0.5N", "p to m",     3, 3.795,
-  "RLT, w = N", "p to p",     1, 2.75,    
-  "RLT, w = N", "p to j",     7, .55,
-  "RLT, w = N", "p to a",     0, .11,
-  "RLT, w = N", "p to m",     3, 7.59
+  "None", "s to p",     1,    0,
+  "None", "s to j",     7,    0,
+  "None", "s to a",     0,    0,
+  "None", "s to m",     3,    0,
+  "Uniform", "s to p",     1,.25,    
+  "Uniform", "s to j",     7,.25,
+  "Uniform", "s to a",     0,.25,
+  "Uniform", "s to m",     3,.25,
+  "RLT, w = 1", "s to p",     1,.25,    
+  "RLT, w = 1", "s to j",     7,.05,
+  "RLT, w = 1", "s to a",     0,.01,
+  "RLT, w = 1", "s to m",     3,.69,
+  "RLT, w = 0.5N", "s to p",     1, 1.375,    
+  "RLT, w = 0.5N", "s to j",     7, .275,
+  "RLT, w = 0.5N", "s to a",     0, .055,
+  "RLT, w = 0.5N", "s to m",     3, 3.795,
+  "RLT, w = N", "s to p",     1, 2.75,    
+  "RLT, w = N", "s to j",     7, .55,
+  "RLT, w = N", "s to a",     0, .11,
+  "RLT, w = N", "s to m",     3, 7.59
 ) 
 params <- group_by(params, prior) %>%
   mutate(b_obs = sum(a_obs) - a_obs,
@@ -409,20 +421,20 @@ xx <- left_join(xx, params, by = c("prior", "transition")) %>%
          in80 = cump > 0.1 & cump < 0.9,
          in50 = cump > 0.25 & cump < 0.75,
          prior = factor(prior, levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N")),
-         transition = factor(transition, levels = c("p to p", "p to j", "p to a", "p to m"))) 
+         transition = factor(transition, levels = c("s to p", "s to j", "s to a", "s to m"))) 
 
 #xx$layer <- forcats::fct_collapse(xx$layer,
 #                                  full = c("full", "ufull"),
 #                                  `95%` = c("95%", "u95%"),
 #                                  `90%` = c("90%", "u90%"))
 params$prior <- factor(params$prior, levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N"))
-params$transition <- factor(params$transition, levels = c("p to p", "p to j", "p to a", "p to m"))
+params$transition <- factor(params$transition, levels = c("s to p", "s to j", "s to a", "s to m"))
 
 
 # fix alphas
 # see discussions at https://stackoverflow.com/questions/17311917/ggplot2-the-unit-of-size 
 # to see where I get the conversion factor for points - size to keep fonts the same.
-ggplot(filter(xx, transition != "p to m", prior != "None"), aes(x = prob, y=dens)) + #geom_area(aes(alpha = layer)) +
+ggplot(filter(xx, transition != "s to m", prior != "None"), aes(x = prob, y=dens)) + #geom_area(aes(alpha = layer)) +
   geom_area(alpha = 0.25) +
   geom_area(data = function(x)x[x$in95,], alpha = 0.25) + 
   geom_area(data = function(x)x[x$in80,], alpha = 0.25) + 
@@ -435,10 +447,10 @@ ggplot(filter(xx, transition != "p to m", prior != "None"), aes(x = prob, y=dens
   xlab("Transition Probability") + 
   ylab("Probability Density") + 
   ylim(c(0,15)) + 
-  geom_text(data=filter(params, transition != "p to m"), 
+  geom_text(data=filter(params, transition != "s to m"), 
             mapping=aes(x=x,y=y, label=expected),
             size=12/.pt, hjust=1) +
-  geom_text(data=filter(params, transition != "p to m"), 
+  geom_text(data=filter(params, transition != "s to m"), 
             mapping=aes(x=x,y=y-3, label=median),
             size=12/.pt, hjust=1) + 
   rlt_theme + theme(panel.spacing = unit(1, "lines"),
