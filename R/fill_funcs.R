@@ -58,34 +58,40 @@ fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "A"
 #' Combine prior and data for fertility matrix
 #'
 #' \code{fill_fertility} returns the expected value of the fertility
-#' matrix combining observed recruits for one time step and a prior
+#' matrix combining observed recruits for one time step and a Gamma prior for each column.
 #'
-#' This is just an intermediate version to test package structure. Does
-#' not yet use the prior argument P.
+#' Assumes that the reproductive individuals are in stage 3 ... needs generalizing.
 #'
 #' @param TF A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.
-#' @param P A matrix of the priors for each column.
+#' @param alpha A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_
+#' @param beta A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_
 #' @param N A vector of observed transitions.
 #' @param returnType A character vector describing the desired return value.
 #'
 #' @return The return value depends on parameter returnType.
 #' \itemize{
-#'   \item A - the summed matrix "filled in" using a dirichlet prior
+#'   \item A - the summed matrix "filled in" using a Gamma prior
 #'   \item F - just the filled in fertility matrix
 #' }
 #'
 #' @export
 #'
-fill_fecundity <- function(TF, P, N, returnType = "A"){
+fill_fecundity <- function(TF, alpha = 0.00001, beta = 0.00001, N, returnType = "A"){
   Tmat <- TF$T
   Fmat <- TF$F
   order <- dim(Tmat)[1]
-  Ffilled <- Fmat
-  # only change Ffilled if 3,3 is zero and there are adults
-  # if no adults, should be 0 for that year.
-  if (Fmat[3,3]<0.000001 & N[3] > 0){
-    Ffilled[3,3] <- 1 / N[3] # this isn't going to work if there are no adults!
+  if (length(alpha) != order) {
+    warning("length(alpha) != order: only using first value of alpha and beta")
+    alpha <- rep(alpha[1], order)
+    beta <- rep(beta[1], order)
   }
+  Ffilled <- Fmat
+  babies_next_year <- sum(Fmat[1,] * N[3])
+
+  if (all(N[!is.na(alpha)] > 0) | sum(beta) > 0){
+    Ffilled[1,] <- (alpha + babies_next_year) / (beta + N[3])
+  }
+  is.na(Ffilled) <- 0 #stages that can't reproduce are marked with NA_real_ in alpha and beta
 
   if (returnType == "A"){
     return(Tmat + Ffilled)

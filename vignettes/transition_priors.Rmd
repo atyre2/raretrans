@@ -1,12 +1,12 @@
 ---
-title: "Effect of prior information on transition probabilities"
+title: "Effect of prior information on transition probabilities and fertility"
 author: "Drew Tyre"
 date: "`r format(Sys.Date(), '%b %d, %Y')`"
 output:
   rmarkdown::html_vignette:
     fig_caption: yes
 vignette: >
-  %\VignetteIndexEntry{Effect of prior information on transition probabilities}
+  %\VignetteIndexEntry{Effect of prior information on transition probabilities and fertility}
   %\VignetteEngine{knitr::rmarkdown}
   \VignetteEncoding{UTF-8}
 bibliography: references.bib
