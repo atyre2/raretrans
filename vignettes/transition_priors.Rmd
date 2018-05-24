@@ -1,5 +1,5 @@
 ---
-title: "Effect of prior information on transition probabilities and fertility"
+title: "Effect of prior information on transition probabilities and fertilities"
 author: "Drew Tyre"
 date: "`r format(Sys.Date(), '%b %d, %Y')`"
 output:
@@ -23,18 +23,11 @@ Here we explore the population consequences of setting a prior accounting for co
 
 We will use observations of an epiphytic Orchid *L. elto*. 
 
-```{r, message=FALSE}
+```{r setup, message=FALSE}
 library(tidyverse)
 library(popbio)
 library(raretrans)
-knitting <- isTRUE(getOption('knitr.in.progress'))
-if(!knitting){
-  pathtoimages="images"
-#   # login to imgur
-#   library(imguR)
-#   imgurtkn <- imgur_login()
-#   imgurtkn$refresh()
-}
+
 # Raymond's theme modifications
 rlt_theme <- theme(axis.title.y = element_text(colour="grey20",size=15,face="bold"),
         axis.text.x = element_text(colour="grey20",size=15, face="bold"),
@@ -44,6 +37,18 @@ data("L_elto")
 A <- projection.matrix(as.data.frame(L_elto), stage="stage", fate="next_stage", fertility="fertility",
                        sort=c("p","j","a"))
 knitr::kable(A, digits=2, caption = "Average transition matrix over all census periods and populations.")
+```
+
+```{r hidethis, include = FALSE}
+knitting <- isTRUE(getOption('knitr.in.progress'))
+if(!knitting){
+  pathtoimages="images"
+#   # login to imgur
+#   library(imguR)
+#   imgurtkn <- imgur_login()
+#   imgurtkn$refresh()
+}
+knitr::opts_chunk$set(fig.width = 5, fig.height = 5)
 ```
 
 Data was collected from 1850 individuals which were permanently identified and tracked over a 6 year period in intervals of 6 months. Thus transitions are for six month intervals and not yearly transitions as is more frequently published.  The life history stages included in this analysis are seedlings (individuals without a lepanthiform sheet on any of the leaves), juveniles (individuals with no evidence of present or past reproductive effort, the base of the inflorescence are persistent), and adult (with presence of active or inactive inflorescences). The average population growth rate over all years and populations is `r format(popbio::lambda(A), digits=2)`, suggesting a rapid decline. 
@@ -62,12 +67,14 @@ gg2 <- ggplot(plotsumm, aes(x=year, y=N)) +
   geom_line() + rlt_theme
 ggboth <- gridExtra::grid.arrange(gg1, gg2)
 
-if(!knitting){
-  ggsave("pop_by_time.png", plot=ggboth, device="png", path=pathtoimages)
-} 
 ggboth
 
 ```
+
+```{r, eval=FALSE, include = FALSE}
+ggsave("pop_by_time.png", plot=ggboth, device="png", path=pathtoimages)
+```
+
 
 OK, now we want to generate matrices for each year and popnum. We have to change the variables into factors and control the levels so that the resulting matrices end up with the right shape with zeros for the missing transitions. Also have to coerce each grouped tbl_df to a regular data.frame before passing to `projection.matrix()`. 
 ```{r}
@@ -103,11 +110,13 @@ allA <- ungroup(allA) %>%
 ggplot(allA, aes(x=lmbda)) + geom_histogram() + facet_wrap(~year)+
  ylab("Frequency")+
   xlab(expression(paste(lambda, ", asymptotic population growth"))) + rlt_theme
-  
-if(!knitting){
-  ggsave("histLmbdaByYear.png", path=pathtoimages)
-}
+
 ```
+
+```{r, eval=FALSE, include = FALSE}
+ggsave("histLmbdaByYear.png", path=pathtoimages)
+```
+
 
 Now, we need to figure out how many matrices are missing transitions. The full matrix has observed transitions in every cell. 
 
@@ -189,9 +198,10 @@ ggplot(aes(x=approx, y = sim)) + geom_point() +
   rlt_theme +
   xlab(expression(paste("Tuljapurkar's approximate stochastic ", log(lambda)))) +
   ylab(expression(paste("Stochastic ", log(lambda), " by simulation")))
-if(!knitting){
-  ggsave("stochGrowthRateBad.png", path=pathtoimages)
-}
+```
+
+```{r, eval=FALSE, include = FALSE}
+ggsave("stochGrowthRateBad.png", path=pathtoimages)
 ```
 
 The six populations where the simulated values are unavailable have very low approximate growth rates as well. All the stochastic growth rates are less than 1.
@@ -214,11 +224,11 @@ ggplot(testing, aes(x=lmbda, y=ldirch)) + geom_point() +
   xlab(expression(paste(lambda, " ignoring zeros"))) + 
   ylab(expression(paste(lambda, " using a uniform prior"))) +
   rlt_theme
-if(!knitting){
-  ggsave("fillDirichlet.png", path=pathtoimages)
-}
 ```
 
+```{r, eval=FALSE, include = FALSE}
+ggsave("fillDirichlet.png", path=pathtoimages)
+```
 
 The matrices with $\lambda = 0$ typically have very few individuals. Matrices with $\lambda = 1$ usually have transitions only on the main diagonal. 
 
@@ -242,9 +252,10 @@ ggplot(compare_approx, aes(x=ignored, y = unif)) +
   xlab(expression(paste("log(",lambda,") ignoring zeros"))) + 
   ylab(expression(paste("log(",lambda,") with uniform prior"))) +
   rlt_theme
-if(!knitting){
-  ggsave("stochDirchVsBad.png", path=pathtoimages)
-}
+```
+
+```{r, eval = FALSE, include=FALSE}
+ggsave("stochDirchVsBad.png", path=pathtoimages)
 ```
 
 So using a Dirichlet prior to fill in the gaps works, and doesn't appear to distort the stochastic population growth rate; all populations still have negative growth. Most populations end up with stochastic growth rates that are lower than with the problematic matrices. All resulting matrices are now ergodic and irreducible.
@@ -264,11 +275,12 @@ ggplot(testing, aes(x=lmbda, y=lgamma)) + geom_point() +
   xlab(expression(paste(lambda, " ignoring zeros"))) + 
   ylab(expression(paste(lambda, " using an uninformative prior"))) +
   rlt_theme
-if(!knitting){
-  ggsave("fillGamma.png", path=pathtoimages)
-}
 ```
 
+```{r, eval=FALSE, include = FALSE}
+  ggsave("fillGamma.png", path=pathtoimages)
+
+```
 
 The matrices with $\lambda = 0$ typically have very few individuals. Matrices with $\lambda = 1$ usually have transitions only on the main diagonal. The uninformative Gamma prior does not change $lambda$, and does not improve the ergodicity and irreducibility issue. When there is at least 1 adult present, the expected value of Fecundity is very close to zero. When there are no adults present, all those matrices cannot reach the adult stage and so the expected value of Fecundity does not affect $\lambda$. However, this is not a necessary condition. 
 
@@ -343,16 +355,16 @@ ggplot(diffPriors, aes(x=lmbda, y=lprior)) +
   facet_wrap(~prior) + 
   geom_hline(yintercept = 0.96, color="red", linetype = 2 ) + 
   theme_bw() + rlt_theme
-if(!knitting){
-  ggsave("fillDirichletPrior1.png", path=pathtoimages)
-}
 ```
+
+```{r, eval = FALSE, include=FALSE}
+  ggsave("fillDirichletPrior1.png", path=pathtoimages)
+```
+
 
 # Obtaining credible intervals on vital rates and $\lambda$
 
 Recognizing that the observed transitions are realizations of a Dirichlet distribution gives us a very simple way to derive credible intervals for the transition probabilities in our matrix. The marginal distribution of a single transition is a beta distribution as described above, and we can simply report the 2.5% and 97.5% percentiles of that distribution to provide a credible interval on a transition rate. These intervals do shift and shrink as the weight on the prior increases.
-
-TODO: Check that fertility is used somewhere! 
 
 
 ```{r credibleIntervals1, echo=FALSE, fig.width = 7, fig.height = 7, fig.cap="Confidence limits or Credible intervals for transition probabilities out of seedling stage in Population 250, year 5. Shaded bands correspond to 50% (darkest), 90%, 95% and 99.9% (lightest) credible intervals. Smaller intervals are not visible in the p->a transitions when the upper boundary of the interval is smaller than 0.01. Labels are median (lower 95% CI, upper 95% CI). Note that where the median and lower interval are equal to 0.001, the actual value is < 0.001."}
@@ -443,7 +455,7 @@ ggplot(filter(xx, transition != "s to m", prior != "None"), aes(x = prob, y=dens
   theme_classic() +
   geom_point(data = mnCI, mapping = aes(x=p, y=1)) +
   geom_errorbarh(data = mnCI, mapping = aes(x = p, xmin=lcl, xmax=ucl, size=interval_width, y=1))+
-  facet_grid(transition~prior) + #, labeller=label_wrap_gen(width = 15)) + 
+  facet_grid(prior~transition) + #, labeller=label_wrap_gen(width = 15)) + 
   xlab("Transition Probability") + 
   ylab("Probability Density") + 
   ylim(c(0,15)) + 
@@ -459,10 +471,12 @@ ggplot(filter(xx, transition != "s to m", prior != "None"), aes(x = prob, y=dens
   scale_size_manual(values = 
                       c("ci_50"=3, "ci_80" = 2, "ci_95" = 1),
                     guide = FALSE)
-if(!knitting){
-  ggsave("credibleIntervals1.png", path=pathtoimages)
-}
 ```
+
+```{r, eval = FALSE, include=FALSE}
+  ggsave("credibleIntervals1.png", path=pathtoimages)
+```
+
 
 Obtaining credible intervals on $\lambda$ requires simulation, because it is difficult (or maybe impossible) to use the characteristic equation to combine the probability distributions of the matrix entries to obtain the distribution of $\lambda$. 
 
@@ -506,10 +520,12 @@ ggplot(diffPriors_lci, aes(x=lprior)) +
   rlt_theme + 
   xlab(expression(paste(lambda," asymptotic population growth"))) +
   ylab("Posterior density")
-if(!knitting){
-  ggsave("credible_lambda.png", path=pathtoimages)
-}
 ```
+
+```{r, eval = FALSE, include=FALSE}
+  ggsave("credible_lambda.png", path=pathtoimages)
+```
+
 
 ```{r uploadGoogleDrive, eval=!knitting, echo=FALSE, include=FALSE}
 library(googledrive)
