@@ -76,7 +76,7 @@ fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "A"
 #'
 #' @export
 #'
-fill_fecundity <- function(TF, alpha = 0.00001, beta = 0.00001, N, returnType = "A"){
+fill_fecundity <- function(TF, N, alpha = 0.00001, beta = 0.00001, returnType = "A"){
   Tmat <- TF$T
   Fmat <- TF$F
   order <- dim(Tmat)[1]
@@ -88,10 +88,10 @@ fill_fecundity <- function(TF, alpha = 0.00001, beta = 0.00001, N, returnType = 
   Ffilled <- Fmat
   babies_next_year <- sum(Fmat[1,] * N[3])
 
-  if (all(N[!is.na(alpha)] > 0) | sum(beta) > 0){
+  if (all(N[!is.na(alpha)] > 0) | sum(beta, na.rm = TRUE) > 0){
     Ffilled[1,] <- (alpha + babies_next_year) / (beta + N[3])
   }
-  is.na(Ffilled) <- 0 #stages that can't reproduce are marked with NA_real_ in alpha and beta
+  Ffilled[is.na(Ffilled)] <- 0 #stages that can't reproduce are marked with NA_real_ in alpha and beta
 
   if (returnType == "A"){
     return(Tmat + Ffilled)
