@@ -253,7 +253,7 @@ So using a Dirichlet prior to fill in the gaps works, and doesn't appear to dist
 
 The other component of the matrix is the fertility. We do this by using a Gamma prior with the function `fill_fecundity()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Gamma prior only applies to the $F$ matrix. If not specified, the function assumes an uniformative prior with $\alpha = 0.00001, \beta = 0.00001$ across all stages. Stages that do not reproduce are marked with `NA_real_` in the prior probability vectors.
 
-```{r fillDirichlet, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data."}
+```{r fillGamma, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data."}
 testing <- allA %>% mutate(Agamma = map2(TF, N, fill_fecundity, alpha = c(NA_real_, NA_real_, 0.00001), beta = c(NA_real_, NA_real_, 0.00001), priorweight = 1),
                            lgamma = map_dbl(Agamma, lambda),                 
          irrgamma = map_dbl(Agamma, is.matrix_irreducible),
@@ -265,14 +265,14 @@ ggplot(testing, aes(x=lmbda, y=lgamma)) + geom_point() +
   ylab(expression(paste(lambda, " using an uninformative prior"))) +
   rlt_theme
 if(!knitting){
-  ggsave("fillDirichlet.png", path=pathtoimages)
+  ggsave("fillGamma.png", path=pathtoimages)
 }
 ```
 
 
 The matrices with $\lambda = 0$ typically have very few individuals. Matrices with $\lambda = 1$ usually have transitions only on the main diagonal. The uninformative Gamma prior does not change $lambda$, and does not improve the ergodicity and irreducibility issue. When there is at least 1 adult present, the expected value of Fecundity is very close to zero. When there are no adults present, all those matrices cannot reach the adult stage and so the expected value of Fecundity does not affect $\lambda$. However, this is not a necessary condition. 
 
-```{r checkErgIrr}
+```{r checkErgIrrGamma}
 ergo_irr <- as.data.frame(with(testing, table(erggamma, irrgamma)))
 
 knitr::kable(ergo_irr, caption = "Ergodicity and irreducibility of individual transition matrices.")
