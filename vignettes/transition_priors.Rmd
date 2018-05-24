@@ -474,18 +474,26 @@ diffPriors_lci[["Uniform"]] <- data_frame(A = sim_transitions(allA$TF[[71]], all
                                           lprior = map_dbl(A, lambda))
 
 
-diffPriors_lci[["RLT, weight = 1"]] <- data_frame(A = sim_transitions(allA$TF[[71]], allA$N[[71]], P=RLT_Tprior, samples = samples), 
-                                          lprior = map_dbl(A, lambda))
+diffPriors_lci[["RLT, weight = 1"]] <- data_frame(A = sim_transitions(allA$TF[[71]], allA$N[[71]], P=RLT_Tprior, 
+                                                                      alpha = c(NA_real_, NA_real_, 0.025),
+                                                                      beta = c(NA_real_, NA_real_, 1), samples = samples), 
+                                                  lprior = map_dbl(A, lambda))
 
 diffPriors_lci[["RLT, weight = 0.5N"]] <- data_frame(A = sim_transitions(allA$TF[[71]], allA$N[[71]], 
-                                                                        P=RLT_Tprior, priorweight = 0.5,
-                                                                        samples = samples), 
-                                                    lprior = map_dbl(A, lambda))
+                                                                         P=RLT_Tprior,
+                                                                         alpha = c(NA_real_, NA_real_, 0.025),
+                                                                         beta = c(NA_real_, NA_real_, 1), 
+                                                                         priorweight = 0.5,
+                                                                         samples = samples), 
+                                                     lprior = map_dbl(A, lambda))
 
 diffPriors_lci[["RLT, weight = N"]] <- data_frame(A = sim_transitions(allA$TF[[71]], allA$N[[71]], 
-                                                                        P=RLT_Tprior, priorweight = 1,
-                                                                        samples = samples), 
-                                                    lprior = map_dbl(A, lambda))
+                                                                      P=RLT_Tprior, 
+                                                                      alpha = c(NA_real_, NA_real_, 0.025),
+                                                                      beta = c(NA_real_, NA_real_, 1),
+                                                                      priorweight = 1,
+                                                                      samples = samples), 
+                                                  lprior = map_dbl(A, lambda))
 
 diffPriors_lci <- bind_rows(diffPriors_lci, .id="prior")
 diffPriors_lci$prior <- factor(diffPriors_lci$prior, levels = c("Uniform", "RLT, weight = 1",

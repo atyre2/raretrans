@@ -27,13 +27,15 @@ rdirichlet <- function (n, alpha){
 #' @param TF A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.
 #' @param N A vector of observed stages at start of transition.
 #' @param P A matrix of the priors for each column. Defaults to uniform.
+#' @param alpha A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_
+#' @param beta A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_
 #' @param priorweight total weight for each column of prior as a percentage of sample size or 1 if negative
 #' @param samples The number of matrices to return.
 #'
 #' @return Always returns a list.
 #' @export
 #'
-sim_transitions <- function(TF, N, P = NULL, priorweight = -1, samples = 1){
+sim_transitions <- function(TF, N, P = NULL, alpha = 0.00001, beta = 0.00001, priorweight = -1, samples = 1){
   Tmat <- TF$T
   Fmat <- TF$F
   order <- dim(Tmat)[1]
@@ -46,13 +48,22 @@ sim_transitions <- function(TF, N, P = NULL, priorweight = -1, samples = 1){
     }
   }
   TN <- fill_transitions(TF, N, P, priorweight, returnType = "TN")
+  ab_post <- fill_fecundity(TF, N, alpha = alpha, beta = beta, priorweight = priorweight, returnType = "ab")
+  alpha <- ab_post$alpha
+  beta <- ab_post$beta
+
   Amats <- list()
   for(i in 1:samples){
-    A <- matrix(0, nrow=order, ncol=order)
+    T_ <- matrix(0, nrow=order, ncol=order)
+    F_ <- matrix(0, nrow=order, ncol=order)
+
     for(j in 1:order){
-      A[,j] <- rdirichlet(1, TN[,j])[1:order]
+      T_[,j] <- rdirichlet(1, TN[,j])[1:order]
+      if (!is.na(alpha[j])){
+        F_[1,j] <- rgamma(1, shape = alpha[j], rate = beta[j])
+      }
     }
-    Amats[[i]] <- A + Fmat
+    Amats[[i]] <- T_ + F_
   }
 
 

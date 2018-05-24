@@ -91,10 +91,13 @@ fill_fecundity <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
 
   if ((all(N[!is.na(alpha)] > 0) | sum(beta, na.rm = TRUE) > 0)){
     if (priorweight > 0){
-      Ffilled[1,] <- (alpha*priorweight*N + babies_next_year) / (beta*priorweight*N + N) # I don't think this is right if more than one stage reproduces
+      alpha_post <- alpha*priorweight*N + babies_next_year
+      beta_post <- beta*priorweight*N + N # I don't think this is right if more than one stage reproduces
     } else {
-      Ffilled[1,] <- (alpha + babies_next_year) / (beta + N) # I don't think this is right if more than one stage reproduces
+      alpha_post <- alpha + babies_next_year
+      beta_post <- beta + N # I don't think this is right if more than one stage reproduces
     }
+    Ffilled[1, ] <- alpha_post / beta_post
   }
 
   Ffilled[is.na(Ffilled)] <- 0 #stages that can't reproduce are marked with NA_real_ in alpha and beta
@@ -103,6 +106,8 @@ fill_fecundity <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
     return(Tmat + Ffilled)
   } else if (returnType == "F"){
     return(Ffilled)
+  } else if (returnType == "ab"){
+    return(list(alpha = alpha_post, beta = beta_post))
   } else {
     stop("Bad returntype in fill_fecundity()")
   }
