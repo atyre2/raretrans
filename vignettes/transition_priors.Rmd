@@ -254,7 +254,7 @@ So using a Dirichlet prior to fill in the gaps works, and doesn't appear to dist
 The other component of the matrix is the fertility. We do this by using a Gamma prior with the function `fill_fecundity()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Gamma prior only applies to the $F$ matrix. If not specified, the function assumes an uniformative prior with $\alpha = 0.00001, \beta = 0.00001$ across all stages. Stages that do not reproduce are marked with `NA_real_` in the prior probability vectors.
 
 ```{r fillDirichlet, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data."}
-testing <- allA %>% mutate(Agamma = map2(TF, N, fill_fecundity, alpha = c(NA_real_, NA_real_, 0.00001), beta = c(NA_real_, NA_real_, 0.00001)),
+testing <- allA %>% mutate(Agamma = map2(TF, N, fill_fecundity, alpha = c(NA_real_, NA_real_, 0.00001), beta = c(NA_real_, NA_real_, 0.00001), priorweight = 1),
                            lgamma = map_dbl(Agamma, lambda),                 
          irrgamma = map_dbl(Agamma, is.matrix_irreducible),
          erggamma = map_dbl(Agamma, is.matrix_ergodic))
@@ -270,7 +270,7 @@ if(!knitting){
 ```
 
 
-The matrices with $\lambda = 0$ typically have very few individuals. Matrices with $\lambda = 1$ usually have transitions only on the main diagonal. The uninformative Gamma prior does not change $lambda$, and does not improve the ergodicity and irreducibility issue. 
+The matrices with $\lambda = 0$ typically have very few individuals. Matrices with $\lambda = 1$ usually have transitions only on the main diagonal. The uninformative Gamma prior does not change $lambda$, and does not improve the ergodicity and irreducibility issue. When there is at least 1 adult present, the expected value of Fecundity is very close to zero. When there are no adults present, all those matrices cannot reach the adult stage and so the expected value of Fecundity does not affect $\lambda$. However, this is not a necessary condition. 
 
 ```{r checkErgIrr}
 ergo_irr <- as.data.frame(with(testing, table(erggamma, irrgamma)))
@@ -297,9 +297,13 @@ RLT_Fprior <- matrix(c(0.0, 0.0, 0.025,
 
 The RLT prior gives $\lambda = `r format(lambda(RLT_Tprior[-4,] + RLT_Fprior), digits = 2)`$. In an ideal world this prior would be extracted prior to collecting the data. In this case the prior is only being used to demonstrate the technique.
 
-```{r fillDirichletPrior1, fig.cap="Asymptotic growth rates using prior information vs. the raw observations alone. The horizontal red line indicates $\\lambda$ for the RLT prior. Points for all four priors shown in transparent grey."}
+```{r fillDirichletPrior1, fig.cap="Asymptotic growth rates using prior information on transitions and fecundity vs. the raw observations alone. The horizontal red line indicates $\\lambda$ for the RLT prior. Points for all four priors shown in transparent grey."}
 diffPriors <- list()
-diffPriors[["Uniform"]] <- testing %>% mutate(Aprior = map2(TF, N, fill_transitions),
+diffPriors[["Uniform"]] stuff<- testing %>% mutate(Tprior = map2(TF, N, fill_transitions, returnType = "T"),
+                                              Fprior = map2(TF, N, fill_fecundity,
+                                                            alpha = c(NA_real_, NA_real_, 0.00001),
+                                                            beta = c(NA_real_, NA_real_, 0.00001), priorweight = 1, returnType = "F"),
+                                              A prior
                                               lprior = map_dbl(Aprior, lambda))
 
 
@@ -346,7 +350,7 @@ myfunc <- function(x){
   x
 }
 mnCI <- list(ci_95 = MultinomialCI::multinomialCI(c(1, 7, 0, 3), alpha = 0.05),
-             ci_90 = MultinomialCI::multinomialCI(c(1, 7, 0, 3), alpha = 0.1),
+             ci_80 = MultinomialCI::multinomialCI(c(1, 7, 0, 3), alpha = 0.2),
              ci_50 = MultinomialCI::multinomialCI(c(1, 7, 0, 3), alpha = 0.5)) %>%
   map(myfunc) %>%
   map(as_data_frame) %>%
@@ -402,6 +406,7 @@ xx <- left_join(xx, params, by = c("prior", "transition")) %>%
          cump = pbeta(prob, a, b),
          in95 = cump > 0.025 & cump < 0.975,
          in90 = cump > 0.05 & cump < 0.95,
+         in80 = cump > 0.1 & cump < 0.9,
          in50 = cump > 0.25 & cump < 0.75,
          prior = factor(prior, levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N")),
          transition = factor(transition, levels = c("p to p", "p to j", "p to a", "p to m"))) 
@@ -419,14 +424,14 @@ params$transition <- factor(params$transition, levels = c("p to p", "p to j", "p
 # to see where I get the conversion factor for points - size to keep fonts the same.
 ggplot(filter(xx, transition != "p to m", prior != "None"), aes(x = prob, y=dens)) + #geom_area(aes(alpha = layer)) +
   geom_area(alpha = 0.25) +
-  geom_area(data = function(x)x[x$in95,], alpha = 0.5) + 
-  geom_area(data = function(x)x[x$in90,], alpha = 0.75) + 
+  geom_area(data = function(x)x[x$in95,], alpha = 0.25) + 
+  geom_area(data = function(x)x[x$in80,], alpha = 0.25) + 
   geom_area(data = function(x)x[x$in50,], alpha = 1) + 
   geom_line(aes(y=prior_dens)) + 
   theme_classic() +
   geom_point(data = mnCI, mapping = aes(x=p, y=1)) +
-  geom_errorbarh(data = mnCI, mapping = aes(x = p, xmin=lcl, xmax=ucl, size=interval_width, y=1), width=0)+
-  facet_grid(prior~transition) + #, labeller=label_wrap_gen(width = 15)) + 
+  geom_errorbarh(data = mnCI, mapping = aes(x = p, xmin=lcl, xmax=ucl, size=interval_width, y=1))+
+  facet_grid(transition~prior) + #, labeller=label_wrap_gen(width = 15)) + 
   xlab("Transition Probability") + 
   ylab("Probability Density") + 
   ylim(c(0,15)) + 
@@ -440,7 +445,7 @@ ggplot(filter(xx, transition != "p to m", prior != "None"), aes(x = prob, y=dens
                     strip.text = element_text(size=11)) +
   scale_x_continuous(breaks = c(0,0.5,1.0)) + 
   scale_size_manual(values = 
-                      c("ci_50"=3, "ci_90" = 2, "ci_95" = 1),
+                      c("ci_50"=3, "ci_80" = 2, "ci_95" = 1),
                     guide = FALSE)
 if(!knitting){
   ggsave("credibleIntervals1.png", path=pathtoimages)
@@ -475,7 +480,7 @@ diffPriors_lci$prior <- factor(diffPriors_lci$prior, levels = c("Uniform", "RLT,
                                                         "RLT, weight = 0.5N", "RLT, weight = N"))
 
 ggplot(diffPriors_lci, aes(x=lprior)) + 
-  geom_density(fill="black") + 
+  geom_density(fill="grey75") + 
   facet_wrap(~prior) + 
   theme_classic() + 
   rlt_theme + 
