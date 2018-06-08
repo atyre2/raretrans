@@ -1,0 +1,119 @@
+---
+title: "Working with a single population and transition"
+output:
+  rmarkdown::pdf_document:
+    fig_caption: yes
+  rmarkdown::html_vignette:
+    fig_caption: yes
+vignette: >
+  %\VignetteIndexEntry{Working with a single population and transition period}
+  \VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(popbio)
+library(popdemo)
+library(raretrans)
+# Raymond's theme modifications
+rlt_theme <- theme(axis.title.y = element_text(colour="grey20",size=15,face="bold"),
+        axis.text.x = element_text(colour="grey20",size=15, face="bold"),
+        axis.text.y = element_text(colour="grey20",size=15,face="bold"),  
+        axis.title.x = element_text(colour="grey20",size=15,face="bold"))
+
+```
+
+We want to be able to use this package with single populations and transitions. Regardless of how many populations there are, we need the data in the form expected by `popbio::projection_matrix` to get the matrices we want. Here we demonstrate how the package works with a single population in the desired format, by extracting the transition and fertility data for *L. elto* POPNUM 250 in period 5.
+
+```{r}
+library(raretrans)
+data("L_elto")
+onepop <- filter(L_elto, POPNUM == 250, year == 5) %>% 
+  mutate(stage = case_when(stage == "p" ~ "s",
+                           TRUE ~ stage),
+         next_stage = case_when(next_stage == "p"~ "s",
+                                TRUE ~ next_stage))
+TF <- projection.matrix(as.data.frame(onepop), stage = stage, fate = next_stage, fertility="fertility", sort=c("s","j","a"), TF = TRUE)
+TF
+```
+
+Now we also need the number of individuals in each stage at the start. This is because our priors are based on counts, and the prior equivalent sample size is expressed as a multiple of the number of individuals observed. We have a function `raretrans::get_state_vector()` to do this.
+
+```{r}
+N <- get_state_vector(as.data.frame(onepop), stage = stage, sort=c("s","j","a"))
+N
+```
+
+The rare transition that is missing from this matrix is the seedling to adult, which in the RLT prior happens ~ 1% of the time. The observed asymptotic population growth rate is $\lambda =$ `r eigen(TF$T + TF$F)$values[1]`.
+
+First, use the default uniform prior on transitions and uninformative gamma on fecundity. We have to specify the parameters for the fecundity prior on non-reproducing stages as missing, or the result will fill in the entire matrix. The default for both functions returns the full matrix **A**, so we have to tell the function to only return the transition and fecundity matrices. 
+
+```{r}
+unif <- list(T = fill_transitions(TF, N, returnType = "T"), F = fill_fecundity(TF, N, 
+                                                             alpha = c(NA_real_, NA_real_, 1e-05),
+                                                             beta = c(NA_real_, NA_real_, 1e-05),
+                                                             returnType = "F"))
+unif
+```
+
+And the asymptotic population growth rate is $\lambda =$ `r eigen(unif$T + unif$F)$values[1]`. The growth rate shrinks slightly because applying the uniform prior on transition probabilities causes observed growth and survival transitions to shrink slightly relative to those that are unobserved. 
+
+There are two other returnTypes. `fill_transitions()` can return an augmented matrix of fates which is useful for simulation.
+
+```{r}
+fill_transitions(TF, N, returnType = "TN")
+```
+
+The fourth row of this result is the mortality state. `fill_fecundity()` can return the alpha and beta vectors of the posterior.
+
+```{r}
+fill_fecundity(TF, N, 
+               alpha = c(NA_real_, NA_real_, 1e-05),
+               beta = c(NA_real_, NA_real_, 1e-05),
+               returnType = "ab")
+```
+
+This demonstrates why the posterior point estimate does not change much; the non-informative values for $\alpha$ and $\beta$ barely change the observed values. 
+
+We can skip using `popbio::projection_matrix()` if the matrix is already calculated, as long as we also have the stage vector. 
+
+```{r}
+# Matrix
+Lep_rup_M <- matrix(c(0, 0.0,   0.0, 0.0, 0,
+                      0.0,   0.515,   0, 0, 0,
+                      0, 0, 0.777, 0, 0,
+                      0, 0.368, 0.011, 0.730, 0.171,
+                      0, 0.037, 0, 0.169, 0.790), 
+                     byrow = TRUE, nrow = 5, ncol = 5)
+Lep_rup_M
+# Fecundity
+Lep_rup_F<- matrix(c(0, 0.0,   0.0, 0.120, 0.414,
+                     0.0,   0,   0, 0.076, 0.013,
+                       0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0), 
+                     byrow = TRUE, nrow = 5, ncol = 5)
+Lep_rup_F
+
+
+Lep_rup_Mprior <- matrix(c(0, 0.0,   0.0, 0.0, 0,
+                           0.0,   0.515,   0, 0, 0,
+                       0, 0, 0.777, 0, 0,
+                       0, 0.368, 0.011, 0.730, 0.171,
+                       0, 0.037, 0, 0.169, 0.790), 
+                     byrow = TRUE, nrow = 5, ncol = 5)
+
+
+Lep_rup_Fprior <- matrix(c(0, 0.0,   0.0, 0.120, 0.414,
+                     0.0,   0,   0, 0.076, 0.013,
+                       0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0), 
+                     byrow = TRUE, nrow = 5, ncol = 5)
+```
+
+
+
+
