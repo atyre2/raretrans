@@ -5,7 +5,7 @@
 \title{Combine prior and data for fertility matrix}
 \usage{
 fill_fecundity(TF, N, alpha = 1e-05, beta = 1e-05, priorweight = -1,
-  returnType = "A")
+  returnType = "F")
 }
 \arguments{
 \item{TF}{A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.}
@@ -18,13 +18,14 @@ fill_fecundity(TF, N, alpha = 1e-05, beta = 1e-05, priorweight = -1,
 
 \item{priorweight}{total weight for each column of prior as a percentage of sample size or 1 if negative}
 
-\item{returnType}{A character vector describing the desired return value.}
+\item{returnType}{A character vector describing the desired return value. Defaults to "F" the fertility matrix}
 }
 \value{
 The return value depends on parameter returnType.
 \itemize{
   \item A - the summed matrix "filled in" using a Gamma prior
   \item F - just the filled in fertility matrix
+  \item ab - the posterior parameters alpha and beta as a list.
 }
 }
 \description{

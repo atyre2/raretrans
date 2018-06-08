@@ -530,7 +530,7 @@ ggplot(diffPriors_lci, aes(x=lprior)) +
 ```
 
 
-```{r uploadGoogleDrive, eval=!knitting, echo=FALSE, include=FALSE}
+```{r uploadGoogleDrive, eval=FALSE, echo=FALSE, include=FALSE}
 library(googledrive)
 images <- list.files(path=pathtoimages, full.names=TRUE)
 # # first time do this

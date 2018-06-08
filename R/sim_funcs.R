@@ -14,7 +14,7 @@
 #'
 rdirichlet <- function (n, alpha){
   l <- length(alpha)
-  x <- matrix(rgamma(l * n, alpha), ncol = l, byrow = TRUE)
+  x <- matrix(stats::rgamma(l * n, alpha), ncol = l, byrow = TRUE)
   sm <- x %*% rep(1, l)
   return(x/as.vector(sm))
 }
@@ -60,7 +60,7 @@ sim_transitions <- function(TF, N, P = NULL, alpha = 0.00001, beta = 0.00001, pr
     for(j in 1:order){
       T_[,j] <- rdirichlet(1, TN[,j])[1:order]
       if (!is.na(alpha[j])){
-        F_[1,j] <- rgamma(1, shape = alpha[j], rate = beta[j])
+        F_[1,j] <- stats::rgamma(1, shape = alpha[j], rate = beta[j])
       }
     }
     Amats[[i]] <- T_ + F_
