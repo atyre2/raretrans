@@ -81,37 +81,20 @@ We can skip using `popbio::projection_matrix()` if the matrix is already calcula
 
 ```{r}
 # Matrix
-Lep_rup_M <- matrix(c(0, 0.0,   0.0, 0.0, 0,
-                      0.0,   0.515,   0, 0, 0,
-                      0, 0, 0.777, 0, 0,
-                      0, 0.368, 0.011, 0.730, 0.171,
-                      0, 0.037, 0, 0.169, 0.790), 
-                     byrow = TRUE, nrow = 5, ncol = 5)
-Lep_rup_M
-# Fecundity
-Lep_rup_F<- matrix(c(0, 0.0,   0.0, 0.120, 0.414,
-                     0.0,   0,   0, 0.076, 0.013,
-                       0, 0, 0, 0, 0,
-                       0, 0, 0, 0, 0,
-                       0, 0, 0, 0, 0), 
-                     byrow = TRUE, nrow = 5, ncol = 5)
-Lep_rup_F
-
-
-Lep_rup_Mprior <- matrix(c(0, 0.0,   0.0, 0.0, 0,
-                           0.0,   0.515,   0, 0, 0,
-                       0, 0, 0.777, 0, 0,
-                       0, 0.368, 0.011, 0.730, 0.171,
-                       0, 0.037, 0, 0.169, 0.790), 
-                     byrow = TRUE, nrow = 5, ncol = 5)
-
-
-Lep_rup_Fprior <- matrix(c(0, 0.0,   0.0, 0.120, 0.414,
-                     0.0,   0,   0, 0.076, 0.013,
-                       0, 0, 0, 0, 0,
-                       0, 0, 0, 0, 0,
-                       0, 0, 0, 0, 0), 
-                     byrow = TRUE, nrow = 5, ncol = 5)
+Lep_rup <- list(T = matrix(c(0, 0.0,   0.0, 0.0, 0,
+                             0.0,   0.515,   0, 0, 0,
+                             0, 0, 0.777, 0, 0,
+                             0, 0.368, 0.011, 0.730, 0.171,
+                             0, 0.037, 0, 0.169, 0.790), 
+                           byrow = TRUE, nrow = 5, ncol = 5),
+                # Fecundity
+                F = matrix(c(0, 0.0,   0.0, 0.120, 0.414,
+                             0.0,   0,   0, 0.076, 0.013,
+                             0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0,
+                             0, 0, 0, 0, 0), 
+                           byrow = TRUE, nrow = 5, ncol = 5))
+Lep_rup
 ```
 
 
