@@ -7,7 +7,7 @@
 #' @param N A vector of observed transitions.
 #' @param P A matrix of the priors for each column. Defaults to uniform.
 #' @param priorweight total weight for each column of prior as a percentage of sample size or 1 if negative
-#' @param returnType A character vector describing the desired return value.
+#' @param returnType A character vector describing the desired return value. Defaults to "T" the transition matrix.
 #'
 #' @return The return value depends on parameter returnType.
 #' \itemize{
@@ -18,7 +18,7 @@
 #'
 #' @export
 #'
-fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "A"){
+fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "T"){
   Tmat <- TF$T
   Fmat <- TF$F
   order <- dim(Tmat)[1]
@@ -67,17 +67,18 @@ fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "A"
 #' @param alpha A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_
 #' @param beta A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_
 #' @param priorweight total weight for each column of prior as a percentage of sample size or 1 if negative
-#' @param returnType A character vector describing the desired return value.
+#' @param returnType A character vector describing the desired return value. Defaults to "F" the fertility matrix
 #'
 #' @return The return value depends on parameter returnType.
 #' \itemize{
 #'   \item A - the summed matrix "filled in" using a Gamma prior
 #'   \item F - just the filled in fertility matrix
+#'   \item ab - the posterior parameters alpha and beta as a list.
 #' }
 #'
 #' @export
 #'
-fill_fecundity <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight = -1, returnType = "A"){
+fill_fecundity <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight = -1, returnType = "F"){
   Tmat <- TF$T
   Fmat <- TF$F
   order <- dim(Tmat)[1]
