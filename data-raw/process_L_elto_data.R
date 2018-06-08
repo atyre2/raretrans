@@ -41,7 +41,8 @@ L_elto <- df_4 %>% group_by(POPNUM, year) %>%
   ungroup() %>% group_by(POPNUM) %>%
   mutate(fertility = lead(seedlings)/adults) %>%
   right_join(df_4, by=c("POPNUM","year")) %>%
-  mutate(fertility = if_else(stage=="a", fertility, 0)) # this fixes the few divide by zero issues
+  mutate(fertility = if_else(stage=="a", fertility, 0)) %>% # this fixes the few divide by zero issues
+  ungroup()
 
 # push it out to data/
-devtools::use_data(L_elto)
+devtools::use_data(L_elto, overwrite = TRUE)
