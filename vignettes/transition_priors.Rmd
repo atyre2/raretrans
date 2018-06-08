@@ -3,12 +3,14 @@ title: "Effect of prior information on transition probabilities and fertilities"
 author: "Drew Tyre"
 date: "`r format(Sys.Date(), '%b %d, %Y')`"
 output:
+  rmarkdown::pdf_document:
+    fig_caption: yes
   rmarkdown::html_vignette:
     fig_caption: yes
 vignette: >
   %\VignetteIndexEntry{Effect of prior information on transition probabilities and fertility}
-  %\VignetteEngine{knitr::rmarkdown}
   \VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 bibliography: references.bib
 ---
 
@@ -381,31 +383,31 @@ mnCI <- list(ci_95 = MultinomialCI::multinomialCI(c(1, 7, 0, 3), alpha = 0.05),
   bind_rows(.id = "interval_width")%>%
   mutate(p = rep(c(1, 7, 0, 3) / 11, times=3),
          prior = factor("None", levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N")), 
-         transition =  factor(rep(c("s to p", "s to j", "s to a", "s to m"), times=3), levels = c("s to p", "s to j", "s to a", "s to m"))) %>%
+         transition =  factor(rep(c("s to s", "s to j", "s to a", "s to m"), times=3), levels = c("s to s", "s to j", "s to a", "s to m"))) %>%
   filter(transition != "s to m")
 
 xx <- crossing(prior = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N"),
-         transition = c("s to p", "s to j", "s to a", "s to m"),
+         transition = c("s to s", "s to j", "s to a", "s to m"),
          prob = seq(0.001,0.999, 0.001))
 params <- tribble(
   ~prior, ~transition, ~a_obs, ~a_prior,
-  "None", "s to p",     1,    0,
+  "None", "s to s",     1,    0,
   "None", "s to j",     7,    0,
   "None", "s to a",     0,    0,
   "None", "s to m",     3,    0,
-  "Uniform", "s to p",     1,.25,    
+  "Uniform", "s to s",     1,.25,    
   "Uniform", "s to j",     7,.25,
   "Uniform", "s to a",     0,.25,
   "Uniform", "s to m",     3,.25,
-  "RLT, w = 1", "s to p",     1,.25,    
+  "RLT, w = 1", "s to s",     1,.25,    
   "RLT, w = 1", "s to j",     7,.05,
   "RLT, w = 1", "s to a",     0,.01,
   "RLT, w = 1", "s to m",     3,.69,
-  "RLT, w = 0.5N", "s to p",     1, 1.375,    
+  "RLT, w = 0.5N", "s to s",     1, 1.375,    
   "RLT, w = 0.5N", "s to j",     7, .275,
   "RLT, w = 0.5N", "s to a",     0, .055,
   "RLT, w = 0.5N", "s to m",     3, 3.795,
-  "RLT, w = N", "s to p",     1, 2.75,    
+  "RLT, w = N", "s to s",     1, 2.75,    
   "RLT, w = N", "s to j",     7, .55,
   "RLT, w = N", "s to a",     0, .11,
   "RLT, w = N", "s to m",     3, 7.59
@@ -433,14 +435,14 @@ xx <- left_join(xx, params, by = c("prior", "transition")) %>%
          in80 = cump > 0.1 & cump < 0.9,
          in50 = cump > 0.25 & cump < 0.75,
          prior = factor(prior, levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N")),
-         transition = factor(transition, levels = c("s to p", "s to j", "s to a", "s to m"))) 
+         transition = factor(transition, levels = c("s to s", "s to j", "s to a", "s to m"))) 
 
 #xx$layer <- forcats::fct_collapse(xx$layer,
 #                                  full = c("full", "ufull"),
 #                                  `95%` = c("95%", "u95%"),
 #                                  `90%` = c("90%", "u90%"))
 params$prior <- factor(params$prior, levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N"))
-params$transition <- factor(params$transition, levels = c("s to p", "s to j", "s to a", "s to m"))
+params$transition <- factor(params$transition, levels = c("s to s", "s to j", "s to a", "s to m"))
 
 
 # fix alphas
@@ -453,8 +455,9 @@ ggplot(filter(xx, transition != "s to m", prior != "None"), aes(x = prob, y=dens
   geom_area(data = function(x)x[x$in50,], alpha = 1) + 
   geom_line(aes(y=prior_dens)) + 
   theme_classic() +
-  geom_point(data = mnCI, mapping = aes(x=p, y=1)) +
-  geom_errorbarh(data = mnCI, mapping = aes(x = p, xmin=lcl, xmax=ucl, size=interval_width, y=1))+
+  geom_errorbarh(data = mnCI, mapping = aes(x = p, xmin=lcl, xmax=ucl, size=interval_width, y=1),
+                 lineend = "square")+
+  geom_point(data = mnCI, mapping = aes(x=p, y=1), color = "white") +
   facet_grid(prior~transition) + #, labeller=label_wrap_gen(width = 15)) + 
   xlab("Transition Probability") + 
   ylab("Probability Density") + 
