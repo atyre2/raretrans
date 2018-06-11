@@ -7,3 +7,5 @@
 ^.httr-oauth
 ^\.httr-oauth$
 ^codecov\.yml$
+^\.travis\.yml$
+^README.Rmd
