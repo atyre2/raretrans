@@ -54,6 +54,9 @@
         <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li>
+  <a href="../articles/index.html">Articles</a>
+</li>
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
@@ -74,44 +77,53 @@
 
     
     <p><code>fill_fertility</code> returns the expected value of the fertility
-matrix combining observed recruits for one time step and a prior</p>
+matrix combining observed recruits for one time step and a Gamma prior for each column.</p>
     
 
-    <pre class="usage"><span class='fu'>fill_fecundity</span>(<span class='no'>TF</span>, <span class='no'>P</span>, <span class='no'>N</span>, <span class='kw'>returnType</span> <span class='kw'>=</span> <span class='st'>"A"</span>)</pre>
+    <pre class="usage"><span class='fu'>fill_fecundity</span>(<span class='no'>TF</span>, <span class='no'>N</span>, <span class='kw'>alpha</span> <span class='kw'>=</span> <span class='fl'>1e-05</span>, <span class='kw'>beta</span> <span class='kw'>=</span> <span class='fl'>1e-05</span>, <span class='kw'>priorweight</span> <span class='kw'>=</span> -<span class='fl'>1</span>,
+  <span class='kw'>returnType</span> <span class='kw'>=</span> <span class='st'>"F"</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>TF</th>
-      <td><p>A list of two matrices, T and F, as ouput by <code>[popbio]projection.matrix</code>.</p></td>
-    </tr>
-    <tr>
-      <th>P</th>
-      <td><p>A matrix of the priors for each column.</p></td>
+      <td><p>A list of two matrices, T and F, as ouput by <code><a href='http://www.rdocumentation.org/packages/popbio/topics/projection.matrix'>projection.matrix</a></code>.</p></td>
     </tr>
     <tr>
       <th>N</th>
-      <td><p>A vector of observed transitions.</p></td>
+      <td><p>A vector of observed stage distribution.</p></td>
+    </tr>
+    <tr>
+      <th>alpha</th>
+      <td><p>A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_</p></td>
+    </tr>
+    <tr>
+      <th>beta</th>
+      <td><p>A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_</p></td>
+    </tr>
+    <tr>
+      <th>priorweight</th>
+      <td><p>total weight for each column of prior as a percentage of sample size or 1 if negative</p></td>
     </tr>
     <tr>
       <th>returnType</th>
-      <td><p>A character vector describing the desired return value.</p></td>
+      <td><p>A character vector describing the desired return value. Defaults to "F" the fertility matrix</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>The return value depends on parameter returnType.</p><ul>
-<li><p>A - the summed matrix "filled in" using a dirichlet prior</p></li>
+<li><p>A - the summed matrix "filled in" using a Gamma prior</p></li>
 <li><p>F - just the filled in fertility matrix</p></li>
+<li><p>ab - the posterior parameters alpha and beta as a list.</p></li>
 </ul>
 
     
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>This is just an intermediate version to test package structure. Does
-not yet use the prior argument P.</p>
+    <p>Assumes that the reproductive individuals are in stage 3 ... needs generalizing.</p>
     
 
   </div>

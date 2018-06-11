@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Combine prior and data for transition matrix — fill_transitions • raretrans</title>
+<title>Simulate population projection matrices — sim_transitions • raretrans</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -72,15 +72,16 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Combine prior and data for transition matrix</h1>
+    <h1>Simulate population projection matrices</h1>
     </div>
 
     
-    <p><code>fill_transition</code> returns the expected value of the transition
-matrix combining observed transitions for one time step and a prior</p>
+    <p><code>sim_transition</code> generates a list of simulated population projection matrices from the provided parameters
+and prior distributions.</p>
     
 
-    <pre class="usage"><span class='fu'>fill_transitions</span>(<span class='no'>TF</span>, <span class='no'>N</span>, <span class='kw'>P</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>priorweight</span> <span class='kw'>=</span> -<span class='fl'>1</span>, <span class='kw'>returnType</span> <span class='kw'>=</span> <span class='st'>"T"</span>)</pre>
+    <pre class="usage"><span class='fu'>sim_transitions</span>(<span class='no'>TF</span>, <span class='no'>N</span>, <span class='kw'>P</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>alpha</span> <span class='kw'>=</span> <span class='fl'>1e-05</span>, <span class='kw'>beta</span> <span class='kw'>=</span> <span class='fl'>1e-05</span>,
+  <span class='kw'>priorweight</span> <span class='kw'>=</span> -<span class='fl'>1</span>, <span class='kw'>samples</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
@@ -91,30 +92,33 @@ matrix combining observed transitions for one time step and a prior</p>
     </tr>
     <tr>
       <th>N</th>
-      <td><p>A vector of observed transitions.</p></td>
+      <td><p>A vector of observed stages at start of transition.</p></td>
     </tr>
     <tr>
       <th>P</th>
       <td><p>A matrix of the priors for each column. Defaults to uniform.</p></td>
     </tr>
     <tr>
+      <th>alpha</th>
+      <td><p>A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_</p></td>
+    </tr>
+    <tr>
+      <th>beta</th>
+      <td><p>A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_</p></td>
+    </tr>
+    <tr>
       <th>priorweight</th>
       <td><p>total weight for each column of prior as a percentage of sample size or 1 if negative</p></td>
     </tr>
     <tr>
-      <th>returnType</th>
-      <td><p>A character vector describing the desired return value. Defaults to "T" the transition matrix.</p></td>
+      <th>samples</th>
+      <td><p>The number of matrices to return.</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>The return value depends on parameter returnType.</p><ul>
-<li><p>A - the summed matrix "filled in" using a dirichlet prior</p></li>
-<li><p>T - just the filled in transition matrix</p></li>
-<li><p>TN - the augmented matrix of fates -- use in calculating the CI or for simulation</p></li>
-</ul>
-
+    <p>Always returns a list.</p>
     
 
   </div>

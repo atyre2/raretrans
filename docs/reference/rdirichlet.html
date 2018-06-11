@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Authors • raretrans</title>
+<title>Dirichlet distributed random numbers — rdirichlet • raretrans</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -20,9 +20,9 @@
 
 
 <!-- pkgdown -->
-<link href="pkgdown.css" rel="stylesheet">
-<script src="jquery.sticky-kit.min.js"></script>
-<script src="pkgdown.js"></script>
+<link href="../pkgdown.css" rel="stylesheet">
+<script src="../jquery.sticky-kit.min.js"></script>
+<script src="../pkgdown.js"></script>
   
   
 <!-- mathjax -->
@@ -37,7 +37,7 @@
   </head>
 
   <body>
-    <div class="container template-authors">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -47,15 +47,15 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="index.html">raretrans</a>
+      <a class="navbar-brand" href="../index.html">raretrans</a>
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li>
-  <a href="reference/index.html">Reference</a>
+  <a href="../reference/index.html">Reference</a>
 </li>
 <li>
-  <a href="articles/index.html">Articles</a>
+  <a href="../articles/index.html">Articles</a>
 </li>
       </ul>
       
@@ -70,30 +70,55 @@
       </header>
 
       <div class="row">
-  <div class="contents col-md-12">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Authors</h1>
+    <h1>Dirichlet distributed random numbers</h1>
     </div>
 
-    <ul class="list-unstyled">
-      <li>
-        <p><strong>Tyre Andrew</strong>. Maintainer.
-        </p>
-      </li>
-      <li>
-        <p><strong>Tremblay Raymond</strong>. Author.
-        </p>
-      </li>
-      <li>
-        <p><strong>Perez Maria-Eglee</strong>. Author.
-        </p>
-      </li>
-    </ul>
+    
+    <p>Generate n random vectors distributed according to a Dirichlet distribution.
+Each row of the returned matrix is a random vector that sums to 1.</p>
+    
+
+    <pre class="usage"><span class='fu'>rdirichlet</span>(<span class='no'>n</span>, <span class='no'>alpha</span>)</pre>
+    
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>n</th>
+      <td><p>The number of random vectors to generate</p></td>
+    </tr>
+    <tr>
+      <th>alpha</th>
+      <td><p>A vector of parameters</p></td>
+    </tr>
+    </table>
+    
+    <h2 class="hasAnchor" id="source"><a class="anchor" href="#source"></a>Source</h2>
+
+    <p>copied from package <code>MCMCpack</code> to avoid a dependency. That code
+was taken from Greg's Miscellaneous Functions (gregmisc). His code was based
+on code posted by Ben Bolker to R-News on 15 Dec 2000.</p>
+    
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>The function returns a matrix with n rows and <code>length(alpha)</code> columns</p>
+    
 
   </div>
+  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
+    <h2>Contents</h2>
+    <ul class="nav nav-pills nav-stacked">
+      <li><a href="#arguments">Arguments</a></li>
+      
+      <li><a href="#source">Source</a></li>
 
+      <li><a href="#value">Value</a></li>
+          </ul>
+
+  </div>
 </div>
-
 
       <footer>
       <div class="copyright">
