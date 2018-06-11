@@ -62,7 +62,9 @@ onepop &lt;-<span class="st"> </span><span class="kw">filter</span>(L_elto, POPN
                            <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> </span>stage),
          <span class="dt">next_stage =</span> <span class="kw">case_when</span>(next_stage <span class="op">==</span><span class="st"> "p"</span><span class="op">~</span><span class="st"> "s"</span>,
                                 <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> </span>next_stage))
-TF &lt;-<span class="st"> </span><span class="kw">projection.matrix</span>(<span class="kw">as.data.frame</span>(onepop), <span class="dt">stage =</span> stage, <span class="dt">fate =</span> next_stage, <span class="dt">fertility=</span><span class="st">"fertility"</span>, <span class="dt">sort=</span><span class="kw">c</span>(<span class="st">"s"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>), <span class="dt">TF =</span> <span class="ot">TRUE</span>)
+TF &lt;-<span class="st"> </span><span class="kw">projection.matrix</span>(<span class="kw">as.data.frame</span>(onepop), 
+                        <span class="dt">stage =</span> stage, <span class="dt">fate =</span> next_stage, 
+                        <span class="dt">fertility=</span><span class="st">"fertility"</span>, <span class="dt">sort=</span><span class="kw">c</span>(<span class="st">"s"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>), <span class="dt">TF =</span> <span class="ot">TRUE</span>)
 TF</code></pre></div>
 <pre><code>## $T
 ##    
@@ -83,10 +85,11 @@ N</code></pre></div>
 <pre><code>## [1] 11 47 34</code></pre>
 <p>The rare transition that is missing from this matrix is the seedling to adult, which in the RLT prior happens ~ 1% of the time. The observed asymptotic population growth rate is <span class="math inline">\(\lambda =\)</span> 0.9282277.</p>
 <p>First, use the default uniform prior on transitions and uninformative gamma on fecundity. We have to specify the parameters for the fecundity prior on non-reproducing stages as missing, or the result will fill in the entire matrix. The default for both functions returns the full matrix <strong>A</strong>, so we have to tell the function to only return the transition and fecundity matrices.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">unif &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">T =</span> <span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">returnType =</span> <span class="st">"T"</span>), <span class="dt">F =</span> <span class="kw"><a href="../reference/fill_fecundity.html">fill_fecundity</a></span>(TF, N, 
-                                                             <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),
-                                                             <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),
-                                                             <span class="dt">returnType =</span> <span class="st">"F"</span>))
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">unif &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">T =</span> <span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">returnType =</span> <span class="st">"T"</span>), 
+             <span class="dt">F =</span> <span class="kw"><a href="../reference/fill_fecundity.html">fill_fecundity</a></span>(TF, N, 
+                                <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),
+                                <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),
+                                <span class="dt">returnType =</span> <span class="st">"F"</span>))
 unif</code></pre></div>
 <pre><code>## $T
 ##            [,1]        [,2]        [,3]
@@ -160,7 +163,7 @@ Lep_rup</code></pre></div>
 
 
       <footer><div class="copyright">
-  <p>Developed by Tyre Andrew, Tremblay Raymond, Perez Maria-Eglee.</p>
+  <p>Developed by Andrew Tyre, Raymond Tremblay, Maria-Eglee Perez.</p>
 </div>
 
 <div class="pkgdown">

@@ -33,4 +33,9 @@ data(L_elto)
    \item lifespan...
  }
 }
+\references{
+{
+Tremblay, Raymond L., and Michael J. Hutchings. "Population dynamics in orchid conservation: a review of analytical methods based on the rare species Lepanthes eltoroensis." Orchid Conservation, Borneo: Natural History Museum Publications (2003): 183-204.
+}
+}
 \keyword{...}
