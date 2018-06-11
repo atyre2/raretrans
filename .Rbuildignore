@@ -6,3 +6,4 @@
 ^vignettes/images
 ^.httr-oauth
 ^\.httr-oauth$
+^codecov\.yml$

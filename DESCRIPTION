@@ -17,12 +17,14 @@ Depends: R (>= 2.10)
 Imports: dplyr,
     popbio,
     stats
-Suggests: popdemo,
+Suggests: 
+    popdemo,
     knitr,
     rmarkdown,
     testthat,
     tidyverse,
     MultinomialCI,
-    gridExtra
+    gridExtra,
+    covr
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr
