@@ -7,6 +7,7 @@
 #' @param alpha A vector of parameters
 #'
 #' @return The function returns a matrix with n rows and \code{length(alpha)} columns
+#' @export
 #'
 #' @source copied from package \code{MCMCpack} to avoid a dependency. That code
 #' was taken from Greg's Miscellaneous Functions (gregmisc). His code was based

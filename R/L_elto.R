@@ -21,6 +21,7 @@
 #'  }
 #'
 #' @docType data
+#' @export
 #' @keywords ...
 #' @name L_elto
 #' @usage data(L_elto)

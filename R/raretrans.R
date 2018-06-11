@@ -7,6 +7,7 @@
 #' transitions.
 #'
 #' @docType package
+#' @export
 #' @name raretrans
 #'
 NULL
