@@ -35,7 +35,9 @@ onepop <- filter(L_elto, POPNUM == 250, year == 5) %>%
                            TRUE ~ stage),
          next_stage = case_when(next_stage == "p"~ "s",
                                 TRUE ~ next_stage))
-TF <- projection.matrix(as.data.frame(onepop), stage = stage, fate = next_stage, fertility="fertility", sort=c("s","j","a"), TF = TRUE)
+TF <- projection.matrix(as.data.frame(onepop), 
+                        stage = stage, fate = next_stage, 
+                        fertility="fertility", sort=c("s","j","a"), TF = TRUE)
 TF
 ```
 
@@ -51,10 +53,11 @@ The rare transition that is missing from this matrix is the seedling to adult, w
 First, use the default uniform prior on transitions and uninformative gamma on fecundity. We have to specify the parameters for the fecundity prior on non-reproducing stages as missing, or the result will fill in the entire matrix. The default for both functions returns the full matrix **A**, so we have to tell the function to only return the transition and fecundity matrices. 
 
 ```{r}
-unif <- list(T = fill_transitions(TF, N, returnType = "T"), F = fill_fecundity(TF, N, 
-                                                             alpha = c(NA_real_, NA_real_, 1e-05),
-                                                             beta = c(NA_real_, NA_real_, 1e-05),
-                                                             returnType = "F"))
+unif <- list(T = fill_transitions(TF, N, returnType = "T"), 
+             F = fill_fecundity(TF, N, 
+                                alpha = c(NA_real_, NA_real_, 1e-05),
+                                beta = c(NA_real_, NA_real_, 1e-05),
+                                returnType = "F"))
 unif
 ```
 
