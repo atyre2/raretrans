@@ -46,3 +46,6 @@ L_elto <- df_4 %>% group_by(POPNUM, year) %>%
 
 # push it out to data/
 devtools::use_data(L_elto, overwrite = TRUE)
+
+# if changed deliberately, push to tests/testthat/one.rds as well
+saveRDS(L_elto, "tests/testthat/one.rds")
