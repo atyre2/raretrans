@@ -3,9 +3,9 @@ Type: Package
 Title: Bayesian Priors for Matrix Population Models
 Version: 0.0.0.9000
 Authors@R: c(
-    person("Tyre", "Andrew", email = "atyre2@unl.edu", role = "cre"),
-    person("Tremblay", "Raymond", email = "raymond.tremblay@upr.edu", role = "aut"),
-    person("Perez", "Maria-Eglee", email = "mariaeglee@gmail.com", role = "aut")) 
+    person("Andrew", "Tyre", email = "atyre2@unl.edu", role = "cre"),
+    person("Raymond", "Tremblay", email = "raymond.tremblay@upr.edu", role = "aut"),
+    person("Maria-Eglee", "Perez", email = "mariaeglee@gmail.com", role = "aut")) 
 Description: Functions to create matrix population models from a combination
     of data on stage/age transitions and Bayesian prior information. This 
     compensates for structural problems caused by missing observatons of rare
