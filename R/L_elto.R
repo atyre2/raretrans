@@ -27,4 +27,7 @@
 #' @usage data(L_elto)
 #' @format A data frame with 5233 rows and 15 variables
 #' @source Raymond L. Tremblay, University of Puerto Rico, Unpublished data.
+#' @references{
+#' Tremblay, Raymond L., and Michael J. Hutchings. "Population dynamics in orchid conservation: a review of analytical methods based on the rare species Lepanthes eltoroensis." Orchid Conservation, Borneo: Natural History Museum Publications (2003): 183-204.
+#' }
 "L_elto"
