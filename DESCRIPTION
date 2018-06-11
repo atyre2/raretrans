@@ -21,6 +21,8 @@ Suggests: popdemo,
     knitr,
     rmarkdown,
     testthat,
-    tidyverse
+    tidyverse,
+    MultinomialCI,
+    gridExtra
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr
