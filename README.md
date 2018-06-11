@@ -3,8 +3,7 @@
 raretrans
 =========
 
-<!-- [![Travis-CI Build Status](https://travis-ci.org/hadley/pkgdown.svg?branch=master)](https://travis-ci.org/hadley/pkgdown) -->
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/raretrans)](https://cran.r-project.org/package=raretrans)
+[![Build Status](https://travis-ci.com/atyre2/raretrans.svg?token=fZ6v1nEUhWRrRW3uj9TH&branch=master)](https://travis-ci.com/atyre2/raretrans) [![Coverage status](https://codecov.io/gh/atyre2/raretrans/branch/master/graph/badge.svg)](https://codecov.io/github/atyre2/raretrans?branch=master) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/raretrans)](https://cran.r-project.org/package=raretrans)
 
 Functions to create matrix population models from a combination of data on stage/age transitions and Bayesian prior information. This compensates for structural problems caused by missing observatons of rare transitions.
 
