@@ -181,7 +181,7 @@ knitr::kable(wUnifTable, caption = "Two problematic matrices and the matrix with
 
 ## Ignore the problem
 
-Ignoring this problem and calculating stochastic $\lambda$ for each population could yield non-sensical results. For example, the geometric mean $\lambda$ calculated using simulation fails for 6 out of the 23 populations. 
+Ignoring this problem and calculating stochastic $\lambda$ for each population could yield non-sensical results. For example, the geometric mean $\lambda$ calculated using simulation fails for 6 out of the 23 populations. These are the populations with one matrix that has $\lambda = 0$ at some point. 
 
 ```{r stochGrowthRateBad, fig.cap="Stochastic population growth rates for 17 out of 23 orchid populations. "}
 sgr <- allA %>% split(.$POPNUM) %>%
@@ -208,13 +208,38 @@ ggplot(aes(x=approx, y = sim)) + geom_point() +
 ggsave("stochGrowthRateBad.png", path=pathtoimages)
 ```
 
-The six populations where the simulated values are unavailable have very low approximate growth rates as well. All the stochastic growth rates are less than 1.
+The six populations where the simulated values are unavailable have very low approximate growth rates as well. All the stochastic growth rates are less than 1. Note that these calculations assume each matrix is perfectly observed; the only stochasticity is between year environmental stochasticity as represented by the observed sample of years. 
 
 ## Fill in including constraints on transitions
 
-This strategy uses the transitions in a smarter way that maintains the constraint that all survival/transition probabilities have to add up to 1. We do this by using a dirichlet prior with the function `fill_transitions()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Dirichlet prior only applies to the $T$ matrix. If not specified, the function assumes a uniform prior across the $m+1$ fates for each stage. The extra category is for individuals that do not survive. 
+This strategy uses the transitions in a smarter way that maintains the constraint that all survival/transition probabilities have to add up to 1. We do this by using a dirichlet prior with the function `fill_transitions()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Dirichlet prior only applies to the $T$ matrix. If not specified, the function assumes a uniform prior across the $m+1$ fates for each stage. The extra category is for individuals that do not survive. Let's look at a single example to see how it works, using population 231 in period 1. This matrix is non-ergodic and reducible, and there are individuals in every stage. 
 
-Show the steps from an observed transition matrix through calculating the priors
+```{r}
+# 
+tmat <- allA[23,"TF"][[1]][[1]]$T ## wow! hard to get at ... 
+fmat <- allA[23,"TF"][[1]][[1]]$F
+N <- allA[23,"N"][[1]][[1]]
+tmat + fmat
+```
+
+The matrix is reducible because the 2nd column and 2nd row could be eliminated without affecting population growth; this is because the `r N[2]` juveniles died. The matrix is not ergodic because there is no path from the 2nd stage to either of the other stages. 
+
+```{r}
+is.matrix_ergodic((tmat + fmat)[-2,-2])
+is.matrix_irreducible((tmat + fmat)[-2,-2])
+all.equal(lambda((tmat + fmat)[-2,-2]), lambda(tmat + fmat))
+```
+
+So, to add a dirichlet prior with a weight of 1 to $T$, we have 4 fates (3 + death), so each fate adds 0.25.
+
+```{r}
+(tmat2 <- tmat + 0.25) # re-cycles automatically
+lambda(tmat2 + fmat)
+is.matrix_ergodic(tmat2 + fmat)
+is.matrix_irreducible(tmat2 + fmat)
+```
+
+This case is the largest distortion ($\lambda$ increase from 1.06 to 1.64) observed from a uniform prior for any of the matrices. 
 
 ```{r fillDirichlet, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data."}
 testing <- allA %>% mutate(Adirch = map2(TF, N, fill_transitions),
@@ -234,7 +259,7 @@ ggplot(testing, aes(x=lmbda, y=ldirch)) + geom_point() +
 ggsave("fillDirichlet.png", path=pathtoimages)
 ```
 
-The matrices with $\lambda = 0$ typically have very few individuals. Matrices with $\lambda = 1$ usually have transitions only on the main diagonal. 
+The matrices with $\lambda = 0$ typically have very few individuals that all die. Matrices with $\lambda = 1$ usually have observed transitions only on the main diagonal. 
 
 ```{r checkErgIrr}
 ergo_irr <- as.data.frame(with(testing, table(ergdirch, irrdirch)))
@@ -286,7 +311,7 @@ ggplot(testing, aes(x=lmbda, y=lgamma)) + geom_point() +
 
 ```
 
-The matrices with $\lambda = 0$ typically have very few individuals. Matrices with $\lambda = 1$ usually have transitions only on the main diagonal. The uninformative Gamma prior does not change $lambda$, and does not improve the ergodicity and irreducibility issue. When there is at least 1 adult present, the expected value of Fecundity is very close to zero. When there are no adults present, all those matrices cannot reach the adult stage and so the expected value of Fecundity does not affect $\lambda$. However, this is not a necessary condition. 
+The matrices with $\lambda = 0$ typically have very few individuals. Matrices with $\lambda = 1$ usually have transitions only on the main diagonal. The uninformative Gamma prior does not change $\lambda$, and does not improve the ergodicity and irreducibility issue. When there is at least 1 adult present, the expected value of Fecundity is very close to zero. When there are no adults present, all those matrices cannot reach the adult stage and so the expected value of Fecundity does not affect $\lambda$. However, this is not a necessary condition. 
 
 ```{r checkErgIrrGamma}
 ergo_irr <- as.data.frame(with(testing, table(erggamma, irrgamma)))
@@ -315,37 +340,41 @@ The RLT prior gives $\lambda = `r format(lambda(RLT_Tprior[-4,] + RLT_Fprior), d
 
 ```{r fillDirichletPrior1, fig.cap="Asymptotic growth rates using prior information on transitions and fecundity vs. the raw observations alone. The horizontal red line indicates $\\lambda$ for the RLT prior. Points for all four priors shown in transparent grey."}
 diffPriors <- list()
-diffPriors[["Uniform"]] <- testing %>% mutate(Tprior = map2(TF, N, fill_transitions, returnType = "T"),
-                                              Fprior = map2(TF, N, fill_fecundity,
-                                                            alpha = c(NA_real_, NA_real_, 0.00001),
-                                                            beta = c(NA_real_, NA_real_, 0.00001), priorweight = 1, returnType = "F"),
-                                              Aprior = map2(Tprior, Fprior, `+`),
-                                              lprior = map_dbl(Aprior, lambda))
+diffPriors[["Uniform"]] <- testing %>% 
+  mutate(Tprior = map2(TF, N, fill_transitions, returnType = "T"),
+         Fprior = map2(TF, N, fill_fecundity,
+                       alpha = c(NA_real_, NA_real_, 0.00001),
+                       beta = c(NA_real_, NA_real_, 0.00001), priorweight = 1, returnType = "F"),
+         Aprior = map2(Tprior, Fprior, `+`),
+         lprior = map_dbl(Aprior, lambda))
 
 
-diffPriors[["RLT, weight = 1"]] <- testing %>% mutate(Tprior = map2(TF, N, fill_transitions, 
-                                                                    P = RLT_Tprior, returnType = "T"),
-                                              Fprior = map2(TF, N, fill_fecundity,
-                                                            alpha = c(NA_real_, NA_real_, 0.025),
-                                                            beta = c(NA_real_, NA_real_, 1), priorweight = 1, returnType = "F"),
-                                              Aprior = map2(Tprior, Fprior, `+`),
-                                              lprior = map_dbl(Aprior, lambda))
+diffPriors[["RLT, weight = 1"]] <- testing %>% 
+  mutate(Tprior = map2(TF, N, fill_transitions, 
+                       P = RLT_Tprior, returnType = "T"),
+         Fprior = map2(TF, N, fill_fecundity,
+                       alpha = c(NA_real_, NA_real_, 0.025),
+                       beta = c(NA_real_, NA_real_, 1), priorweight = 1, returnType = "F"),
+         Aprior = map2(Tprior, Fprior, `+`),
+         lprior = map_dbl(Aprior, lambda))
 
-diffPriors[["RLT, weight = 0.5N"]] <- testing %>% mutate(Tprior = map2(TF, N, fill_transitions, 
-                                                                    P = RLT_Tprior, priorweight = 0.5, returnType = "T"),
-                                              Fprior = map2(TF, N, fill_fecundity,
-                                                            alpha = c(NA_real_, NA_real_, 0.025),
-                                                            beta = c(NA_real_, NA_real_, 1), priorweight = 0.5, returnType = "F"),
-                                              Aprior = map2(Tprior, Fprior, `+`),
-                                              lprior = map_dbl(Aprior, lambda))
+diffPriors[["RLT, weight = 0.5N"]] <- testing %>% 
+  mutate(Tprior = map2(TF, N, fill_transitions, 
+                       P = RLT_Tprior, priorweight = 0.5, returnType = "T"),
+         Fprior = map2(TF, N, fill_fecundity,
+                       alpha = c(NA_real_, NA_real_, 0.025),
+                       beta = c(NA_real_, NA_real_, 1), priorweight = 0.5, returnType = "F"),
+         Aprior = map2(Tprior, Fprior, `+`),
+         lprior = map_dbl(Aprior, lambda))
 
-diffPriors[["RLT, weight = N"]] <- testing %>% mutate(Tprior = map2(TF, N, fill_transitions, 
-                                                                    P = RLT_Tprior, priorweight = 1, returnType = "T"),
-                                              Fprior = map2(TF, N, fill_fecundity,
-                                                            alpha = c(NA_real_, NA_real_, 0.025),
-                                                            beta = c(NA_real_, NA_real_, 1), priorweight = 1, returnType = "F"),
-                                              Aprior = map2(Tprior, Fprior, `+`),
-                                              lprior = map_dbl(Aprior, lambda))
+diffPriors[["RLT, weight = N"]] <- testing %>% 
+  mutate(Tprior = map2(TF, N, fill_transitions, 
+                       P = RLT_Tprior, priorweight = 1, returnType = "T"),
+         Fprior = map2(TF, N, fill_fecundity,
+                       alpha = c(NA_real_, NA_real_, 0.025),
+                       beta = c(NA_real_, NA_real_, 1), priorweight = 1, returnType = "F"),
+         Aprior = map2(Tprior, Fprior, `+`),
+         lprior = map_dbl(Aprior, lambda))
 
 diffPriors <- bind_rows(diffPriors, .id="prior")
 diffPriors$prior <- factor(diffPriors$prior, levels = c("Uniform", "RLT, weight = 1",
@@ -371,7 +400,7 @@ ggplot(diffPriors, aes(x=lmbda, y=lprior)) +
 Recognizing that the observed transitions are realizations of a Dirichlet distribution gives us a very simple way to derive credible intervals for the transition probabilities in our matrix. The marginal distribution of a single transition is a beta distribution as described above, and we can simply report the 2.5% and 97.5% percentiles of that distribution to provide a credible interval on a transition rate. These intervals do shift and shrink as the weight on the prior increases.
 
 
-```{r credibleIntervals1, echo=FALSE, fig.width = 7, fig.height = 7, fig.cap="Confidence limits or Credible intervals for transition probabilities out of seedling stage in Population 250, year 5. Shaded bands correspond to 50% (darkest), 90%, 95% and 99.9% (lightest) credible intervals. Smaller intervals are not visible in the p->a transitions when the upper boundary of the interval is smaller than 0.01. Labels are median (lower 95% CI, upper 95% CI). Note that where the median and lower interval are equal to 0.001, the actual value is < 0.001."}
+```{r credibleIntervals1, echo=FALSE, fig.width = 7, fig.height = 7, fig.cap="Confidence limits or Credible intervals for transition probabilities out of seedling stage in Population 250, year 5. Shaded bands correspond to 50% (darkest), 90%, 95% and 99.9% (lightest) credible intervals. Smaller intervals are not visible in the p->a transitions when the upper boundary of the interval is smaller than 0.01. Labels are median (lower 95% CI, upper 95% CI). Note that where the median and lower interval are equal to 0.001, the actual value is < 0.001.", warning=FALSE}
 # get multinomial confidence interval for Likelihood based interval on NONE
 myfunc <- function(x){
   colnames(x) <- c("lcl", "ucl")
@@ -457,8 +486,7 @@ ggplot(filter(xx, transition != "s to m", prior != "None"), aes(x = prob, y=dens
   geom_area(data = function(x)x[x$in50,], alpha = 1) + 
   geom_line(aes(y=prior_dens)) + 
   theme_classic() +
-  geom_errorbarh(data = mnCI, mapping = aes(x = p, xmin=lcl, xmax=ucl, size=interval_width, y=1),
-                 lineend = "square")+
+  geom_errorbarh(data = mnCI, mapping = aes(x = p, xmin=lcl, xmax=ucl, size=interval_width, y=1))+
   geom_point(data = mnCI, mapping = aes(x=p, y=1), color = "white") +
   facet_grid(prior~transition) + #, labeller=label_wrap_gen(width = 15)) + 
   xlab("Transition Probability") + 
@@ -489,13 +517,17 @@ Obtaining credible intervals on $\lambda$ requires simulation, because it is dif
 #71 popn 250 year 5 lambda = 0.93
 diffPriors_lci <- list()
 samples = 10000
-diffPriors_lci[["Uniform"]] <- data_frame(A = sim_transitions(allA$TF[[71]], allA$N[[71]], samples = samples), 
+diffPriors_lci[["Uniform"]] <- data_frame(A = sim_transitions(allA$TF[[71]], 
+                                                              allA$N[[71]], 
+                                                              samples = samples), 
                                           lprior = map_dbl(A, lambda))
 
 
-diffPriors_lci[["RLT, weight = 1"]] <- data_frame(A = sim_transitions(allA$TF[[71]], allA$N[[71]], P=RLT_Tprior, 
+diffPriors_lci[["RLT, weight = 1"]] <- data_frame(A = sim_transitions(allA$TF[[71]], allA$N[[71]], 
+                                                                      P=RLT_Tprior, 
                                                                       alpha = c(NA_real_, NA_real_, 0.025),
-                                                                      beta = c(NA_real_, NA_real_, 1), samples = samples), 
+                                                                      beta = c(NA_real_, NA_real_, 1), 
+                                                                      samples = samples), 
                                                   lprior = map_dbl(A, lambda))
 
 diffPriors_lci[["RLT, weight = 0.5N"]] <- data_frame(A = sim_transitions(allA$TF[[71]], allA$N[[71]], 
