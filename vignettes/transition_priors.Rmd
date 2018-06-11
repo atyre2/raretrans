@@ -242,7 +242,7 @@ is.matrix_irreducible(tmat2 + fmat)
 This case is the largest distortion ($\lambda$ increase from 1.06 to 1.64) observed from a uniform prior for any of the matrices. 
 
 ```{r fillDirichlet, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data."}
-testing <- allA %>% mutate(Adirch = map2(TF, N, fill_transitions),
+testing <- allA %>% mutate(Adirch = map2(TF, N, fill_transitions, returnType = "A"),
                            ldirch = map_dbl(Adirch, lambda),                 
          irrdirch = map_dbl(Adirch, is.matrix_irreducible),
          ergdirch = map_dbl(Adirch, is.matrix_ergodic),
@@ -294,7 +294,10 @@ So using a Dirichlet prior to fill in the gaps works, and doesn't appear to dist
 The other component of the matrix is the fertility. We do this by using a Gamma prior with the function `fill_fecundity()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Gamma prior only applies to the $F$ matrix. If not specified, the function assumes an uniformative prior with $\alpha = 0.00001, \beta = 0.00001$ across all stages. Stages that do not reproduce are marked with `NA_real_` in the prior probability vectors.
 
 ```{r fillGamma, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data."}
-testing <- allA %>% mutate(Agamma = map2(TF, N, fill_fecundity, alpha = c(NA_real_, NA_real_, 0.00001), beta = c(NA_real_, NA_real_, 0.00001), priorweight = 1),
+testing <- allA %>% mutate(Agamma = map2(TF, N, fill_fecundity, 
+                                         alpha = c(NA_real_, NA_real_, 0.00001), 
+                                         beta = c(NA_real_, NA_real_, 0.00001), 
+                                         priorweight = 1, returnType = "A"),
                            lgamma = map_dbl(Agamma, lambda),                 
          irrgamma = map_dbl(Agamma, is.matrix_irreducible),
          erggamma = map_dbl(Agamma, is.matrix_ergodic))
