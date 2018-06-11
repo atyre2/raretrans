@@ -3,7 +3,8 @@ Type: Package
 Title: Bayesian Priors for Matrix Population Models
 Version: 0.0.0.9000
 Authors@R: c(
-    person("Andrew", "Tyre", email = "atyre2@unl.edu", role = "cre"),
+    person("Andrew", "Tyre", email = "atyre2@unl.edu", role = "cre",
+    comment = c(ORCID = "0000-0001-9736-641X")),
     person("Raymond", "Tremblay", email = "raymond.tremblay@upr.edu", role = "aut"),
     person("Maria-Eglee", "Perez", email = "mariaeglee@gmail.com", role = "aut")) 
 Description: Functions to create matrix population models from a combination
