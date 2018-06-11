@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 
 # raretrans
 
-<!-- [![Travis-CI Build Status](https://travis-ci.org/hadley/pkgdown.svg?branch=master)](https://travis-ci.org/hadley/pkgdown) -->
+[![Build Status](https://travis-ci.com/atyre2/raretrans.svg?token=fZ6v1nEUhWRrRW3uj9TH&branch=master)](https://travis-ci.com/atyre2/raretrans)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/raretrans)](https://cran.r-project.org/package=raretrans)
 
 Functions to create matrix population models from a combination
