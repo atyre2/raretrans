@@ -16,16 +16,16 @@ bibliography: references.bib
 
 ## Borrowing strength
 
-Tremblay and McCarthy [-@tremblay2014bayesian] estimated transition probabilities and recruitment rates for another epiphytic orchid from a series of small populations. Although some transitions were not observed in all populations, the presence of a few observations in other populations allowed the statistical models to "borrow strength" from each other and generate estimated probabilities for all transitions. Unfortunately, many (45%; @SalgueroCompadre2015) plant demography studies are carried out at single sites . In those cases there is no information to fill in the blanks for non-observed transitions. 
+Tremblay and McCarthy [-@tremblay2014bayesian] estimated transition probabilities and recruitment rates for another epiphytic orchid from a series of small populations. Although some transitions were not observed in all populations, the presence of a few observations in other populations allowed the statistical models to "borrow strength" from each other and generate estimated probabilities for all transitions. Unfortunately, many (45%; @SalgueroCompadre2015) plant demography studies are carried out at single sites or few time periods. In those cases there is no information to fill in the blanks for non-observed transitions. 
 
 Here we explore the population consequences of setting a prior accounting for counting constraints. Ignoring the problem treats the transition as a fixed zero. This can have severe consequences for matrix structure [@stott2010reducibility]. The observed transitions are multinomial rather than binomial events. This can be accommodated by using a Dirichlet prior distribution, albeit at the cost of increased complexity in the calculations. 
 @eberhardt1986grizzly had a small sample size of grizzlies in some age classes. Morris and Doak [pg 197, -@morris2002quantitative] recognized the potential problem with small sample sizes for rare transitions, but their recommendation is to use the mathematically more complex approach of Tremblay and McCarthy [-@tremblay2014bayesian]. Is there anything that can be done on the simple side?
 
 ## The matrix
 
-We will use observations of an epiphytic Orchid *L. elto*. 
+We will use observations of an epiphytic Orchid *Lepanthes eltoroensis* Stimson an endemic species from Puerto Rico [@tremblay2003population].
 
-```{r setup, message=FALSE}
+```{r setup, message=FALSE, echo=-7}
 library(tidyverse)
 library(popbio)
 library(raretrans)
@@ -36,9 +36,11 @@ rlt_theme <- theme(axis.title.y = element_text(colour="grey20",size=15,face="bol
         axis.text.y = element_text(colour="grey20",size=15,face="bold"),  
         axis.title.x = element_text(colour="grey20",size=15,face="bold"))
 data("L_elto")
-A <- projection.matrix(as.data.frame(L_elto), stage="stage", fate="next_stage", fertility="fertility",
-                       sort=c("p","j","a"))
-knitr::kable(A, digits=2, caption = "Average transition matrix over all census periods and populations.")
+A <- projection.matrix(as.data.frame(L_elto), 
+                       stage="stage", fate="next_stage", 
+                       fertility="fertility", sort=c("p","j","a"))
+knitr::kable(A, digits=2, 
+             caption = "Average transition matrix over all census periods and populations.")
 ```
 
 ```{r hidethis, include = FALSE}
@@ -78,7 +80,7 @@ ggsave("pop_by_time.png", plot=ggboth, device="png", path=pathtoimages)
 ```
 
 
-OK, now we want to generate matrices for each year and popnum. We have to change the variables into factors and control the levels so that the resulting matrices end up with the right shape with zeros for the missing transitions. Also have to coerce each grouped tbl_df to a regular data.frame before passing to `projection.matrix()`. 
+OK, now we want to generate matrices for each year and popnum. We have to change the variables into factors and control the levels so that the resulting matrices end up with the right shape with zeros for the missing transitions. Also have to coerce each grouped tbl_df to a regular data.frame using `as.data.frame()` before passing to `projection.matrix()`. 
 ```{r}
 allA <- L_elto %>% 
   mutate(stage = factor(stage, levels=c("p","j","a","m")),
@@ -93,7 +95,7 @@ allA <- L_elto %>%
      N = get_state_vector(as.data.frame(.), 
                            stage="stage", sort=c("p","j","a"))) %>%
   
-  filter(year < 12) # last year all zero for obvious reason
+  filter(year < 12) # last time period all zero for obvious reason
 
 ```
 
@@ -122,7 +124,7 @@ ggsave("histLmbdaByYear.png", path=pathtoimages)
 
 Now, we need to figure out how many matrices are missing transitions. The full matrix has observed transitions in every cell. 
 
-```{r checkErgIrr1}
+```{r checkErgIrr1, echo=-4}
 allA <- ungroup(allA) %>% mutate(missing = map(A, ~which(.x==0)),
                                  n_missing = map_dbl(missing, length))
 missing_summary <- summary(allA$n_missing)
@@ -131,7 +133,7 @@ ergo_irr <- as.data.frame(with(allA, table(ergodic, irreduc)))
 knitr::kable(ergo_irr, caption = "Ergodicity and irreducibility of individual transition matrices.")
 ```
 
-Out of 11 years and `r length(unique(allA$POPNUM))` populations there are a total of `r nrow(allA)` transition matrices. Some years are missing for some populations. Only `r ergo_irr[4,3]` of these matrices are irreducible. All of the matrices have 2 or more transitions that are zero but known to be possible. 
+Out of 11 time periods and `r length(unique(allA$POPNUM))` populations there are a total of `r nrow(allA)` transition matrices. Some periods are missing for some populations. Only `r ergo_irr[4,3]` of these matrices are irreducible. All of the matrices have 2 or more transitions that are zero but known to be possible. 
 
 ```{r exampleMatrices, echo=FALSE}
 #144 popn 905 year 9 10 individuals go extinct
@@ -179,9 +181,9 @@ knitr::kable(wUnifTable, caption = "Two problematic matrices and the matrix with
 
 ## Ignore the problem
 
-Ignoring this problem and calculating stochastic $\lambda$ for each population could yield non-sensical results. For example, the geometric mean $\lambda$ calculated using simulation often fails. 
+Ignoring this problem and calculating stochastic $\lambda$ for each population could yield non-sensical results. For example, the geometric mean $\lambda$ calculated using simulation fails for 6 out of the 23 populations. 
 
-```{r stochGrowthRateBad}
+```{r stochGrowthRateBad, fig.cap="Stochastic population growth rates for 17 out of 23 orchid populations. "}
 sgr <- allA %>% split(.$POPNUM) %>%
   map(~stoch.growth.rate(.x$A, verbose = FALSE))
 
