@@ -230,16 +230,33 @@ is.matrix_irreducible((tmat + fmat)[-2,-2])
 all.equal(lambda((tmat + fmat)[-2,-2]), lambda(tmat + fmat))
 ```
 
-So, to add a dirichlet prior with a weight of 1 to $T$, we have 4 fates (3 + death), so each fate adds 0.25.
+So, to add a dirichlet prior with a weight of 1 to $T$, we have 4 fates (3 + death), so each fate adds 0.25 to the matrix of *observed* fates (not the transition matrix!).
 
 ```{r}
-(tmat2 <- tmat + 0.25) # re-cycles automatically
+# get matrix of observed fates, including a row for mortality
+# apply(tmat, 1, function(x)x * N)
+(TNmat <- L_elto %>% 
+  mutate(stage = factor(stage, levels=c("p","j","a","m")),
+         fate = factor(next_stage, levels=c("p","j","a","m"))) %>%
+  filter(POPNUM == allA$POPNUM[23], year == allA$year[23]+1) %>%
+  as.data.frame() %>% 
+  xtabs(~fate + stage, data = .) %>% 
+  as.matrix())
+(TNmat2 <- (TNmat + 0.25)[,-4]) # re-cycles automatically, and drop last column (no one starts as m)
+```
+
+This matrix has the dirichlet parameters for each state. To convert this to a transition matrix we have to normalize each column by the sum of that column, then drop the last row to return to a square matrix.
+
+```{r}
+columnsums <- colSums(TNmat2)
+(tmat2 <- sweep(TNmat2, 2, columnsums, FUN = "/")[-4,])
 lambda(tmat2 + fmat)
 is.matrix_ergodic(tmat2 + fmat)
 is.matrix_irreducible(tmat2 + fmat)
+
 ```
 
-This case is the largest distortion ($\lambda$ increase from 1.06 to 1.64) observed from a uniform prior for any of the matrices. 
+Comparing these matrices, we can see that all transitions are now represented, even those that were not observed in the actual data. We can automate this exercise for all matrices.
 
 ```{r fillDirichlet, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data."}
 testing <- allA %>% mutate(Adirch = map2(TF, N, fill_transitions, returnType = "A"),
@@ -291,7 +308,26 @@ So using a Dirichlet prior to fill in the gaps works, and doesn't appear to dist
 
 ## Fill in using uninformative priors on fertility
 
-The other component of the matrix is the fertility. We do this by using a Gamma prior with the function `fill_fecundity()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Gamma prior only applies to the $F$ matrix. If not specified, the function assumes an uniformative prior with $\alpha = 0.00001, \beta = 0.00001$ across all stages. Stages that do not reproduce are marked with `NA_real_` in the prior probability vectors.
+The other component of the matrix is the fertility. We do this by using a Gamma prior with the function `fill_fecundity()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Gamma prior only applies to the $F$ matrix. If not specified, the function assumes an uniformative prior with $\alpha = 0.00001, \beta = 0.00001$ across all stages. Stages that do not reproduce are marked with `NA_real_` in the prior probability vectors. Again, demonstrate with a single example. The posterior $\alpha$ is given by the sum of the prior $\alpha = 0.00001$ and the number of offspring next year (2 in this case), while the posterior $\beta$ is simply the sum of the prior and the number of adults contributing to the observed reproduction.
+
+```{r}
+post_alpha = 0.00001 + 2
+post_beta = 0.00001 + N[3]
+```
+
+The expected value for the posterior $F$ is $\alpha / \beta$.
+
+```{r}
+fmat2 <- fmat
+fmat2[1,3] <- post_alpha / post_beta
+fmat2
+
+lambda(tmat + fmat2)
+is.matrix_ergodic(tmat+fmat2)
+is.matrix_irreducible(tmat+fmat2)
+```
+
+The uninformative prior on fecundity makes very little difference to lambda, and does not help with issues of ergodicity and irreducibility. 
 
 ```{r fillGamma, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data."}
 testing <- allA %>% mutate(Agamma = map2(TF, N, fill_fecundity, 
@@ -489,7 +525,7 @@ ggplot(filter(xx, transition != "s to m", prior != "None"), aes(x = prob, y=dens
   geom_area(data = function(x)x[x$in50,], alpha = 1) + 
   geom_line(aes(y=prior_dens)) + 
   theme_classic() +
-  geom_errorbarh(data = mnCI, mapping = aes(x = p, xmin=lcl, xmax=ucl, size=interval_width, y=1))+
+  geom_errorbarh(data = mnCI, mapping = aes(x = p, xmin=lcl, xmax=ucl, size=interval_width, y = 1))+
   geom_point(data = mnCI, mapping = aes(x=p, y=1), color = "white") +
   facet_grid(prior~transition) + #, labeller=label_wrap_gen(width = 15)) + 
   xlab("Transition Probability") + 
