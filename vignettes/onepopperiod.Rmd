@@ -80,7 +80,7 @@ fill_fecundity(TF, N,
 
 This demonstrates why the posterior point estimate does not change much; the non-informative values for $\alpha$ and $\beta$ barely change the observed values. 
 
-We can skip using `popbio::projection_matrix()` if the matrix is already calculated, as long as we also have the stage vector. 
+We can skip using `popbio::projection_matrix()` if the matrix is already calculated, as long as we also have the stage vector. There is something wrong with this matrix -- transitions don't add up to 1.
 
 ```{r}
 # Matrix
@@ -97,7 +97,17 @@ Lep_rup <- list(T = matrix(c(0, 0.0,   0.0, 0.0, 0,
                              0, 0, 0, 0, 0,
                              0, 0, 0, 0, 0), 
                            byrow = TRUE, nrow = 5, ncol = 5))
-Lep_rup
+N <- c(10, 10, 80, 20, 20) # proportions from Gomez et al 2006 Table 1 on boulders
+# prior shouldn't allow transitions from recruit to juv or adult stages, and vice-versa
+# also a rare transition from juv to 2nd stage adult
+TPrior <- matrix(c(0, 0, 0, 0, 0,
+                   1, 2, 0, 0, 0,
+                   0, 2, 2, 0, 0,
+                   0, 2, 2, 3, 1,
+                   0, 1, 1, 1, 3,
+                   4, 2, 2, 1, 1), byrow = TRUE, nrow = 6, ncol = 5)
+A <- fill_transitions(Lep_rup, N, P = TPrior, priorweight = 1, returnType = "A")
+A
 ```
 
 
