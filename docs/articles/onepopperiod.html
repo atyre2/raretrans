@@ -83,17 +83,17 @@
     
     
 <p>We want to be able to use this package with single populations and transitions. Regardless of how many populations there are, we need the data in the form expected by <code>popbio::projection_matrix</code> to get the matrices we want. Here we demonstrate how the package works with a single population in the desired format, by extracting the transition and fertility data for <em>L. elto</em> POPNUM 250 in period 5.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(raretrans)
-<span class="kw">data</span>(<span class="st">"L_elto"</span>)
-onepop &lt;-<span class="st"> </span><span class="kw">filter</span>(L_elto, POPNUM <span class="op">==</span><span class="st"> </span><span class="dv">250</span>, year <span class="op">==</span><span class="st"> </span><span class="dv">5</span>) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">stage =</span> <span class="kw">case_when</span>(stage <span class="op">==</span><span class="st"> "p"</span> <span class="op">~</span><span class="st"> "s"</span>,
-                           <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> </span>stage),
-         <span class="dt">next_stage =</span> <span class="kw">case_when</span>(next_stage <span class="op">==</span><span class="st"> "p"</span><span class="op">~</span><span class="st"> "s"</span>,
-                                <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> </span>next_stage))
-TF &lt;-<span class="st"> </span><span class="kw">projection.matrix</span>(<span class="kw">as.data.frame</span>(onepop), 
-                        <span class="dt">stage =</span> stage, <span class="dt">fate =</span> next_stage, 
-                        <span class="dt">fertility=</span><span class="st">"fertility"</span>, <span class="dt">sort=</span><span class="kw">c</span>(<span class="st">"s"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>), <span class="dt">TF =</span> <span class="ot">TRUE</span>)
-TF</code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(raretrans)</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">data</span>(<span class="st">"L_elto"</span>)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">onepop &lt;-<span class="st"> </span><span class="kw">filter</span>(L_elto, POPNUM <span class="op">==</span><span class="st"> </span><span class="dv">250</span>, year <span class="op">==</span><span class="st"> </span><span class="dv">5</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">stage =</span> <span class="kw">case_when</span>(stage <span class="op">==</span><span class="st"> "p"</span> <span class="op">~</span><span class="st"> "s"</span>,</a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">                           <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> </span>stage),</a>
+<a class="sourceLine" id="cb1-6" data-line-number="6">         <span class="dt">next_stage =</span> <span class="kw">case_when</span>(next_stage <span class="op">==</span><span class="st"> "p"</span><span class="op">~</span><span class="st"> "s"</span>,</a>
+<a class="sourceLine" id="cb1-7" data-line-number="7">                                <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> </span>next_stage))</a>
+<a class="sourceLine" id="cb1-8" data-line-number="8">TF &lt;-<span class="st"> </span><span class="kw">projection.matrix</span>(<span class="kw">as.data.frame</span>(onepop), </a>
+<a class="sourceLine" id="cb1-9" data-line-number="9">                        <span class="dt">stage =</span> stage, <span class="dt">fate =</span> next_stage, </a>
+<a class="sourceLine" id="cb1-10" data-line-number="10">                        <span class="dt">fertility=</span><span class="st">"fertility"</span>, <span class="dt">sort=</span><span class="kw">c</span>(<span class="st">"s"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>), <span class="dt">TF =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb1-11" data-line-number="11">TF</a></code></pre></div>
 <pre><code>## $T
 ##    
 ##              s          j          a
@@ -108,17 +108,17 @@ TF</code></pre></div>
 ##   j 0.0000000 0.0000000 0.0000000
 ##   a 0.0000000 0.0000000 0.0000000</code></pre>
 <p>Now we also need the number of individuals in each stage at the start. This is because our priors are based on counts, and the prior equivalent sample size is expressed as a multiple of the number of individuals observed. We have a function <code><a href="../reference/get_state_vector.html">raretrans::get_state_vector()</a></code> to do this.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">N &lt;-<span class="st"> </span><span class="kw"><a href="../reference/get_state_vector.html">get_state_vector</a></span>(<span class="kw">as.data.frame</span>(onepop), <span class="dt">stage =</span> stage, <span class="dt">sort=</span><span class="kw">c</span>(<span class="st">"s"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>))
-N</code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">N &lt;-<span class="st"> </span><span class="kw"><a href="../reference/get_state_vector.html">get_state_vector</a></span>(<span class="kw">as.data.frame</span>(onepop), <span class="dt">stage =</span> stage, <span class="dt">sort=</span><span class="kw">c</span>(<span class="st">"s"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>))</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">N</a></code></pre></div>
 <pre><code>## [1] 11 47 34</code></pre>
 <p>The rare transition that is missing from this matrix is the seedling to adult, which in the RLT prior happens ~ 1% of the time. The observed asymptotic population growth rate is <span class="math inline">\(\lambda =\)</span> 0.9282277.</p>
 <p>First, use the default uniform prior on transitions and uninformative gamma on fecundity. We have to specify the parameters for the fecundity prior on non-reproducing stages as missing, or the result will fill in the entire matrix. The default for both functions returns the full matrix <strong>A</strong>, so we have to tell the function to only return the transition and fecundity matrices.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">unif &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">T =</span> <span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">returnType =</span> <span class="st">"T"</span>), 
-             <span class="dt">F =</span> <span class="kw"><a href="../reference/fill_fecundity.html">fill_fecundity</a></span>(TF, N, 
-                                <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),
-                                <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),
-                                <span class="dt">returnType =</span> <span class="st">"F"</span>))
-unif</code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">unif &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">T =</span> <span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">returnType =</span> <span class="st">"T"</span>), </a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">             <span class="dt">F =</span> <span class="kw"><a href="../reference/fill_fecundity.html">fill_fecundity</a></span>(TF, N, </a>
+<a class="sourceLine" id="cb5-3" data-line-number="3">                                <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),</a>
+<a class="sourceLine" id="cb5-4" data-line-number="4">                                <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),</a>
+<a class="sourceLine" id="cb5-5" data-line-number="5">                                <span class="dt">returnType =</span> <span class="st">"F"</span>))</a>
+<a class="sourceLine" id="cb5-6" data-line-number="6">unif</a></code></pre></div>
 <pre><code>## $T
 ##            [,1]        [,2]        [,3]
 ## [1,] 0.10416667 0.005208333 0.007142857
@@ -132,17 +132,17 @@ unif</code></pre></div>
 ## [3,]    0    0 0.0000000</code></pre>
 <p>And the asymptotic population growth rate is <span class="math inline">\(\lambda =\)</span> 0.9228041. The growth rate shrinks slightly because applying the uniform prior on transition probabilities causes observed growth and survival transitions to shrink slightly relative to those that are unobserved.</p>
 <p>There are two other returnTypes. <code><a href="../reference/fill_transitions.html">fill_transitions()</a></code> can return an augmented matrix of fates which is useful for simulation.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">returnType =</span> <span class="st">"TN"</span>)</code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">returnType =</span> <span class="st">"TN"</span>)</a></code></pre></div>
 <pre><code>##      [,1]  [,2]  [,3]
 ## [1,] 1.25  0.25  0.25
 ## [2,] 7.25 27.25  0.25
 ## [3,] 0.25 14.25 29.25
 ## [4,] 3.25  6.25  5.25</code></pre>
 <p>The fourth row of this result is the mortality state. <code><a href="../reference/fill_fecundity.html">fill_fecundity()</a></code> can return the alpha and beta vectors of the posterior.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/fill_fecundity.html">fill_fecundity</a></span>(TF, N, 
-               <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),
-               <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),
-               <span class="dt">returnType =</span> <span class="st">"ab"</span>)</code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="kw"><a href="../reference/fill_fecundity.html">fill_fecundity</a></span>(TF, N, </a>
+<a class="sourceLine" id="cb9-2" data-line-number="2">               <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),</a>
+<a class="sourceLine" id="cb9-3" data-line-number="3">               <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),</a>
+<a class="sourceLine" id="cb9-4" data-line-number="4">               <span class="dt">returnType =</span> <span class="st">"ab"</span>)</a></code></pre></div>
 <pre><code>## $alpha
 ##       s       j       a 
 ##      NA      NA 4.00001 
@@ -150,37 +150,38 @@ unif</code></pre></div>
 ## $beta
 ## [1]       NA       NA 34.00001</code></pre>
 <p>This demonstrates why the posterior point estimate does not change much; the non-informative values for <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> barely change the observed values.</p>
-<p>We can skip using <code>popbio::projection_matrix()</code> if the matrix is already calculated, as long as we also have the stage vector.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Matrix</span>
-Lep_rup &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">T =</span> <span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">0</span>, <span class="fl">0.0</span>,   <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="dv">0</span>,
-                             <span class="fl">0.0</span>,   <span class="fl">0.515</span>,   <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>,
-                             <span class="dv">0</span>, <span class="dv">0</span>, <span class="fl">0.777</span>, <span class="dv">0</span>, <span class="dv">0</span>,
-                             <span class="dv">0</span>, <span class="fl">0.368</span>, <span class="fl">0.011</span>, <span class="fl">0.730</span>, <span class="fl">0.171</span>,
-                             <span class="dv">0</span>, <span class="fl">0.037</span>, <span class="dv">0</span>, <span class="fl">0.169</span>, <span class="fl">0.790</span>), 
-                           <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">5</span>, <span class="dt">ncol =</span> <span class="dv">5</span>),
-                <span class="co"># Fecundity</span>
-                <span class="dt">F =</span> <span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">0</span>, <span class="fl">0.0</span>,   <span class="fl">0.0</span>, <span class="fl">0.120</span>, <span class="fl">0.414</span>,
-                             <span class="fl">0.0</span>,   <span class="dv">0</span>,   <span class="dv">0</span>, <span class="fl">0.076</span>, <span class="fl">0.013</span>,
-                             <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>,
-                             <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>,
-                             <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>), 
-                           <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">5</span>, <span class="dt">ncol =</span> <span class="dv">5</span>))
-Lep_rup</code></pre></div>
-<pre><code>## $T
-##      [,1]  [,2]  [,3]  [,4]  [,5]
-## [1,]    0 0.000 0.000 0.000 0.000
-## [2,]    0 0.515 0.000 0.000 0.000
-## [3,]    0 0.000 0.777 0.000 0.000
-## [4,]    0 0.368 0.011 0.730 0.171
-## [5,]    0 0.037 0.000 0.169 0.790
-## 
-## $F
-##      [,1] [,2] [,3]  [,4]  [,5]
-## [1,]    0    0    0 0.120 0.414
-## [2,]    0    0    0 0.076 0.013
-## [3,]    0    0    0 0.000 0.000
-## [4,]    0    0    0 0.000 0.000
-## [5,]    0    0    0 0.000 0.000</code></pre>
+<p>We can skip using <code>popbio::projection_matrix()</code> if the matrix is already calculated, as long as we also have the stage vector. There is something wrong with this matrix – transitions don’t add up to 1.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="co"># Matrix</span></a>
+<a class="sourceLine" id="cb11-2" data-line-number="2">Lep_rup &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">T =</span> <span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">0</span>, <span class="fl">0.0</span>,   <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="dv">0</span>,</a>
+<a class="sourceLine" id="cb11-3" data-line-number="3">                             <span class="fl">0.0</span>,   <span class="fl">0.515</span>,   <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>,</a>
+<a class="sourceLine" id="cb11-4" data-line-number="4">                             <span class="dv">0</span>, <span class="dv">0</span>, <span class="fl">0.777</span>, <span class="dv">0</span>, <span class="dv">0</span>,</a>
+<a class="sourceLine" id="cb11-5" data-line-number="5">                             <span class="dv">0</span>, <span class="fl">0.368</span>, <span class="fl">0.011</span>, <span class="fl">0.730</span>, <span class="fl">0.171</span>,</a>
+<a class="sourceLine" id="cb11-6" data-line-number="6">                             <span class="dv">0</span>, <span class="fl">0.037</span>, <span class="dv">0</span>, <span class="fl">0.169</span>, <span class="fl">0.790</span>), </a>
+<a class="sourceLine" id="cb11-7" data-line-number="7">                           <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">5</span>, <span class="dt">ncol =</span> <span class="dv">5</span>),</a>
+<a class="sourceLine" id="cb11-8" data-line-number="8">                <span class="co"># Fecundity</span></a>
+<a class="sourceLine" id="cb11-9" data-line-number="9">                <span class="dt">F =</span> <span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">0</span>, <span class="fl">0.0</span>,   <span class="fl">0.0</span>, <span class="fl">0.120</span>, <span class="fl">0.414</span>,</a>
+<a class="sourceLine" id="cb11-10" data-line-number="10">                             <span class="fl">0.0</span>,   <span class="dv">0</span>,   <span class="dv">0</span>, <span class="fl">0.076</span>, <span class="fl">0.013</span>,</a>
+<a class="sourceLine" id="cb11-11" data-line-number="11">                             <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>,</a>
+<a class="sourceLine" id="cb11-12" data-line-number="12">                             <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>,</a>
+<a class="sourceLine" id="cb11-13" data-line-number="13">                             <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>), </a>
+<a class="sourceLine" id="cb11-14" data-line-number="14">                           <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">5</span>, <span class="dt">ncol =</span> <span class="dv">5</span>))</a>
+<a class="sourceLine" id="cb11-15" data-line-number="15">N &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">10</span>, <span class="dv">10</span>, <span class="dv">80</span>, <span class="dv">20</span>, <span class="dv">20</span>) <span class="co"># proportions from Gomez et al 2006 Table 1 on boulders</span></a>
+<a class="sourceLine" id="cb11-16" data-line-number="16"><span class="co"># prior shouldn't allow transitions from recruit to juv or adult stages, and vice-versa</span></a>
+<a class="sourceLine" id="cb11-17" data-line-number="17"><span class="co"># also a rare transition from juv to 2nd stage adult</span></a>
+<a class="sourceLine" id="cb11-18" data-line-number="18">TPrior &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>,</a>
+<a class="sourceLine" id="cb11-19" data-line-number="19">                   <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>,</a>
+<a class="sourceLine" id="cb11-20" data-line-number="20">                   <span class="dv">0</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>,</a>
+<a class="sourceLine" id="cb11-21" data-line-number="21">                   <span class="dv">0</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">1</span>,</a>
+<a class="sourceLine" id="cb11-22" data-line-number="22">                   <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">3</span>,</a>
+<a class="sourceLine" id="cb11-23" data-line-number="23">                   <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">1</span>), <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">6</span>, <span class="dt">ncol =</span> <span class="dv">5</span>)</a>
+<a class="sourceLine" id="cb11-24" data-line-number="24">A &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(Lep_rup, N, <span class="dt">P =</span> TPrior, <span class="dt">priorweight =</span> <span class="dv">1</span>, <span class="dt">returnType =</span> <span class="st">"A"</span>)</a>
+<a class="sourceLine" id="cb11-25" data-line-number="25">A</a></code></pre></div>
+<pre><code>##           [,1]   [,2]     [,3]      [,4]      [,5]
+## [1,] 0.0000000 0.0000 0.000000 0.1200000 0.4140000
+## [2,] 0.1666667 0.2515 0.000000 0.0760000 0.0130000
+## [3,] 0.0000000 0.2000 0.347125 0.0000000 0.0000000
+## [4,] 0.0000000 0.2368 0.251375 0.6216667 0.1951667
+## [5,] 0.0000000 0.1037 0.125000 0.1948333 0.6316667</code></pre>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
