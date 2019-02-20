@@ -151,56 +151,51 @@
 <a class="sourceLine" id="cb5-9" data-line-number="9"><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">N=</span><span class="kw">sum</span>(N))</a>
 <a class="sourceLine" id="cb5-10" data-line-number="10">gg2 &lt;-<span class="st"> </span><span class="kw">ggplot</span>(plotsumm, <span class="kw">aes</span>(<span class="dt">x=</span>year, <span class="dt">y=</span>N)) <span class="op">+</span></a>
 <a class="sourceLine" id="cb5-11" data-line-number="11"><span class="st">  </span><span class="kw">geom_line</span>() <span class="op">+</span><span class="st"> </span>rlt_theme</a>
-<a class="sourceLine" id="cb5-12" data-line-number="12">ggboth &lt;-<span class="st"> </span>gridExtra<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/gridExtra/topics/arrangeGrob">grid.arrange</a></span>(gg1, gg2)</a>
-<a class="sourceLine" id="cb5-13" data-line-number="13"></a>
-<a class="sourceLine" id="cb5-14" data-line-number="14">ggboth</a></code></pre></div>
-<pre><code>## TableGrob (2 x 1) "arrange": 2 grobs
-##   z     cells    name           grob
-## 1 1 (1-1,1-1) arrange gtable[layout]
-## 2 2 (2-2,1-1) arrange gtable[layout]</code></pre>
+<a class="sourceLine" id="cb5-12" data-line-number="12">ggboth &lt;-<span class="st"> </span>gridExtra<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/gridExtra/topics/arrangeGrob">arrangeGrob</a></span>(gg1, gg2)</a>
+<a class="sourceLine" id="cb5-13" data-line-number="13">grid<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/grid/topics/grid.draw">grid.draw</a></span>(ggboth)</a></code></pre></div>
 <div class="figure">
 <img src="transition_priors_files/figure-html/pop_by_time-1.png" alt="Population size over time." width="480"><p class="caption">
 Population size over time.
 </p>
 </div>
 <p>OK, now we want to generate matrices for each year and popnum. We have to change the variables into factors and control the levels so that the resulting matrices end up with the right shape with zeros for the missing transitions. Also have to coerce each grouped tbl_df to a regular data.frame using <code>as.data.frame()</code> before passing to <code><a href="http://www.rdocumentation.org/packages/popbio/topics/projection.matrix">projection.matrix()</a></code>.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">allA &lt;-<span class="st"> </span>L_elto <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">stage =</span> <span class="kw">factor</span>(stage, <span class="dt">levels=</span><span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>,<span class="st">"m"</span>)),</a>
-<a class="sourceLine" id="cb7-3" data-line-number="3">         <span class="dt">fate =</span> <span class="kw">factor</span>(next_stage, <span class="dt">levels=</span><span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>,<span class="st">"m"</span>))) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb7-4" data-line-number="4"><span class="st">  </span><span class="kw">group_by</span>(POPNUM, year) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb7-5" data-line-number="5"><span class="st">  </span><span class="kw">do</span>(<span class="dt">A =</span> <span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/projection.matrix">projection.matrix</a></span>(<span class="kw">as.data.frame</span>(.), </a>
-<a class="sourceLine" id="cb7-6" data-line-number="6">                           <span class="dt">stage=</span><span class="st">"stage"</span>, <span class="dt">fate=</span><span class="st">"fate"</span>, </a>
-<a class="sourceLine" id="cb7-7" data-line-number="7">                           <span class="dt">fertility=</span><span class="st">"fertility"</span>, <span class="dt">sort=</span><span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>)),</a>
-<a class="sourceLine" id="cb7-8" data-line-number="8">     <span class="dt">TF =</span> <span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/projection.matrix">projection.matrix</a></span>(<span class="kw">as.data.frame</span>(.), </a>
-<a class="sourceLine" id="cb7-9" data-line-number="9">                           <span class="dt">stage=</span><span class="st">"stage"</span>, <span class="dt">fate=</span><span class="st">"fate"</span>, </a>
-<a class="sourceLine" id="cb7-10" data-line-number="10">                           <span class="dt">fertility=</span><span class="st">"fertility"</span>, <span class="dt">sort=</span><span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>), <span class="dt">TF =</span> <span class="ot">TRUE</span>),</a>
-<a class="sourceLine" id="cb7-11" data-line-number="11">     <span class="dt">N =</span> <span class="kw"><a href="../reference/get_state_vector.html">get_state_vector</a></span>(<span class="kw">as.data.frame</span>(.), </a>
-<a class="sourceLine" id="cb7-12" data-line-number="12">                           <span class="dt">stage=</span><span class="st">"stage"</span>, <span class="dt">sort=</span><span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>))) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb7-13" data-line-number="13"><span class="st">  </span></a>
-<a class="sourceLine" id="cb7-14" data-line-number="14"><span class="st">  </span><span class="kw">filter</span>(year <span class="op">&lt;</span><span class="st"> </span><span class="dv">12</span>) <span class="co"># last time period all zero for obvious reason</span></a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">allA &lt;-<span class="st"> </span>L_elto <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">stage =</span> <span class="kw">factor</span>(stage, <span class="dt">levels=</span><span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>,<span class="st">"m"</span>)),</a>
+<a class="sourceLine" id="cb6-3" data-line-number="3">         <span class="dt">fate =</span> <span class="kw">factor</span>(next_stage, <span class="dt">levels=</span><span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>,<span class="st">"m"</span>))) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-4" data-line-number="4"><span class="st">  </span><span class="kw">group_by</span>(POPNUM, year) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-5" data-line-number="5"><span class="st">  </span><span class="kw">do</span>(<span class="dt">A =</span> <span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/projection.matrix">projection.matrix</a></span>(<span class="kw">as.data.frame</span>(.), </a>
+<a class="sourceLine" id="cb6-6" data-line-number="6">                           <span class="dt">stage=</span><span class="st">"stage"</span>, <span class="dt">fate=</span><span class="st">"fate"</span>, </a>
+<a class="sourceLine" id="cb6-7" data-line-number="7">                           <span class="dt">fertility=</span><span class="st">"fertility"</span>, <span class="dt">sort=</span><span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>)),</a>
+<a class="sourceLine" id="cb6-8" data-line-number="8">     <span class="dt">TF =</span> <span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/projection.matrix">projection.matrix</a></span>(<span class="kw">as.data.frame</span>(.), </a>
+<a class="sourceLine" id="cb6-9" data-line-number="9">                           <span class="dt">stage=</span><span class="st">"stage"</span>, <span class="dt">fate=</span><span class="st">"fate"</span>, </a>
+<a class="sourceLine" id="cb6-10" data-line-number="10">                           <span class="dt">fertility=</span><span class="st">"fertility"</span>, <span class="dt">sort=</span><span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>), <span class="dt">TF =</span> <span class="ot">TRUE</span>),</a>
+<a class="sourceLine" id="cb6-11" data-line-number="11">     <span class="dt">N =</span> <span class="kw"><a href="../reference/get_state_vector.html">get_state_vector</a></span>(<span class="kw">as.data.frame</span>(.), </a>
+<a class="sourceLine" id="cb6-12" data-line-number="12">                           <span class="dt">stage=</span><span class="st">"stage"</span>, <span class="dt">sort=</span><span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>))) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-13" data-line-number="13"><span class="st">  </span></a>
+<a class="sourceLine" id="cb6-14" data-line-number="14"><span class="st">  </span><span class="kw">filter</span>(year <span class="op">&lt;</span><span class="st"> </span><span class="dv">12</span>) <span class="co"># last time period all zero for obvious reason</span></a></code></pre></div>
 <p>We end up with all the matrices for each population and year in a <code>list-column</code> of the result. Working with this thing is a bit awkward. The best strategy is from <a href="https://speakerdeck.com/jennybc/putting-square-pegs-in-round-holes-using-list-cols-in-your-dataframe">Jenny Bryans’ talk on list columns</a> and uses mutate with map_*(listcolumn, function).</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="kw">library</span>(popdemo)</a>
-<a class="sourceLine" id="cb8-2" data-line-number="2">allA &lt;-<span class="st"> </span><span class="kw">ungroup</span>(allA) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">A =</span> <span class="kw">map</span>(A, matrix, <span class="dt">nrow=</span><span class="dv">3</span>, <span class="dt">ncol=</span><span class="dv">3</span>,</a>
-<a class="sourceLine" id="cb8-4" data-line-number="4">                 <span class="dt">dimnames=</span><span class="kw">list</span>(<span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>),<span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>)))) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb8-5" data-line-number="5"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">lmbda =</span> <span class="kw">map_dbl</span>(A, lambda),</a>
-<a class="sourceLine" id="cb8-6" data-line-number="6">         <span class="dt">ergodic =</span> <span class="kw">map_dbl</span>(A, isErgodic),</a>
-<a class="sourceLine" id="cb8-7" data-line-number="7">         <span class="dt">irreduc =</span> <span class="kw">map_dbl</span>(A, isIrreducible),</a>
-<a class="sourceLine" id="cb8-8" data-line-number="8">         <span class="dt">primitv =</span> <span class="kw">map_dbl</span>(A, isPrimitive))</a>
-<a class="sourceLine" id="cb8-9" data-line-number="9"><span class="kw">ggplot</span>(allA, <span class="kw">aes</span>(<span class="dt">x=</span>lmbda)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_histogram</span>() <span class="op">+</span><span class="st"> </span><span class="kw">facet_wrap</span>(<span class="op">~</span>year)<span class="op">+</span></a>
-<a class="sourceLine" id="cb8-10" data-line-number="10"><span class="st"> </span><span class="kw">ylab</span>(<span class="st">"Frequency"</span>)<span class="op">+</span></a>
-<a class="sourceLine" id="cb8-11" data-line-number="11"><span class="st">  </span><span class="kw">xlab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda, <span class="st">", asymptotic population growth"</span>))) <span class="op">+</span><span class="st"> </span>rlt_theme</a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="kw">library</span>(popdemo)</a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">allA &lt;-<span class="st"> </span><span class="kw">ungroup</span>(allA) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">A =</span> <span class="kw">map</span>(A, matrix, <span class="dt">nrow=</span><span class="dv">3</span>, <span class="dt">ncol=</span><span class="dv">3</span>,</a>
+<a class="sourceLine" id="cb7-4" data-line-number="4">                 <span class="dt">dimnames=</span><span class="kw">list</span>(<span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>),<span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>)))) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb7-5" data-line-number="5"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">lmbda =</span> <span class="kw">map_dbl</span>(A, lambda),</a>
+<a class="sourceLine" id="cb7-6" data-line-number="6">         <span class="dt">ergodic =</span> <span class="kw">map_dbl</span>(A, isErgodic),</a>
+<a class="sourceLine" id="cb7-7" data-line-number="7">         <span class="dt">irreduc =</span> <span class="kw">map_dbl</span>(A, isIrreducible),</a>
+<a class="sourceLine" id="cb7-8" data-line-number="8">         <span class="dt">primitv =</span> <span class="kw">map_dbl</span>(A, isPrimitive))</a>
+<a class="sourceLine" id="cb7-9" data-line-number="9"><span class="kw">ggplot</span>(allA, <span class="kw">aes</span>(<span class="dt">x=</span>lmbda)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_histogram</span>(<span class="dt">bins =</span> <span class="dv">25</span>) <span class="op">+</span><span class="st"> </span><span class="kw">facet_wrap</span>(<span class="op">~</span>year)<span class="op">+</span></a>
+<a class="sourceLine" id="cb7-10" data-line-number="10"><span class="st"> </span><span class="kw">ylab</span>(<span class="st">"Frequency"</span>)<span class="op">+</span></a>
+<a class="sourceLine" id="cb7-11" data-line-number="11"><span class="st">  </span><span class="kw">xlab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda, <span class="st">", asymptotic population growth"</span>))) <span class="op">+</span><span class="st"> </span>rlt_theme</a></code></pre></div>
 <div class="figure">
 <img src="transition_priors_files/figure-html/histLmbdaByYear-1.png" alt="histograms of asymptotic population growth for each year." width="480"><p class="caption">
 histograms of asymptotic population growth for each year.
 </p>
 </div>
 <p>Now, we need to figure out how many matrices are missing transitions. The full matrix has observed transitions in every cell.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">allA &lt;-<span class="st"> </span><span class="kw">ungroup</span>(allA) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">missing =</span> <span class="kw">map</span>(A, <span class="op">~</span><span class="kw">which</span>(.x<span class="op">==</span><span class="dv">0</span>)),</a>
-<a class="sourceLine" id="cb9-2" data-line-number="2">                                 <span class="dt">n_missing =</span> <span class="kw">map_dbl</span>(missing, length))</a>
-<a class="sourceLine" id="cb9-3" data-line-number="3">missing_summary &lt;-<span class="st"> </span><span class="kw">summary</span>(allA<span class="op">$</span>n_missing)</a>
-<a class="sourceLine" id="cb9-4" data-line-number="4">ergo_irr &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">with</span>(allA, <span class="kw">table</span>(ergodic, irreduc)))</a>
-<a class="sourceLine" id="cb9-5" data-line-number="5">knitr<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/knitr/topics/kable">kable</a></span>(ergo_irr, <span class="dt">caption =</span> <span class="st">"Ergodicity and irreducibility of individual transition matrices."</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">allA &lt;-<span class="st"> </span><span class="kw">ungroup</span>(allA) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">missing =</span> <span class="kw">map</span>(A, <span class="op">~</span><span class="kw">which</span>(.x<span class="op">==</span><span class="dv">0</span>)),</a>
+<a class="sourceLine" id="cb8-2" data-line-number="2">                                 <span class="dt">n_missing =</span> <span class="kw">map_dbl</span>(missing, length))</a>
+<a class="sourceLine" id="cb8-3" data-line-number="3">missing_summary &lt;-<span class="st"> </span><span class="kw">summary</span>(allA<span class="op">$</span>n_missing)</a>
+<a class="sourceLine" id="cb8-4" data-line-number="4">ergo_irr &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">with</span>(allA, <span class="kw">table</span>(ergodic, irreduc)))</a>
+<a class="sourceLine" id="cb8-5" data-line-number="5">knitr<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/knitr/topics/kable">kable</a></span>(ergo_irr, <span class="dt">caption =</span> <span class="st">"Ergodicity and irreducibility of individual transition matrices."</span>)</a></code></pre></div>
 <table class="table">
 <caption>Ergodicity and irreducibility of individual transition matrices.</caption>
 <thead><tr class="header">
@@ -296,6 +291,21 @@ histograms of asymptotic population growth for each year.
 <td align="right">0.158</td>
 </tr>
 <tr class="even">
+<td align="right">905</td>
+<td align="right">9</td>
+<td align="left">dead</td>
+<td align="right">NA</td>
+<td align="right">1.000</td>
+<td align="right">1.000</td>
+<td align="right">1.000</td>
+<td align="right">0.250</td>
+<td align="right">0.875</td>
+<td align="right">0.875</td>
+<td align="right">0.690</td>
+<td align="right">0.842</td>
+<td align="right">0.838</td>
+</tr>
+<tr class="odd">
 <td align="right">914</td>
 <td align="right">6</td>
 <td align="left">seedling</td>
@@ -310,7 +320,7 @@ histograms of asymptotic population growth for each year.
 <td align="right">0.012</td>
 <td align="right">0.000</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="right">914</td>
 <td align="right">6</td>
 <td align="left">juvenile</td>
@@ -325,7 +335,7 @@ histograms of asymptotic population growth for each year.
 <td align="right">0.450</td>
 <td align="right">0.004</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="right">914</td>
 <td align="right">6</td>
 <td align="left">adult</td>
@@ -339,6 +349,21 @@ histograms of asymptotic population growth for each year.
 <td align="right">0.003</td>
 <td align="right">0.512</td>
 <td align="right">0.992</td>
+</tr>
+<tr class="even">
+<td align="right">914</td>
+<td align="right">6</td>
+<td align="left">dead</td>
+<td align="right">NA</td>
+<td align="right">0.500</td>
+<td align="right">0.000</td>
+<td align="right">0.000</td>
+<td align="right">0.417</td>
+<td align="right">0.125</td>
+<td align="right">0.042</td>
+<td align="right">0.563</td>
+<td align="right">0.025</td>
+<td align="right">0.004</td>
 </tr>
 <tr class="odd">
 <td align="right">250</td>
@@ -385,6 +410,21 @@ histograms of asymptotic population growth for each year.
 <td align="right">0.292</td>
 <td align="right">0.856</td>
 </tr>
+<tr class="even">
+<td align="right">250</td>
+<td align="right">5</td>
+<td align="left">dead</td>
+<td align="right">NA</td>
+<td align="right">0.273</td>
+<td align="right">0.128</td>
+<td align="right">0.029</td>
+<td align="right">0.271</td>
+<td align="right">0.130</td>
+<td align="right">0.150</td>
+<td align="right">0.308</td>
+<td align="right">0.126</td>
+<td align="right">0.144</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -392,24 +432,24 @@ histograms of asymptotic population growth for each year.
 <h2 class="hasAnchor">
 <a href="#ignore-the-problem" class="anchor"></a>Ignore the problem</h2>
 <p>Ignoring this problem and calculating stochastic <span class="math inline">\(\lambda\)</span> for each population could yield non-sensical results. For example, the geometric mean <span class="math inline">\(\lambda\)</span> calculated using simulation fails for 6 out of the 23 populations. These are the populations with one matrix that has <span class="math inline">\(\lambda = 0\)</span> at some point.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">sgr &lt;-<span class="st"> </span>allA <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">split</span>(.<span class="op">$</span>POPNUM) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="st">  </span><span class="kw">map</span>(<span class="op">~</span><span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/stoch.growth.rate">stoch.growth.rate</a></span>(.x<span class="op">$</span>A, <span class="dt">verbose =</span> <span class="ot">FALSE</span>))</a>
-<a class="sourceLine" id="cb10-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb10-4" data-line-number="4"><span class="co"># distribute results of stoch.growth.rate() into a tbl</span></a>
-<a class="sourceLine" id="cb10-5" data-line-number="5">xtrc &lt;-<span class="st"> </span><span class="cf">function</span>(x){</a>
-<a class="sourceLine" id="cb10-6" data-line-number="6">  <span class="kw">data.frame</span>(<span class="dt">approx=</span>x<span class="op">$</span>approx,</a>
-<a class="sourceLine" id="cb10-7" data-line-number="7">                <span class="dt">sim =</span> x<span class="op">$</span>sim,</a>
-<a class="sourceLine" id="cb10-8" data-line-number="8">                <span class="dt">lowerci =</span> x<span class="op">$</span>sim.CI[<span class="dv">1</span>],</a>
-<a class="sourceLine" id="cb10-9" data-line-number="9">                <span class="dt">upperci =</span> x<span class="op">$</span>sim.CI[<span class="dv">2</span>])</a>
-<a class="sourceLine" id="cb10-10" data-line-number="10">}</a>
-<a class="sourceLine" id="cb10-11" data-line-number="11">sgr &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(<span class="kw">map</span>(sgr, xtrc), <span class="dt">.id=</span><span class="st">"POPNUM"</span>) </a>
-<a class="sourceLine" id="cb10-12" data-line-number="12"><span class="kw">filter</span>(sgr, <span class="op">!</span><span class="kw">is.na</span>(sim)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb10-13" data-line-number="13"><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>approx, <span class="dt">y =</span> sim)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb10-14" data-line-number="14"><span class="st">  </span><span class="kw">geom_errorbar</span>(<span class="kw">aes</span>(<span class="dt">ymin=</span>lowerci, <span class="dt">ymax=</span>upperci)) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb10-15" data-line-number="15"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept=</span><span class="dv">0</span>) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb10-16" data-line-number="16"><span class="st">  </span>rlt_theme <span class="op">+</span></a>
-<a class="sourceLine" id="cb10-17" data-line-number="17"><span class="st">  </span><span class="kw">xlab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(<span class="st">"Tuljapurkar's approximate stochastic "</span>, <span class="kw">log</span>(lambda)))) <span class="op">+</span></a>
-<a class="sourceLine" id="cb10-18" data-line-number="18"><span class="st">  </span><span class="kw">ylab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(<span class="st">"Stochastic "</span>, <span class="kw">log</span>(lambda), <span class="st">" by simulation"</span>)))</a></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">sgr &lt;-<span class="st"> </span>allA <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">split</span>(.<span class="op">$</span>POPNUM) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb9-2" data-line-number="2"><span class="st">  </span><span class="kw">map</span>(<span class="op">~</span><span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/stoch.growth.rate">stoch.growth.rate</a></span>(.x<span class="op">$</span>A, <span class="dt">verbose =</span> <span class="ot">FALSE</span>))</a>
+<a class="sourceLine" id="cb9-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb9-4" data-line-number="4"><span class="co"># distribute results of stoch.growth.rate() into a tbl</span></a>
+<a class="sourceLine" id="cb9-5" data-line-number="5">xtrc &lt;-<span class="st"> </span><span class="cf">function</span>(x){</a>
+<a class="sourceLine" id="cb9-6" data-line-number="6">  <span class="kw">data.frame</span>(<span class="dt">approx=</span>x<span class="op">$</span>approx,</a>
+<a class="sourceLine" id="cb9-7" data-line-number="7">                <span class="dt">sim =</span> x<span class="op">$</span>sim,</a>
+<a class="sourceLine" id="cb9-8" data-line-number="8">                <span class="dt">lowerci =</span> x<span class="op">$</span>sim.CI[<span class="dv">1</span>],</a>
+<a class="sourceLine" id="cb9-9" data-line-number="9">                <span class="dt">upperci =</span> x<span class="op">$</span>sim.CI[<span class="dv">2</span>])</a>
+<a class="sourceLine" id="cb9-10" data-line-number="10">}</a>
+<a class="sourceLine" id="cb9-11" data-line-number="11">sgr &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(<span class="kw">map</span>(sgr, xtrc), <span class="dt">.id=</span><span class="st">"POPNUM"</span>) </a>
+<a class="sourceLine" id="cb9-12" data-line-number="12"><span class="kw">filter</span>(sgr, <span class="op">!</span><span class="kw">is.na</span>(sim)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb9-13" data-line-number="13"><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x=</span>approx, <span class="dt">y =</span> sim)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb9-14" data-line-number="14"><span class="st">  </span><span class="kw">geom_errorbar</span>(<span class="kw">aes</span>(<span class="dt">ymin=</span>lowerci, <span class="dt">ymax=</span>upperci)) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb9-15" data-line-number="15"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept=</span><span class="dv">0</span>) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb9-16" data-line-number="16"><span class="st">  </span>rlt_theme <span class="op">+</span></a>
+<a class="sourceLine" id="cb9-17" data-line-number="17"><span class="st">  </span><span class="kw">xlab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(<span class="st">"Tuljapurkar's approximate stochastic "</span>, <span class="kw">log</span>(lambda)))) <span class="op">+</span></a>
+<a class="sourceLine" id="cb9-18" data-line-number="18"><span class="st">  </span><span class="kw">ylab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(<span class="st">"Stochastic "</span>, <span class="kw">log</span>(lambda), <span class="st">" by simulation"</span>)))</a></code></pre></div>
 <div class="figure">
 <img src="transition_priors_files/figure-html/stochGrowthRateBad-1.png" alt="Stochastic population growth rates for 17 out of 23 orchid populations. " width="480"><p class="caption">
 Stochastic population growth rates for 17 out of 23 orchid populations.
@@ -421,40 +461,40 @@ Stochastic population growth rates for 17 out of 23 orchid populations.
 <h2 class="hasAnchor">
 <a href="#fill-in-including-constraints-on-transitions" class="anchor"></a>Fill in including constraints on transitions</h2>
 <p>This strategy uses the transitions in a smarter way that maintains the constraint that all survival/transition probabilities have to add up to 1. We do this by using a dirichlet prior with the function <code><a href="../reference/fill_transitions.html">fill_transitions()</a></code>. This function takes the matrix as a list of 2 components, a matrix of transition probabilities <span class="math inline">\(T\)</span> and a matrix of fertility contributions <span class="math inline">\(F\)</span>. The Dirichlet prior only applies to the <span class="math inline">\(T\)</span> matrix. If not specified, the function assumes a uniform prior across the <span class="math inline">\(m+1\)</span> fates for each stage. The extra category is for individuals that do not survive. Let’s look at a single example to see how it works, using population 231 in period 1. This matrix is non-ergodic and reducible, and there are individuals in every stage.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="co"># </span></a>
-<a class="sourceLine" id="cb11-2" data-line-number="2">tmat &lt;-<span class="st"> </span>allA[<span class="dv">23</span>,<span class="st">"TF"</span>][[<span class="dv">1</span>]][[<span class="dv">1</span>]]<span class="op">$</span>T ## wow! hard to get at ... </a>
-<a class="sourceLine" id="cb11-3" data-line-number="3">fmat &lt;-<span class="st"> </span>allA[<span class="dv">23</span>,<span class="st">"TF"</span>][[<span class="dv">1</span>]][[<span class="dv">1</span>]]<span class="op">$</span>F</a>
-<a class="sourceLine" id="cb11-4" data-line-number="4">N &lt;-<span class="st"> </span>allA[<span class="dv">23</span>,<span class="st">"N"</span>][[<span class="dv">1</span>]][[<span class="dv">1</span>]]</a>
-<a class="sourceLine" id="cb11-5" data-line-number="5">tmat <span class="op">+</span><span class="st"> </span>fmat</a></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1"><span class="co"># </span></a>
+<a class="sourceLine" id="cb10-2" data-line-number="2">tmat &lt;-<span class="st"> </span>allA[<span class="dv">23</span>,<span class="st">"TF"</span>][[<span class="dv">1</span>]][[<span class="dv">1</span>]]<span class="op">$</span>T ## wow! hard to get at ... </a>
+<a class="sourceLine" id="cb10-3" data-line-number="3">fmat &lt;-<span class="st"> </span>allA[<span class="dv">23</span>,<span class="st">"TF"</span>][[<span class="dv">1</span>]][[<span class="dv">1</span>]]<span class="op">$</span>F</a>
+<a class="sourceLine" id="cb10-4" data-line-number="4">N &lt;-<span class="st"> </span>allA[<span class="dv">23</span>,<span class="st">"N"</span>][[<span class="dv">1</span>]][[<span class="dv">1</span>]]</a>
+<a class="sourceLine" id="cb10-5" data-line-number="5">tmat <span class="op">+</span><span class="st"> </span>fmat</a></code></pre></div>
 <pre><code>##    
 ##          p      j      a
 ##   p 0.0000 0.0000 0.1250
 ##   j 0.0000 0.0000 0.0000
 ##   a 1.0000 0.0000 0.9375</code></pre>
 <p>The matrix is reducible because the 2nd column and 2nd row could be eliminated without affecting population growth; this is because the 2 juveniles died. The matrix is not ergodic because there is no path from the 2nd stage to either of the other stages.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popdemo/topics/isErgodic">isErgodic</a></span>((tmat <span class="op">+</span><span class="st"> </span>fmat)[<span class="op">-</span><span class="dv">2</span>,<span class="op">-</span><span class="dv">2</span>])</a></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popdemo/topics/isErgodic">isErgodic</a></span>((tmat <span class="op">+</span><span class="st"> </span>fmat)[<span class="op">-</span><span class="dv">2</span>,<span class="op">-</span><span class="dv">2</span>])</a></code></pre></div>
 <pre><code>## [1] TRUE</code></pre>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popdemo/topics/isIrreducible">isIrreducible</a></span>((tmat <span class="op">+</span><span class="st"> </span>fmat)[<span class="op">-</span><span class="dv">2</span>,<span class="op">-</span><span class="dv">2</span>])</a></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popdemo/topics/isIrreducible">isIrreducible</a></span>((tmat <span class="op">+</span><span class="st"> </span>fmat)[<span class="op">-</span><span class="dv">2</span>,<span class="op">-</span><span class="dv">2</span>])</a></code></pre></div>
 <pre><code>## [1] TRUE</code></pre>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1"><span class="kw">all.equal</span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/lambda">lambda</a></span>((tmat <span class="op">+</span><span class="st"> </span>fmat)[<span class="op">-</span><span class="dv">2</span>,<span class="op">-</span><span class="dv">2</span>]), <span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/lambda">lambda</a></span>(tmat <span class="op">+</span><span class="st"> </span>fmat))</a></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1"><span class="kw">all.equal</span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/lambda">lambda</a></span>((tmat <span class="op">+</span><span class="st"> </span>fmat)[<span class="op">-</span><span class="dv">2</span>,<span class="op">-</span><span class="dv">2</span>]), <span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/lambda">lambda</a></span>(tmat <span class="op">+</span><span class="st"> </span>fmat))</a></code></pre></div>
 <pre><code>## [1] TRUE</code></pre>
 <p>So, to add a dirichlet prior with a weight of 1 to <span class="math inline">\(T\)</span>, we have 4 fates (3 + death), so each fate adds 0.25 to the matrix of <em>observed</em> fates (not the transition matrix!).</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1"><span class="co"># get matrix of observed fates, including a row for mortality</span></a>
-<a class="sourceLine" id="cb19-2" data-line-number="2"><span class="co"># apply(tmat, 1, function(x)x * N)</span></a>
-<a class="sourceLine" id="cb19-3" data-line-number="3">(TNmat &lt;-<span class="st"> </span>L_elto <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb19-4" data-line-number="4"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">stage =</span> <span class="kw">factor</span>(stage, <span class="dt">levels=</span><span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>,<span class="st">"m"</span>)),</a>
-<a class="sourceLine" id="cb19-5" data-line-number="5">         <span class="dt">fate =</span> <span class="kw">factor</span>(next_stage, <span class="dt">levels=</span><span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>,<span class="st">"m"</span>))) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb19-6" data-line-number="6"><span class="st">  </span><span class="kw">filter</span>(POPNUM <span class="op">==</span><span class="st"> </span>allA<span class="op">$</span>POPNUM[<span class="dv">23</span>], year <span class="op">==</span><span class="st"> </span>allA<span class="op">$</span>year[<span class="dv">23</span>]<span class="op">+</span><span class="dv">1</span>) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb19-7" data-line-number="7"><span class="st">  </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb19-8" data-line-number="8"><span class="st">  </span><span class="kw">xtabs</span>(<span class="op">~</span>fate <span class="op">+</span><span class="st"> </span>stage, <span class="dt">data =</span> .) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb19-9" data-line-number="9"><span class="st">  </span><span class="kw">as.matrix</span>())</a></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1"><span class="co"># get matrix of observed fates, including a row for mortality</span></a>
+<a class="sourceLine" id="cb18-2" data-line-number="2"><span class="co"># apply(tmat, 1, function(x)x * N)</span></a>
+<a class="sourceLine" id="cb18-3" data-line-number="3">(TNmat &lt;-<span class="st"> </span>L_elto <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb18-4" data-line-number="4"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">stage =</span> <span class="kw">factor</span>(stage, <span class="dt">levels=</span><span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>,<span class="st">"m"</span>)),</a>
+<a class="sourceLine" id="cb18-5" data-line-number="5">         <span class="dt">fate =</span> <span class="kw">factor</span>(next_stage, <span class="dt">levels=</span><span class="kw">c</span>(<span class="st">"p"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>,<span class="st">"m"</span>))) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb18-6" data-line-number="6"><span class="st">  </span><span class="kw">filter</span>(POPNUM <span class="op">==</span><span class="st"> </span>allA<span class="op">$</span>POPNUM[<span class="dv">23</span>], year <span class="op">==</span><span class="st"> </span>allA<span class="op">$</span>year[<span class="dv">23</span>]<span class="op">+</span><span class="dv">1</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb18-7" data-line-number="7"><span class="st">  </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb18-8" data-line-number="8"><span class="st">  </span><span class="kw">xtabs</span>(<span class="op">~</span>fate <span class="op">+</span><span class="st"> </span>stage, <span class="dt">data =</span> .) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb18-9" data-line-number="9"><span class="st">  </span><span class="kw">as.matrix</span>())</a></code></pre></div>
 <pre><code>##     stage
 ## fate  p  j  a  m
 ##    p  1  0  0  0
 ##    j  0  5  0  0
 ##    a  0  1 14  0
 ##    m  1  0  2  0</code></pre>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1">(TNmat2 &lt;-<span class="st"> </span>(TNmat <span class="op">+</span><span class="st"> </span><span class="fl">0.25</span>)[,<span class="op">-</span><span class="dv">4</span>]) <span class="co"># re-cycles automatically, and drop last column (no one starts as m)</span></a></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1">(TNmat2 &lt;-<span class="st"> </span>(TNmat <span class="op">+</span><span class="st"> </span><span class="fl">0.25</span>)[,<span class="op">-</span><span class="dv">4</span>]) <span class="co"># re-cycles automatically, and drop last column (no one starts as m)</span></a></code></pre></div>
 <pre><code>##     stage
 ## fate     p     j     a
 ##    p  1.25  0.25  0.25
@@ -462,40 +502,40 @@ Stochastic population growth rates for 17 out of 23 orchid populations.
 ##    a  0.25  1.25 14.25
 ##    m  1.25  0.25  2.25</code></pre>
 <p>This matrix has the dirichlet parameters for each state. To convert this to a transition matrix we have to normalize each column by the sum of that column, then drop the last row to return to a square matrix.</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" data-line-number="1">columnsums &lt;-<span class="st"> </span><span class="kw">colSums</span>(TNmat2)</a>
-<a class="sourceLine" id="cb23-2" data-line-number="2">(tmat2 &lt;-<span class="st"> </span><span class="kw">sweep</span>(TNmat2, <span class="dv">2</span>, columnsums, <span class="dt">FUN =</span> <span class="st">"/"</span>)[<span class="op">-</span><span class="dv">4</span>,])</a></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1">columnsums &lt;-<span class="st"> </span><span class="kw">colSums</span>(TNmat2)</a>
+<a class="sourceLine" id="cb22-2" data-line-number="2">(tmat2 &lt;-<span class="st"> </span><span class="kw">sweep</span>(TNmat2, <span class="dv">2</span>, columnsums, <span class="dt">FUN =</span> <span class="st">"/"</span>)[<span class="op">-</span><span class="dv">4</span>,])</a></code></pre></div>
 <pre><code>##     stage
 ## fate          p          j          a
 ##    p 0.41666667 0.03571429 0.01470588
 ##    j 0.08333333 0.75000000 0.01470588
 ##    a 0.08333333 0.17857143 0.83823529</code></pre>
-<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/lambda">lambda</a></span>(tmat2 <span class="op">+</span><span class="st"> </span>fmat)</a></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/lambda">lambda</a></span>(tmat2 <span class="op">+</span><span class="st"> </span>fmat)</a></code></pre></div>
 <pre><code>## [1] 0.9084171</code></pre>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb27-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popdemo/topics/isErgodic">isErgodic</a></span>(tmat2 <span class="op">+</span><span class="st"> </span>fmat)</a></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popdemo/topics/isErgodic">isErgodic</a></span>(tmat2 <span class="op">+</span><span class="st"> </span>fmat)</a></code></pre></div>
 <pre><code>## [1] TRUE</code></pre>
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popdemo/topics/isIrreducible">isIrreducible</a></span>(tmat2 <span class="op">+</span><span class="st"> </span>fmat)</a></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popdemo/topics/isIrreducible">isIrreducible</a></span>(tmat2 <span class="op">+</span><span class="st"> </span>fmat)</a></code></pre></div>
 <pre><code>## [1] TRUE</code></pre>
 <p>Comparing these matrices, we can see that all transitions are now represented, even those that were not observed in the actual data. We can automate this exercise for all matrices.</p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb31-1" data-line-number="1">testing &lt;-<span class="st"> </span>allA <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">Adirch =</span> <span class="kw">map2</span>(TF, N, fill_transitions, <span class="dt">returnType =</span> <span class="st">"A"</span>),</a>
-<a class="sourceLine" id="cb31-2" data-line-number="2">                           <span class="dt">ldirch =</span> <span class="kw">map_dbl</span>(Adirch, lambda),                 </a>
-<a class="sourceLine" id="cb31-3" data-line-number="3">         <span class="dt">irrdirch =</span> <span class="kw">map_dbl</span>(Adirch, isIrreducible),</a>
-<a class="sourceLine" id="cb31-4" data-line-number="4">         <span class="dt">ergdirch =</span> <span class="kw">map_dbl</span>(Adirch, isErgodic),</a>
-<a class="sourceLine" id="cb31-5" data-line-number="5">         <span class="dt">TN =</span> <span class="kw">map2</span>(TF, N, fill_transitions, <span class="dt">returnType =</span> <span class="st">"TN"</span>))</a>
-<a class="sourceLine" id="cb31-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb31-7" data-line-number="7"><span class="kw">ggplot</span>(testing, <span class="kw">aes</span>(<span class="dt">x=</span>lmbda, <span class="dt">y=</span>ldirch)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb31-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept=</span><span class="dv">0</span>) <span class="op">+</span></a>
-<a class="sourceLine" id="cb31-9" data-line-number="9"><span class="st">  </span><span class="kw">xlab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda, <span class="st">" ignoring zeros"</span>))) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb31-10" data-line-number="10"><span class="st">  </span><span class="kw">ylab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda, <span class="st">" using a uniform prior"</span>))) <span class="op">+</span></a>
-<a class="sourceLine" id="cb31-11" data-line-number="11"><span class="st">  </span>rlt_theme</a></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb30-1" data-line-number="1">testing &lt;-<span class="st"> </span>allA <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">Adirch =</span> <span class="kw">map2</span>(TF, N, fill_transitions, <span class="dt">returnType =</span> <span class="st">"A"</span>),</a>
+<a class="sourceLine" id="cb30-2" data-line-number="2">                           <span class="dt">ldirch =</span> <span class="kw">map_dbl</span>(Adirch, lambda),                 </a>
+<a class="sourceLine" id="cb30-3" data-line-number="3">         <span class="dt">irrdirch =</span> <span class="kw">map_dbl</span>(Adirch, isIrreducible),</a>
+<a class="sourceLine" id="cb30-4" data-line-number="4">         <span class="dt">ergdirch =</span> <span class="kw">map_dbl</span>(Adirch, isErgodic),</a>
+<a class="sourceLine" id="cb30-5" data-line-number="5">         <span class="dt">TN =</span> <span class="kw">map2</span>(TF, N, fill_transitions, <span class="dt">returnType =</span> <span class="st">"TN"</span>))</a>
+<a class="sourceLine" id="cb30-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb30-7" data-line-number="7"><span class="kw">ggplot</span>(testing, <span class="kw">aes</span>(<span class="dt">x=</span>lmbda, <span class="dt">y=</span>ldirch)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb30-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept=</span><span class="dv">0</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb30-9" data-line-number="9"><span class="st">  </span><span class="kw">xlab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda, <span class="st">" ignoring zeros"</span>))) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb30-10" data-line-number="10"><span class="st">  </span><span class="kw">ylab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda, <span class="st">" using a uniform prior"</span>))) <span class="op">+</span></a>
+<a class="sourceLine" id="cb30-11" data-line-number="11"><span class="st">  </span>rlt_theme</a></code></pre></div>
 <div class="figure">
 <img src="transition_priors_files/figure-html/fillDirichlet-1.png" alt="Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data." width="480"><p class="caption">
 Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data.
 </p>
 </div>
 <p>The matrices with <span class="math inline">\(\lambda = 0\)</span> typically have very few individuals that all die. Matrices with <span class="math inline">\(\lambda = 1\)</span> usually have observed transitions only on the main diagonal.</p>
-<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb32-1" data-line-number="1">ergo_irr &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">with</span>(testing, <span class="kw">table</span>(ergdirch, irrdirch)))</a>
-<a class="sourceLine" id="cb32-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb32-3" data-line-number="3">knitr<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/knitr/topics/kable">kable</a></span>(ergo_irr, <span class="dt">caption =</span> <span class="st">"Ergodicity and irreducibility of individual transition matrices."</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb31-1" data-line-number="1">ergo_irr &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">with</span>(testing, <span class="kw">table</span>(ergdirch, irrdirch)))</a>
+<a class="sourceLine" id="cb31-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb31-3" data-line-number="3">knitr<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/knitr/topics/kable">kable</a></span>(ergo_irr, <span class="dt">caption =</span> <span class="st">"Ergodicity and irreducibility of individual transition matrices."</span>)</a></code></pre></div>
 <table class="table">
 <caption>Ergodicity and irreducibility of individual transition matrices.</caption>
 <thead><tr class="header">
@@ -509,20 +549,18 @@ Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the a
 <td align="right">238</td>
 </tr></tbody>
 </table>
-<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" data-line-number="1">sgr_unif &lt;-<span class="st"> </span>testing <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">split</span>(.<span class="op">$</span>POPNUM) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb33-2" data-line-number="2"><span class="st">  </span><span class="kw">map</span>(<span class="op">~</span><span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/stoch.growth.rate">stoch.growth.rate</a></span>(.x<span class="op">$</span>Adirch, <span class="dt">verbose =</span> <span class="ot">FALSE</span>))</a>
-<a class="sourceLine" id="cb33-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb33-4" data-line-number="4">sgr_unif &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(<span class="kw">map</span>(sgr_unif, xtrc), <span class="dt">.id=</span><span class="st">"POPNUM"</span>) </a>
-<a class="sourceLine" id="cb33-5" data-line-number="5">compare_approx &lt;-<span class="st"> </span><span class="kw">data_frame</span>(<span class="dt">unif =</span> sgr_unif<span class="op">$</span>approx,</a>
-<a class="sourceLine" id="cb33-6" data-line-number="6">                             <span class="dt">ignored =</span> sgr<span class="op">$</span>approx)</a></code></pre></div>
-<pre><code>## Warning: `data_frame()` is deprecated, use `tibble()`.
-## This warning is displayed once per session.</code></pre>
-<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb35-1" data-line-number="1"><span class="kw">ggplot</span>(compare_approx, <span class="kw">aes</span>(<span class="dt">x=</span>ignored, <span class="dt">y =</span> unif)) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb35-2" data-line-number="2"><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb35-3" data-line-number="3"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept=</span><span class="dv">0</span>) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb35-4" data-line-number="4"><span class="st">  </span><span class="kw">xlab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(<span class="st">"log("</span>,lambda,<span class="st">") ignoring zeros"</span>))) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb35-5" data-line-number="5"><span class="st">  </span><span class="kw">ylab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(<span class="st">"log("</span>,lambda,<span class="st">") with uniform prior"</span>))) <span class="op">+</span></a>
-<a class="sourceLine" id="cb35-6" data-line-number="6"><span class="st">  </span>rlt_theme</a></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb32-1" data-line-number="1">sgr_unif &lt;-<span class="st"> </span>testing <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">split</span>(.<span class="op">$</span>POPNUM) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb32-2" data-line-number="2"><span class="st">  </span><span class="kw">map</span>(<span class="op">~</span><span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/stoch.growth.rate">stoch.growth.rate</a></span>(.x<span class="op">$</span>Adirch, <span class="dt">verbose =</span> <span class="ot">FALSE</span>))</a>
+<a class="sourceLine" id="cb32-3" data-line-number="3"></a>
+<a class="sourceLine" id="cb32-4" data-line-number="4">sgr_unif &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(<span class="kw">map</span>(sgr_unif, xtrc), <span class="dt">.id=</span><span class="st">"POPNUM"</span>) </a>
+<a class="sourceLine" id="cb32-5" data-line-number="5">compare_approx &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">unif =</span> sgr_unif<span class="op">$</span>approx,</a>
+<a class="sourceLine" id="cb32-6" data-line-number="6">                             <span class="dt">ignored =</span> sgr<span class="op">$</span>approx)</a>
+<a class="sourceLine" id="cb32-7" data-line-number="7"><span class="kw">ggplot</span>(compare_approx, <span class="kw">aes</span>(<span class="dt">x=</span>ignored, <span class="dt">y =</span> unif)) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb32-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb32-9" data-line-number="9"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept=</span><span class="dv">0</span>) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb32-10" data-line-number="10"><span class="st">  </span><span class="kw">xlab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(<span class="st">"log("</span>,lambda,<span class="st">") ignoring zeros"</span>))) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb32-11" data-line-number="11"><span class="st">  </span><span class="kw">ylab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(<span class="st">"log("</span>,lambda,<span class="st">") with uniform prior"</span>))) <span class="op">+</span></a>
+<a class="sourceLine" id="cb32-12" data-line-number="12"><span class="st">  </span>rlt_theme</a></code></pre></div>
 <p><img src="transition_priors_files/figure-html/stochDirchVsBad-1.png" width="480"></p>
 <p>So using a Dirichlet prior to fill in the gaps works, and doesn’t appear to distort the stochastic population growth rate; all populations still have negative growth. Most populations end up with stochastic growth rates that are lower than with the problematic matrices. All resulting matrices are now ergodic and irreducible.</p>
 </div>
@@ -530,46 +568,46 @@ Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the a
 <h2 class="hasAnchor">
 <a href="#fill-in-using-uninformative-priors-on-fertility" class="anchor"></a>Fill in using uninformative priors on fertility</h2>
 <p>The other component of the matrix is the fertility. We do this by using a Gamma prior with the function <code><a href="../reference/fill_fecundity.html">fill_fecundity()</a></code>. This function takes the matrix as a list of 2 components, a matrix of transition probabilities <span class="math inline">\(T\)</span> and a matrix of fertility contributions <span class="math inline">\(F\)</span>. The Gamma prior only applies to the <span class="math inline">\(F\)</span> matrix. If not specified, the function assumes an uniformative prior with <span class="math inline">\(\alpha = 0.00001, \beta = 0.00001\)</span> across all stages. Stages that do not reproduce are marked with <code>NA_real_</code> in the prior probability vectors. Again, demonstrate with a single example. The posterior <span class="math inline">\(\alpha\)</span> is given by the sum of the prior <span class="math inline">\(\alpha = 0.00001\)</span> and the number of offspring next year (2 in this case), while the posterior <span class="math inline">\(\beta\)</span> is simply the sum of the prior and the number of adults contributing to the observed reproduction.</p>
-<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb36-1" data-line-number="1">post_alpha =<span class="st"> </span><span class="fl">0.00001</span> <span class="op">+</span><span class="st"> </span><span class="dv">2</span></a>
-<a class="sourceLine" id="cb36-2" data-line-number="2">post_beta =<span class="st"> </span><span class="fl">0.00001</span> <span class="op">+</span><span class="st"> </span>N[<span class="dv">3</span>]</a></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" data-line-number="1">post_alpha =<span class="st"> </span><span class="fl">0.00001</span> <span class="op">+</span><span class="st"> </span><span class="dv">2</span></a>
+<a class="sourceLine" id="cb33-2" data-line-number="2">post_beta =<span class="st"> </span><span class="fl">0.00001</span> <span class="op">+</span><span class="st"> </span>N[<span class="dv">3</span>]</a></code></pre></div>
 <p>The expected value for the posterior <span class="math inline">\(F\)</span> is <span class="math inline">\(\alpha / \beta\)</span>.</p>
-<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb37-1" data-line-number="1">fmat2 &lt;-<span class="st"> </span>fmat</a>
-<a class="sourceLine" id="cb37-2" data-line-number="2">fmat2[<span class="dv">1</span>,<span class="dv">3</span>] &lt;-<span class="st"> </span>post_alpha <span class="op">/</span><span class="st"> </span>post_beta</a>
-<a class="sourceLine" id="cb37-3" data-line-number="3">fmat2</a></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" data-line-number="1">fmat2 &lt;-<span class="st"> </span>fmat</a>
+<a class="sourceLine" id="cb34-2" data-line-number="2">fmat2[<span class="dv">1</span>,<span class="dv">3</span>] &lt;-<span class="st"> </span>post_alpha <span class="op">/</span><span class="st"> </span>post_beta</a>
+<a class="sourceLine" id="cb34-3" data-line-number="3">fmat2</a></code></pre></div>
 <pre><code>##    
 ##             p         j         a
 ##   p 0.0000000 0.0000000 0.1250005
 ##   j 0.0000000 0.0000000 0.0000000
 ##   a 0.0000000 0.0000000 0.0000000</code></pre>
-<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb39-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/lambda">lambda</a></span>(tmat <span class="op">+</span><span class="st"> </span>fmat2)</a></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb36-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/lambda">lambda</a></span>(tmat <span class="op">+</span><span class="st"> </span>fmat2)</a></code></pre></div>
 <pre><code>## [1] 1.055885</code></pre>
-<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb41-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popdemo/topics/isErgodic">isErgodic</a></span>(tmat<span class="op">+</span>fmat2)</a></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb38-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popdemo/topics/isErgodic">isErgodic</a></span>(tmat<span class="op">+</span>fmat2)</a></code></pre></div>
 <pre><code>## [1] FALSE</code></pre>
-<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb43-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popdemo/topics/isIrreducible">isIrreducible</a></span>(tmat<span class="op">+</span>fmat2)</a></code></pre></div>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb40-1" data-line-number="1"><span class="kw"><a href="http://www.rdocumentation.org/packages/popdemo/topics/isIrreducible">isIrreducible</a></span>(tmat<span class="op">+</span>fmat2)</a></code></pre></div>
 <pre><code>## [1] FALSE</code></pre>
 <p>The uninformative prior on fecundity makes very little difference to lambda, and does not help with issues of ergodicity and irreducibility.</p>
-<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb45-1" data-line-number="1">testing &lt;-<span class="st"> </span>allA <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">Agamma =</span> <span class="kw">map2</span>(TF, N, fill_fecundity, </a>
-<a class="sourceLine" id="cb45-2" data-line-number="2">                                         <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.00001</span>), </a>
-<a class="sourceLine" id="cb45-3" data-line-number="3">                                         <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.00001</span>), </a>
-<a class="sourceLine" id="cb45-4" data-line-number="4">                                         <span class="dt">priorweight =</span> <span class="dv">1</span>, <span class="dt">returnType =</span> <span class="st">"A"</span>),</a>
-<a class="sourceLine" id="cb45-5" data-line-number="5">                           <span class="dt">lgamma =</span> <span class="kw">map_dbl</span>(Agamma, lambda),                 </a>
-<a class="sourceLine" id="cb45-6" data-line-number="6">         <span class="dt">irrgamma =</span> <span class="kw">map_dbl</span>(Agamma, isIrreducible),</a>
-<a class="sourceLine" id="cb45-7" data-line-number="7">         <span class="dt">erggamma =</span> <span class="kw">map_dbl</span>(Agamma, isErgodic))</a>
-<a class="sourceLine" id="cb45-8" data-line-number="8"></a>
-<a class="sourceLine" id="cb45-9" data-line-number="9"><span class="kw">ggplot</span>(testing, <span class="kw">aes</span>(<span class="dt">x=</span>lmbda, <span class="dt">y=</span>lgamma)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb45-10" data-line-number="10"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept=</span><span class="dv">0</span>) <span class="op">+</span></a>
-<a class="sourceLine" id="cb45-11" data-line-number="11"><span class="st">  </span><span class="kw">xlab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda, <span class="st">" ignoring zeros"</span>))) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb45-12" data-line-number="12"><span class="st">  </span><span class="kw">ylab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda, <span class="st">" using an uninformative prior"</span>))) <span class="op">+</span></a>
-<a class="sourceLine" id="cb45-13" data-line-number="13"><span class="st">  </span>rlt_theme</a></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb42-1" data-line-number="1">testing &lt;-<span class="st"> </span>allA <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">Agamma =</span> <span class="kw">map2</span>(TF, N, fill_fecundity, </a>
+<a class="sourceLine" id="cb42-2" data-line-number="2">                                         <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.00001</span>), </a>
+<a class="sourceLine" id="cb42-3" data-line-number="3">                                         <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.00001</span>), </a>
+<a class="sourceLine" id="cb42-4" data-line-number="4">                                         <span class="dt">priorweight =</span> <span class="dv">1</span>, <span class="dt">returnType =</span> <span class="st">"A"</span>),</a>
+<a class="sourceLine" id="cb42-5" data-line-number="5">                           <span class="dt">lgamma =</span> <span class="kw">map_dbl</span>(Agamma, lambda),                 </a>
+<a class="sourceLine" id="cb42-6" data-line-number="6">         <span class="dt">irrgamma =</span> <span class="kw">map_dbl</span>(Agamma, isIrreducible),</a>
+<a class="sourceLine" id="cb42-7" data-line-number="7">         <span class="dt">erggamma =</span> <span class="kw">map_dbl</span>(Agamma, isErgodic))</a>
+<a class="sourceLine" id="cb42-8" data-line-number="8"></a>
+<a class="sourceLine" id="cb42-9" data-line-number="9"><span class="kw">ggplot</span>(testing, <span class="kw">aes</span>(<span class="dt">x=</span>lmbda, <span class="dt">y=</span>lgamma)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb42-10" data-line-number="10"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept=</span><span class="dv">0</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb42-11" data-line-number="11"><span class="st">  </span><span class="kw">xlab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda, <span class="st">" ignoring zeros"</span>))) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb42-12" data-line-number="12"><span class="st">  </span><span class="kw">ylab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda, <span class="st">" using an uninformative prior"</span>))) <span class="op">+</span></a>
+<a class="sourceLine" id="cb42-13" data-line-number="13"><span class="st">  </span>rlt_theme</a></code></pre></div>
 <div class="figure">
 <img src="transition_priors_files/figure-html/fillGamma-1.png" alt="Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data." width="480"><p class="caption">
 Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data.
 </p>
 </div>
 <p>The matrices with <span class="math inline">\(\lambda = 0\)</span> typically have very few individuals. Matrices with <span class="math inline">\(\lambda = 1\)</span> usually have transitions only on the main diagonal. The uninformative Gamma prior does not change <span class="math inline">\(\lambda\)</span>, and does not improve the ergodicity and irreducibility issue. When there is at least 1 adult present, the expected value of Fecundity is very close to zero. When there are no adults present, all those matrices cannot reach the adult stage and so the expected value of Fecundity does not affect <span class="math inline">\(\lambda\)</span>. However, this is not a necessary condition.</p>
-<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb46-1" data-line-number="1">ergo_irr &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">with</span>(testing, <span class="kw">table</span>(erggamma, irrgamma)))</a>
-<a class="sourceLine" id="cb46-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb46-3" data-line-number="3">knitr<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/knitr/topics/kable">kable</a></span>(ergo_irr, <span class="dt">caption =</span> <span class="st">"Ergodicity and irreducibility of individual transition matrices."</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb43-1" data-line-number="1">ergo_irr &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">with</span>(testing, <span class="kw">table</span>(erggamma, irrgamma)))</a>
+<a class="sourceLine" id="cb43-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb43-3" data-line-number="3">knitr<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/knitr/topics/kable">kable</a></span>(ergo_irr, <span class="dt">caption =</span> <span class="st">"Ergodicity and irreducibility of individual transition matrices."</span>)</a></code></pre></div>
 <table class="table">
 <caption>Ergodicity and irreducibility of individual transition matrices.</caption>
 <thead><tr class="header">
@@ -605,65 +643,65 @@ Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the a
 <h2 class="hasAnchor">
 <a href="#effects-of-informative-priors" class="anchor"></a>Effects of informative priors</h2>
 <p>We extracted an informative prior from an expert on epiphytic orchids (RLT) to compare with the uniform prior. In particular, we considered the effects of weighting the prior by different fractions of the actual sample size for each population and year.</p>
-<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb47-1" data-line-number="1">RLT_Tprior &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="fl">0.25</span>, <span class="fl">0.025</span>, <span class="fl">0.0</span>,</a>
-<a class="sourceLine" id="cb47-2" data-line-number="2">                       <span class="fl">0.05</span>, <span class="fl">0.9</span>,   <span class="fl">0.025</span>,</a>
-<a class="sourceLine" id="cb47-3" data-line-number="3">                       <span class="fl">0.01</span>, <span class="fl">0.025</span>, <span class="fl">0.95</span>,</a>
-<a class="sourceLine" id="cb47-4" data-line-number="4">                       <span class="fl">0.69</span>, <span class="fl">0.05</span>,  <span class="fl">0.025</span>), </a>
-<a class="sourceLine" id="cb47-5" data-line-number="5">                     <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">4</span>, <span class="dt">ncol =</span> <span class="dv">3</span>)</a>
-<a class="sourceLine" id="cb47-6" data-line-number="6">RLT_Fprior &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.025</span>,</a>
-<a class="sourceLine" id="cb47-7" data-line-number="7">                       <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>,</a>
-<a class="sourceLine" id="cb47-8" data-line-number="8">                       <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>), </a>
-<a class="sourceLine" id="cb47-9" data-line-number="9">                     <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">3</span>, <span class="dt">ncol =</span> <span class="dv">3</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb44-1" data-line-number="1">RLT_Tprior &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="fl">0.25</span>, <span class="fl">0.025</span>, <span class="fl">0.0</span>,</a>
+<a class="sourceLine" id="cb44-2" data-line-number="2">                       <span class="fl">0.05</span>, <span class="fl">0.9</span>,   <span class="fl">0.025</span>,</a>
+<a class="sourceLine" id="cb44-3" data-line-number="3">                       <span class="fl">0.01</span>, <span class="fl">0.025</span>, <span class="fl">0.95</span>,</a>
+<a class="sourceLine" id="cb44-4" data-line-number="4">                       <span class="fl">0.69</span>, <span class="fl">0.05</span>,  <span class="fl">0.025</span>), </a>
+<a class="sourceLine" id="cb44-5" data-line-number="5">                     <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">4</span>, <span class="dt">ncol =</span> <span class="dv">3</span>)</a>
+<a class="sourceLine" id="cb44-6" data-line-number="6">RLT_Fprior &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.025</span>,</a>
+<a class="sourceLine" id="cb44-7" data-line-number="7">                       <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>,</a>
+<a class="sourceLine" id="cb44-8" data-line-number="8">                       <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>), </a>
+<a class="sourceLine" id="cb44-9" data-line-number="9">                     <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">3</span>, <span class="dt">ncol =</span> <span class="dv">3</span>)</a></code></pre></div>
 <p>The RLT prior gives <span class="math inline">\(\lambda = 0.96\)</span>. In an ideal world this prior would be extracted prior to collecting the data. In this case the prior is only being used to demonstrate the technique.</p>
-<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb48-1" data-line-number="1">diffPriors &lt;-<span class="st"> </span><span class="kw">list</span>()</a>
-<a class="sourceLine" id="cb48-2" data-line-number="2">diffPriors[[<span class="st">"Uniform"</span>]] &lt;-<span class="st"> </span>testing <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb48-3" data-line-number="3"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Tprior =</span> <span class="kw">map2</span>(TF, N, fill_transitions, <span class="dt">returnType =</span> <span class="st">"T"</span>),</a>
-<a class="sourceLine" id="cb48-4" data-line-number="4">         <span class="dt">Fprior =</span> <span class="kw">map2</span>(TF, N, fill_fecundity,</a>
-<a class="sourceLine" id="cb48-5" data-line-number="5">                       <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.00001</span>),</a>
-<a class="sourceLine" id="cb48-6" data-line-number="6">                       <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.00001</span>), <span class="dt">priorweight =</span> <span class="dv">1</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
-<a class="sourceLine" id="cb48-7" data-line-number="7">         <span class="dt">Aprior =</span> <span class="kw">map2</span>(Tprior, Fprior, <span class="st">`</span><span class="dt">+</span><span class="st">`</span>),</a>
-<a class="sourceLine" id="cb48-8" data-line-number="8">         <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(Aprior, lambda))</a>
-<a class="sourceLine" id="cb48-9" data-line-number="9"></a>
-<a class="sourceLine" id="cb48-10" data-line-number="10"></a>
-<a class="sourceLine" id="cb48-11" data-line-number="11">diffPriors[[<span class="st">"RLT, weight = 1"</span>]] &lt;-<span class="st"> </span>testing <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb48-12" data-line-number="12"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Tprior =</span> <span class="kw">map2</span>(TF, N, fill_transitions, </a>
-<a class="sourceLine" id="cb48-13" data-line-number="13">                       <span class="dt">P =</span> RLT_Tprior, <span class="dt">returnType =</span> <span class="st">"T"</span>),</a>
-<a class="sourceLine" id="cb48-14" data-line-number="14">         <span class="dt">Fprior =</span> <span class="kw">map2</span>(TF, N, fill_fecundity,</a>
-<a class="sourceLine" id="cb48-15" data-line-number="15">                       <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
-<a class="sourceLine" id="cb48-16" data-line-number="16">                       <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>), <span class="dt">priorweight =</span> <span class="dv">1</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
-<a class="sourceLine" id="cb48-17" data-line-number="17">         <span class="dt">Aprior =</span> <span class="kw">map2</span>(Tprior, Fprior, <span class="st">`</span><span class="dt">+</span><span class="st">`</span>),</a>
-<a class="sourceLine" id="cb48-18" data-line-number="18">         <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(Aprior, lambda))</a>
-<a class="sourceLine" id="cb48-19" data-line-number="19"></a>
-<a class="sourceLine" id="cb48-20" data-line-number="20">diffPriors[[<span class="st">"RLT, weight = 0.5N"</span>]] &lt;-<span class="st"> </span>testing <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb48-21" data-line-number="21"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Tprior =</span> <span class="kw">map2</span>(TF, N, fill_transitions, </a>
-<a class="sourceLine" id="cb48-22" data-line-number="22">                       <span class="dt">P =</span> RLT_Tprior, <span class="dt">priorweight =</span> <span class="fl">0.5</span>, <span class="dt">returnType =</span> <span class="st">"T"</span>),</a>
-<a class="sourceLine" id="cb48-23" data-line-number="23">         <span class="dt">Fprior =</span> <span class="kw">map2</span>(TF, N, fill_fecundity,</a>
-<a class="sourceLine" id="cb48-24" data-line-number="24">                       <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
-<a class="sourceLine" id="cb48-25" data-line-number="25">                       <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>), <span class="dt">priorweight =</span> <span class="fl">0.5</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
-<a class="sourceLine" id="cb48-26" data-line-number="26">         <span class="dt">Aprior =</span> <span class="kw">map2</span>(Tprior, Fprior, <span class="st">`</span><span class="dt">+</span><span class="st">`</span>),</a>
-<a class="sourceLine" id="cb48-27" data-line-number="27">         <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(Aprior, lambda))</a>
-<a class="sourceLine" id="cb48-28" data-line-number="28"></a>
-<a class="sourceLine" id="cb48-29" data-line-number="29">diffPriors[[<span class="st">"RLT, weight = N"</span>]] &lt;-<span class="st"> </span>testing <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb48-30" data-line-number="30"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Tprior =</span> <span class="kw">map2</span>(TF, N, fill_transitions, </a>
-<a class="sourceLine" id="cb48-31" data-line-number="31">                       <span class="dt">P =</span> RLT_Tprior, <span class="dt">priorweight =</span> <span class="dv">1</span>, <span class="dt">returnType =</span> <span class="st">"T"</span>),</a>
-<a class="sourceLine" id="cb48-32" data-line-number="32">         <span class="dt">Fprior =</span> <span class="kw">map2</span>(TF, N, fill_fecundity,</a>
-<a class="sourceLine" id="cb48-33" data-line-number="33">                       <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
-<a class="sourceLine" id="cb48-34" data-line-number="34">                       <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>), <span class="dt">priorweight =</span> <span class="dv">1</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
-<a class="sourceLine" id="cb48-35" data-line-number="35">         <span class="dt">Aprior =</span> <span class="kw">map2</span>(Tprior, Fprior, <span class="st">`</span><span class="dt">+</span><span class="st">`</span>),</a>
-<a class="sourceLine" id="cb48-36" data-line-number="36">         <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(Aprior, lambda))</a>
-<a class="sourceLine" id="cb48-37" data-line-number="37"></a>
-<a class="sourceLine" id="cb48-38" data-line-number="38">diffPriors &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(diffPriors, <span class="dt">.id=</span><span class="st">"prior"</span>)</a>
-<a class="sourceLine" id="cb48-39" data-line-number="39">diffPriors<span class="op">$</span>prior &lt;-<span class="st"> </span><span class="kw">factor</span>(diffPriors<span class="op">$</span>prior, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">"Uniform"</span>, <span class="st">"RLT, weight = 1"</span>,</a>
-<a class="sourceLine" id="cb48-40" data-line-number="40">                                                        <span class="st">"RLT, weight = 0.5N"</span>, <span class="st">"RLT, weight = N"</span>))</a>
-<a class="sourceLine" id="cb48-41" data-line-number="41"><span class="kw">ggplot</span>(diffPriors, <span class="kw">aes</span>(<span class="dt">x=</span>lmbda, <span class="dt">y=</span>lprior)) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb48-42" data-line-number="42"><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb48-43" data-line-number="43"><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">data=</span><span class="kw">select</span>(diffPriors, <span class="op">-</span>prior), <span class="dt">alpha=</span><span class="fl">0.1</span>) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb48-44" data-line-number="44"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept=</span><span class="dv">0</span>, <span class="dt">linetype =</span> <span class="dv">2</span>) <span class="op">+</span></a>
-<a class="sourceLine" id="cb48-45" data-line-number="45"><span class="st">  </span><span class="kw">ylab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda, <span class="st">" including prior information"</span>))) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb48-46" data-line-number="46"><span class="st">  </span><span class="kw">xlab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda, <span class="st">" from raw observations"</span>))) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb48-47" data-line-number="47"><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>prior) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb48-48" data-line-number="48"><span class="st">  </span><span class="kw">geom_hline</span>(<span class="dt">yintercept =</span> <span class="fl">0.96</span>, <span class="dt">color=</span><span class="st">"red"</span>, <span class="dt">linetype =</span> <span class="dv">2</span> ) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb48-49" data-line-number="49"><span class="st">  </span><span class="kw">theme_bw</span>() <span class="op">+</span><span class="st"> </span>rlt_theme</a></code></pre></div>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb45-1" data-line-number="1">diffPriors &lt;-<span class="st"> </span><span class="kw">list</span>()</a>
+<a class="sourceLine" id="cb45-2" data-line-number="2">diffPriors[[<span class="st">"Uniform"</span>]] &lt;-<span class="st"> </span>testing <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb45-3" data-line-number="3"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Tprior =</span> <span class="kw">map2</span>(TF, N, fill_transitions, <span class="dt">returnType =</span> <span class="st">"T"</span>),</a>
+<a class="sourceLine" id="cb45-4" data-line-number="4">         <span class="dt">Fprior =</span> <span class="kw">map2</span>(TF, N, fill_fecundity,</a>
+<a class="sourceLine" id="cb45-5" data-line-number="5">                       <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.00001</span>),</a>
+<a class="sourceLine" id="cb45-6" data-line-number="6">                       <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.00001</span>), <span class="dt">priorweight =</span> <span class="dv">-1</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
+<a class="sourceLine" id="cb45-7" data-line-number="7">         <span class="dt">Aprior =</span> <span class="kw">map2</span>(Tprior, Fprior, <span class="st">`</span><span class="dt">+</span><span class="st">`</span>),</a>
+<a class="sourceLine" id="cb45-8" data-line-number="8">         <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(Aprior, lambda))</a>
+<a class="sourceLine" id="cb45-9" data-line-number="9"></a>
+<a class="sourceLine" id="cb45-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb45-11" data-line-number="11">diffPriors[[<span class="st">"RLT, weight = 1"</span>]] &lt;-<span class="st"> </span>testing <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb45-12" data-line-number="12"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Tprior =</span> <span class="kw">map2</span>(TF, N, fill_transitions, </a>
+<a class="sourceLine" id="cb45-13" data-line-number="13">                       <span class="dt">P =</span> RLT_Tprior, <span class="dt">returnType =</span> <span class="st">"T"</span>),</a>
+<a class="sourceLine" id="cb45-14" data-line-number="14">         <span class="dt">Fprior =</span> <span class="kw">map2</span>(TF, N, fill_fecundity,</a>
+<a class="sourceLine" id="cb45-15" data-line-number="15">                       <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
+<a class="sourceLine" id="cb45-16" data-line-number="16">                       <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>), <span class="dt">priorweight =</span> <span class="dv">-1</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
+<a class="sourceLine" id="cb45-17" data-line-number="17">         <span class="dt">Aprior =</span> <span class="kw">map2</span>(Tprior, Fprior, <span class="st">`</span><span class="dt">+</span><span class="st">`</span>),</a>
+<a class="sourceLine" id="cb45-18" data-line-number="18">         <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(Aprior, lambda))</a>
+<a class="sourceLine" id="cb45-19" data-line-number="19"></a>
+<a class="sourceLine" id="cb45-20" data-line-number="20">diffPriors[[<span class="st">"RLT, weight = 0.5N"</span>]] &lt;-<span class="st"> </span>testing <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb45-21" data-line-number="21"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Tprior =</span> <span class="kw">map2</span>(TF, N, fill_transitions, </a>
+<a class="sourceLine" id="cb45-22" data-line-number="22">                       <span class="dt">P =</span> RLT_Tprior, <span class="dt">priorweight =</span> <span class="fl">0.5</span>, <span class="dt">returnType =</span> <span class="st">"T"</span>),</a>
+<a class="sourceLine" id="cb45-23" data-line-number="23">         <span class="dt">Fprior =</span> <span class="kw">map2</span>(TF, N, fill_fecundity,</a>
+<a class="sourceLine" id="cb45-24" data-line-number="24">                       <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
+<a class="sourceLine" id="cb45-25" data-line-number="25">                       <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>), <span class="dt">priorweight =</span> <span class="fl">0.5</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
+<a class="sourceLine" id="cb45-26" data-line-number="26">         <span class="dt">Aprior =</span> <span class="kw">map2</span>(Tprior, Fprior, <span class="st">`</span><span class="dt">+</span><span class="st">`</span>),</a>
+<a class="sourceLine" id="cb45-27" data-line-number="27">         <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(Aprior, lambda))</a>
+<a class="sourceLine" id="cb45-28" data-line-number="28"></a>
+<a class="sourceLine" id="cb45-29" data-line-number="29">diffPriors[[<span class="st">"RLT, weight = N"</span>]] &lt;-<span class="st"> </span>testing <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb45-30" data-line-number="30"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Tprior =</span> <span class="kw">map2</span>(TF, N, fill_transitions, </a>
+<a class="sourceLine" id="cb45-31" data-line-number="31">                       <span class="dt">P =</span> RLT_Tprior, <span class="dt">priorweight =</span> <span class="dv">1</span>, <span class="dt">returnType =</span> <span class="st">"T"</span>),</a>
+<a class="sourceLine" id="cb45-32" data-line-number="32">         <span class="dt">Fprior =</span> <span class="kw">map2</span>(TF, N, fill_fecundity,</a>
+<a class="sourceLine" id="cb45-33" data-line-number="33">                       <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
+<a class="sourceLine" id="cb45-34" data-line-number="34">                       <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>), <span class="dt">priorweight =</span> <span class="dv">1</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
+<a class="sourceLine" id="cb45-35" data-line-number="35">         <span class="dt">Aprior =</span> <span class="kw">map2</span>(Tprior, Fprior, <span class="st">`</span><span class="dt">+</span><span class="st">`</span>),</a>
+<a class="sourceLine" id="cb45-36" data-line-number="36">         <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(Aprior, lambda))</a>
+<a class="sourceLine" id="cb45-37" data-line-number="37"></a>
+<a class="sourceLine" id="cb45-38" data-line-number="38">diffPriors &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(diffPriors, <span class="dt">.id=</span><span class="st">"prior"</span>)</a>
+<a class="sourceLine" id="cb45-39" data-line-number="39">diffPriors<span class="op">$</span>prior &lt;-<span class="st"> </span><span class="kw">factor</span>(diffPriors<span class="op">$</span>prior, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">"Uniform"</span>, <span class="st">"RLT, weight = 1"</span>,</a>
+<a class="sourceLine" id="cb45-40" data-line-number="40">                                                        <span class="st">"RLT, weight = 0.5N"</span>, <span class="st">"RLT, weight = N"</span>))</a>
+<a class="sourceLine" id="cb45-41" data-line-number="41"><span class="kw">ggplot</span>(diffPriors, <span class="kw">aes</span>(<span class="dt">x=</span>lmbda, <span class="dt">y=</span>lprior)) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb45-42" data-line-number="42"><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb45-43" data-line-number="43"><span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">data=</span><span class="kw">select</span>(diffPriors, <span class="op">-</span>prior), <span class="dt">alpha=</span><span class="fl">0.1</span>) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb45-44" data-line-number="44"><span class="st">  </span><span class="kw">geom_abline</span>(<span class="dt">slope =</span> <span class="dv">1</span>, <span class="dt">intercept=</span><span class="dv">0</span>, <span class="dt">linetype =</span> <span class="dv">2</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb45-45" data-line-number="45"><span class="st">  </span><span class="kw">ylab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda, <span class="st">" including prior information"</span>))) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb45-46" data-line-number="46"><span class="st">  </span><span class="kw">xlab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda, <span class="st">" from raw observations"</span>))) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb45-47" data-line-number="47"><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>prior) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb45-48" data-line-number="48"><span class="st">  </span><span class="kw">geom_hline</span>(<span class="dt">yintercept =</span> <span class="fl">0.96</span>, <span class="dt">color=</span><span class="st">"red"</span>, <span class="dt">linetype =</span> <span class="dv">2</span> ) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb45-49" data-line-number="49"><span class="st">  </span><span class="kw">theme_bw</span>() <span class="op">+</span><span class="st"> </span>rlt_theme</a></code></pre></div>
 <div class="figure">
 <img src="transition_priors_files/figure-html/fillDirichletPrior1-1.png" alt="Asymptotic growth rates using prior information on transitions and fecundity vs. the raw observations alone. The horizontal red line indicates $\lambda$ for the RLT prior. Points for all four priors shown in transparent grey." width="480"><p class="caption">
 Asymptotic growth rates using prior information on transitions and fecundity vs. the raw observations alone. The horizontal red line indicates <span class="math inline">\(\lambda\)</span> for the RLT prior. Points for all four priors shown in transparent grey.
@@ -681,50 +719,61 @@ Confidence limits or Credible intervals for transition probabilities out of seed
 </p>
 </div>
 <p>Obtaining credible intervals on <span class="math inline">\(\lambda\)</span> requires simulation, because it is difficult (or maybe impossible) to use the characteristic equation to combine the probability distributions of the matrix entries to obtain the distribution of <span class="math inline">\(\lambda\)</span>.</p>
-<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb49-1" data-line-number="1"><span class="co">#71 popn 250 year 5 lambda = 0.93</span></a>
-<a class="sourceLine" id="cb49-2" data-line-number="2">diffPriors_lci &lt;-<span class="st"> </span><span class="kw">list</span>()</a>
-<a class="sourceLine" id="cb49-3" data-line-number="3">samples =<span class="st"> </span><span class="dv">10000</span></a>
-<a class="sourceLine" id="cb49-4" data-line-number="4">diffPriors_lci[[<span class="st">"Uniform"</span>]] &lt;-<span class="st"> </span><span class="kw">data_frame</span>(<span class="dt">A =</span> <span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(allA<span class="op">$</span>TF[[<span class="dv">71</span>]], </a>
-<a class="sourceLine" id="cb49-5" data-line-number="5">                                                              allA<span class="op">$</span>N[[<span class="dv">71</span>]], </a>
-<a class="sourceLine" id="cb49-6" data-line-number="6">                                                              <span class="dt">samples =</span> samples), </a>
-<a class="sourceLine" id="cb49-7" data-line-number="7">                                          <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a></code></pre></div>
+<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb46-1" data-line-number="1"><span class="co">#71 popn 250 year 5 lambda = 0.93</span></a>
+<a class="sourceLine" id="cb46-2" data-line-number="2">diffPriors_lci &lt;-<span class="st"> </span><span class="kw">list</span>()</a>
+<a class="sourceLine" id="cb46-3" data-line-number="3">samples =<span class="st"> </span><span class="dv">10000</span></a>
+<a class="sourceLine" id="cb46-4" data-line-number="4">diffPriors_lci[[<span class="st">"Uniform"</span>]] &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">A =</span> <span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(allA<span class="op">$</span>TF[[<span class="dv">71</span>]], </a>
+<a class="sourceLine" id="cb46-5" data-line-number="5">                                                              allA<span class="op">$</span>N[[<span class="dv">71</span>]], </a>
+<a class="sourceLine" id="cb46-6" data-line-number="6">                                                              <span class="dt">samples =</span> samples), </a>
+<a class="sourceLine" id="cb46-7" data-line-number="7">                                          <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a></code></pre></div>
 <pre><code>## Warning in fill_fecundity(TF, N, alpha = alpha, beta = beta, priorweight =
 ## priorweight, : length(alpha) != order: only using first value of alpha and
 ## beta</code></pre>
-<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb51-1" data-line-number="1">diffPriors_lci[[<span class="st">"RLT, weight = 1"</span>]] &lt;-<span class="st"> </span><span class="kw">data_frame</span>(<span class="dt">A =</span> <span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(allA<span class="op">$</span>TF[[<span class="dv">71</span>]], allA<span class="op">$</span>N[[<span class="dv">71</span>]], </a>
-<a class="sourceLine" id="cb51-2" data-line-number="2">                                                                      <span class="dt">P=</span>RLT_Tprior, </a>
-<a class="sourceLine" id="cb51-3" data-line-number="3">                                                                      <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
-<a class="sourceLine" id="cb51-4" data-line-number="4">                                                                      <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>), </a>
-<a class="sourceLine" id="cb51-5" data-line-number="5">                                                                      <span class="dt">samples =</span> samples), </a>
-<a class="sourceLine" id="cb51-6" data-line-number="6">                                                  <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a>
-<a class="sourceLine" id="cb51-7" data-line-number="7"></a>
-<a class="sourceLine" id="cb51-8" data-line-number="8">diffPriors_lci[[<span class="st">"RLT, weight = 0.5N"</span>]] &lt;-<span class="st"> </span><span class="kw">data_frame</span>(<span class="dt">A =</span> <span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(allA<span class="op">$</span>TF[[<span class="dv">71</span>]], allA<span class="op">$</span>N[[<span class="dv">71</span>]], </a>
-<a class="sourceLine" id="cb51-9" data-line-number="9">                                                                         <span class="dt">P=</span>RLT_Tprior,</a>
-<a class="sourceLine" id="cb51-10" data-line-number="10">                                                                         <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
-<a class="sourceLine" id="cb51-11" data-line-number="11">                                                                         <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>), </a>
-<a class="sourceLine" id="cb51-12" data-line-number="12">                                                                         <span class="dt">priorweight =</span> <span class="fl">0.5</span>,</a>
-<a class="sourceLine" id="cb51-13" data-line-number="13">                                                                         <span class="dt">samples =</span> samples), </a>
-<a class="sourceLine" id="cb51-14" data-line-number="14">                                                     <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a>
-<a class="sourceLine" id="cb51-15" data-line-number="15"></a>
-<a class="sourceLine" id="cb51-16" data-line-number="16">diffPriors_lci[[<span class="st">"RLT, weight = N"</span>]] &lt;-<span class="st"> </span><span class="kw">data_frame</span>(<span class="dt">A =</span> <span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(allA<span class="op">$</span>TF[[<span class="dv">71</span>]], allA<span class="op">$</span>N[[<span class="dv">71</span>]], </a>
-<a class="sourceLine" id="cb51-17" data-line-number="17">                                                                      <span class="dt">P=</span>RLT_Tprior, </a>
-<a class="sourceLine" id="cb51-18" data-line-number="18">                                                                      <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
-<a class="sourceLine" id="cb51-19" data-line-number="19">                                                                      <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>),</a>
-<a class="sourceLine" id="cb51-20" data-line-number="20">                                                                      <span class="dt">priorweight =</span> <span class="dv">1</span>,</a>
-<a class="sourceLine" id="cb51-21" data-line-number="21">                                                                      <span class="dt">samples =</span> samples), </a>
-<a class="sourceLine" id="cb51-22" data-line-number="22">                                                  <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a>
-<a class="sourceLine" id="cb51-23" data-line-number="23"></a>
-<a class="sourceLine" id="cb51-24" data-line-number="24">diffPriors_lci &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(diffPriors_lci, <span class="dt">.id=</span><span class="st">"prior"</span>)</a>
-<a class="sourceLine" id="cb51-25" data-line-number="25">diffPriors_lci<span class="op">$</span>prior &lt;-<span class="st"> </span><span class="kw">factor</span>(diffPriors_lci<span class="op">$</span>prior, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">"Uniform"</span>, <span class="st">"RLT, weight = 1"</span>,</a>
-<a class="sourceLine" id="cb51-26" data-line-number="26">                                                        <span class="st">"RLT, weight = 0.5N"</span>, <span class="st">"RLT, weight = N"</span>))</a>
-<a class="sourceLine" id="cb51-27" data-line-number="27"></a>
-<a class="sourceLine" id="cb51-28" data-line-number="28"><span class="kw">ggplot</span>(diffPriors_lci, <span class="kw">aes</span>(<span class="dt">x=</span>lprior)) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb51-29" data-line-number="29"><span class="st">  </span><span class="kw">geom_density</span>(<span class="dt">fill=</span><span class="st">"grey75"</span>) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb51-30" data-line-number="30"><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>prior) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb51-31" data-line-number="31"><span class="st">  </span><span class="kw">theme_classic</span>() <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb51-32" data-line-number="32"><span class="st">  </span>rlt_theme <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb51-33" data-line-number="33"><span class="st">  </span><span class="kw">xlab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda,<span class="st">" asymptotic population growth"</span>))) <span class="op">+</span></a>
-<a class="sourceLine" id="cb51-34" data-line-number="34"><span class="st">  </span><span class="kw">ylab</span>(<span class="st">"Posterior density"</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb48-1" data-line-number="1">diffPriors_lci[[<span class="st">"RLT, weight = 1"</span>]] &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">A =</span> <span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(allA<span class="op">$</span>TF[[<span class="dv">71</span>]], allA<span class="op">$</span>N[[<span class="dv">71</span>]], </a>
+<a class="sourceLine" id="cb48-2" data-line-number="2">                                                                      <span class="dt">P=</span>RLT_Tprior, </a>
+<a class="sourceLine" id="cb48-3" data-line-number="3">                                                                      <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
+<a class="sourceLine" id="cb48-4" data-line-number="4">                                                                      <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>), </a>
+<a class="sourceLine" id="cb48-5" data-line-number="5">                                                                      <span class="dt">samples =</span> samples), </a>
+<a class="sourceLine" id="cb48-6" data-line-number="6">                                                  <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a>
+<a class="sourceLine" id="cb48-7" data-line-number="7"></a>
+<a class="sourceLine" id="cb48-8" data-line-number="8">diffPriors_lci[[<span class="st">"RLT, weight = 0.5N"</span>]] &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">A =</span> <span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(allA<span class="op">$</span>TF[[<span class="dv">71</span>]], allA<span class="op">$</span>N[[<span class="dv">71</span>]], </a>
+<a class="sourceLine" id="cb48-9" data-line-number="9">                                                                         <span class="dt">P=</span>RLT_Tprior,</a>
+<a class="sourceLine" id="cb48-10" data-line-number="10">                                                                         <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
+<a class="sourceLine" id="cb48-11" data-line-number="11">                                                                         <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>), </a>
+<a class="sourceLine" id="cb48-12" data-line-number="12">                                                                         <span class="dt">priorweight =</span> <span class="fl">0.5</span>,</a>
+<a class="sourceLine" id="cb48-13" data-line-number="13">                                                                         <span class="dt">samples =</span> samples), </a>
+<a class="sourceLine" id="cb48-14" data-line-number="14">                                                     <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a>
+<a class="sourceLine" id="cb48-15" data-line-number="15"></a>
+<a class="sourceLine" id="cb48-16" data-line-number="16">diffPriors_lci[[<span class="st">"RLT, weight = N"</span>]] &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">A =</span> <span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(allA<span class="op">$</span>TF[[<span class="dv">71</span>]], allA<span class="op">$</span>N[[<span class="dv">71</span>]], </a>
+<a class="sourceLine" id="cb48-17" data-line-number="17">                                                                      <span class="dt">P=</span>RLT_Tprior, </a>
+<a class="sourceLine" id="cb48-18" data-line-number="18">                                                                      <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
+<a class="sourceLine" id="cb48-19" data-line-number="19">                                                                      <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>),</a>
+<a class="sourceLine" id="cb48-20" data-line-number="20">                                                                      <span class="dt">priorweight =</span> <span class="dv">1</span>,</a>
+<a class="sourceLine" id="cb48-21" data-line-number="21">                                                                      <span class="dt">samples =</span> samples), </a>
+<a class="sourceLine" id="cb48-22" data-line-number="22">                                                  <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a>
+<a class="sourceLine" id="cb48-23" data-line-number="23"></a>
+<a class="sourceLine" id="cb48-24" data-line-number="24">diffPriors_lci &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(diffPriors_lci, <span class="dt">.id=</span><span class="st">"prior"</span>)</a>
+<a class="sourceLine" id="cb48-25" data-line-number="25">diffPriors_lci<span class="op">$</span>prior &lt;-<span class="st"> </span><span class="kw">factor</span>(diffPriors_lci<span class="op">$</span>prior, <span class="dt">levels =</span> <span class="kw">c</span>(<span class="st">"Uniform"</span>, <span class="st">"RLT, weight = 1"</span>,</a>
+<a class="sourceLine" id="cb48-26" data-line-number="26">                                                        <span class="st">"RLT, weight = 0.5N"</span>, <span class="st">"RLT, weight = N"</span>))</a>
+<a class="sourceLine" id="cb48-27" data-line-number="27"></a>
+<a class="sourceLine" id="cb48-28" data-line-number="28">diffPriors_lci_sum &lt;-<span class="st"> </span><span class="kw">group_by</span>(diffPriors_lci, prior) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb48-29" data-line-number="29"><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">pgt1 =</span> <span class="kw">sum</span>(lprior <span class="op">&gt;</span><span class="st"> </span><span class="dv">1</span>)<span class="op">/</span>samples,</a>
+<a class="sourceLine" id="cb48-30" data-line-number="30">            <span class="dt">lmedian =</span> <span class="kw">median</span>(lprior),</a>
+<a class="sourceLine" id="cb48-31" data-line-number="31">            <span class="dt">lmean =</span> <span class="kw">mean</span>(lprior),</a>
+<a class="sourceLine" id="cb48-32" data-line-number="32">            <span class="dt">label =</span> <span class="kw">paste0</span>(<span class="st">"p(lambda &gt; 1) == "</span>,pgt1)) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb48-33" data-line-number="33"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">x =</span> <span class="fl">0.7</span>, <span class="dt">y =</span> <span class="dv">10</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb48-34" data-line-number="34"><span class="st">  </span><span class="kw">ungroup</span>()</a>
+<a class="sourceLine" id="cb48-35" data-line-number="35"><span class="kw">ggplot</span>(diffPriors_lci, <span class="kw">aes</span>(<span class="dt">x=</span>lprior)) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb48-36" data-line-number="36"><span class="st">  </span><span class="kw">geom_density</span>(<span class="dt">fill=</span><span class="st">"grey75"</span>) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb48-37" data-line-number="37"><span class="st">  </span><span class="kw">geom_vline</span>(<span class="dt">data =</span> diffPriors_lci_sum,</a>
+<a class="sourceLine" id="cb48-38" data-line-number="38">             <span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">xintercept =</span> lmedian), <span class="dt">linetype =</span> <span class="dv">2</span>, <span class="dt">color =</span> <span class="st">"red"</span>) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb48-39" data-line-number="39"><span class="st">  </span><span class="kw">geom_text</span>(<span class="dt">data =</span> diffPriors_lci_sum,</a>
+<a class="sourceLine" id="cb48-40" data-line-number="40">            <span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x =</span> x, <span class="dt">y =</span> y, <span class="dt">label =</span> label), <span class="dt">parse =</span> <span class="ot">TRUE</span>, <span class="dt">hjust =</span> <span class="st">"left"</span>) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb48-41" data-line-number="41"><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>prior) <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb48-42" data-line-number="42"><span class="st">  </span><span class="kw">theme_classic</span>() <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb48-43" data-line-number="43"><span class="st">  </span>rlt_theme <span class="op">+</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb48-44" data-line-number="44"><span class="st">  </span><span class="kw">xlab</span>(<span class="kw">expression</span>(<span class="kw">paste</span>(lambda,<span class="st">" asymptotic population growth"</span>))) <span class="op">+</span></a>
+<a class="sourceLine" id="cb48-45" data-line-number="45"><span class="st">  </span><span class="kw">ylab</span>(<span class="st">"Posterior density"</span>)</a></code></pre></div>
 <div class="figure">
 <img src="transition_priors_files/figure-html/lambda_ci-1.png" alt="Distribution of asymptotic population growth rates for population 250, year 5, with different prior information." width="480"><p class="caption">
 Distribution of asymptotic population growth rates for population 250, year 5, with different prior information.

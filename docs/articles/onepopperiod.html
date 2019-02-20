@@ -150,6 +150,9 @@
 ## $beta
 ## [1]       NA       NA 34.00001</code></pre>
 <p>This demonstrates why the posterior point estimate does not change much; the non-informative values for <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> barely change the observed values.</p>
+<div id="informative-priors" class="section level1">
+<h1 class="hasAnchor">
+<a href="#informative-priors" class="anchor"></a>Informative Priors</h1>
 <p>We can skip using <code>popbio::projection_matrix()</code> if the matrix is already calculated, as long as we also have the stage vector. There is something wrong with this matrix – transitions don’t add up to 1.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="co"># Matrix</span></a>
 <a class="sourceLine" id="cb11-2" data-line-number="2">Lep_rup &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">T =</span> <span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">0</span>, <span class="fl">0.0</span>,   <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="dv">0</span>,</a>
@@ -182,9 +185,22 @@
 ## [3,] 0.0000000 0.2000 0.347125 0.0000000 0.0000000
 ## [4,] 0.0000000 0.2368 0.251375 0.6216667 0.1951667
 ## [5,] 0.0000000 0.1037 0.125000 0.1948333 0.6316667</code></pre>
+</div>
+<div id="getting-credible-intervals" class="section level1">
+<h1 class="hasAnchor">
+<a href="#getting-credible-intervals" class="anchor"></a>Getting Credible Intervals</h1>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
+        <div id="tocnav">
+      <h2 class="hasAnchor">
+<a href="#tocnav" class="anchor"></a>Contents</h2>
+      <ul class="nav nav-pills nav-stacked">
+<li><a href="#informative-priors">Informative Priors</a></li>
+      <li><a href="#getting-credible-intervals">Getting Credible Intervals</a></li>
+      </ul>
+</div>
       </div>
 
 </div>
