@@ -15,11 +15,12 @@ cache:
 
 # Adapt as necessary starting from here
 environment:
-  global:
-    WARNINGS_ARE_ERRORS: 1
+  USE_RTOOLS: true
+
+  PATH: "%PATH%;C:\\MinGW\\bin;C:\\MinGW\\msys\\1.0;C:\\MinGW\\msys\\1.0\\bin"
 
   matrix:
-  - R_VERSION: 3.4.4
+  - R_VERSION: stable
 
 
 build_script:
