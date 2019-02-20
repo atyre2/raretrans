@@ -69,14 +69,13 @@ plotsumm <- plotdata %>% group_by(year) %>%
   summarize(N=sum(N))
 gg2 <- ggplot(plotsumm, aes(x=year, y=N)) +
   geom_line() + rlt_theme
-ggboth <- gridExtra::grid.arrange(gg1, gg2)
-
-ggboth
+ggboth <- gridExtra::arrangeGrob(gg1, gg2)
+grid::grid.draw(ggboth)
 
 ```
 
 ```{r, eval=FALSE, include = FALSE}
-ggsave("pop_by_time.png", plot=ggboth, device="png", path=pathtoimages)
+ggsave("pop_by_time.png", plot = ggboth, device="png", path=pathtoimages)
 ```
 
 
