@@ -57,7 +57,7 @@ knitr::opts_chunk$set(fig.width = 5, fig.height = 5)
 
 Data was collected from 1850 individuals which were permanently identified and tracked over a 6 year period in intervals of 6 months. Thus transitions are for six month intervals and not yearly transitions as is more frequently published.  The life history stages included in this analysis are seedlings (individuals without a lepanthiform sheet on any of the leaves), juveniles (individuals with no evidence of present or past reproductive effort, the base of the inflorescence are persistent), and adult (with presence of active or inactive inflorescences). The average population growth rate over all years and populations is `r format(popbio::lambda(A), digits=2)`, suggesting a rapid decline. 
 
-```{r pop_by_time, fig.cap = "Population size over time.", fig.show='hold'}
+```{r pop_by_time, fig.cap = "Population size over time."}
 plotdata <- L_elto %>% group_by(POPNUM, year, stage) %>%
   tally() %>%
   group_by(POPNUM, year) %>%
@@ -111,7 +111,7 @@ allA <- ungroup(allA) %>%
          ergodic = map_dbl(A, isErgodic),
          irreduc = map_dbl(A, isIrreducible),
          primitv = map_dbl(A, isPrimitive))
-ggplot(allA, aes(x=lmbda)) + geom_histogram() + facet_wrap(~year)+
+ggplot(allA, aes(x=lmbda)) + geom_histogram(bins = 25) + facet_wrap(~year)+
  ylab("Frequency")+
   xlab(expression(paste(lambda, ", asymptotic population growth"))) + rlt_theme
 
@@ -290,7 +290,7 @@ sgr_unif <- testing %>% split(.$POPNUM) %>%
   map(~stoch.growth.rate(.x$Adirch, verbose = FALSE))
 
 sgr_unif <- bind_rows(map(sgr_unif, xtrc), .id="POPNUM") 
-compare_approx <- data_frame(unif = sgr_unif$approx,
+compare_approx <- tibble(unif = sgr_unif$approx,
                              ignored = sgr$approx)
 ggplot(compare_approx, aes(x=ignored, y = unif)) + 
   geom_point() + 

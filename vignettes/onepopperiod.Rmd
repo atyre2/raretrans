@@ -80,6 +80,8 @@ fill_fecundity(TF, N,
 
 This demonstrates why the posterior point estimate does not change much; the non-informative values for $\alpha$ and $\beta$ barely change the observed values. 
 
+# Informative Priors
+
 We can skip using `popbio::projection_matrix()` if the matrix is already calculated, as long as we also have the stage vector. There is something wrong with this matrix -- transitions don't add up to 1.
 
 ```{r}
@@ -111,5 +113,5 @@ A
 ```
 
 
-
+# Getting Credible Intervals
 
