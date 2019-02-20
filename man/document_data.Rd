@@ -12,3 +12,4 @@ document_data(object)
 \description{
 Add roxygen2 documentation template for a dataset
 }
+\keyword{internal}

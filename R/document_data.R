@@ -2,6 +2,7 @@
 #'
 #' @param object data set to document
 #'
+#' @keywords internal
 document_data <- function(object){
   x1 <- "#' ~~ data name/kind ... \n#'"
   x1b <- "#' ~~ A concise (1-5 lines) description of the dataset. ~~\n#'"
