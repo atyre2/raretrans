@@ -11,6 +11,8 @@ Description: Functions to create matrix population models from a combination
     of data on stage/age transitions and Bayesian prior information. This 
     compensates for structural problems caused by missing observatons of rare
     transitions. 
+URL: https://atyre2.github.io/raretrans/, https://github.com/atyre2/raretrans
+BugReports: https://github.com/atyre2/raretrans/issues
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
