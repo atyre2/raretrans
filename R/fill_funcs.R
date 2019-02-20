@@ -60,7 +60,7 @@ fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "T"
 #' \code{fill_fertility} returns the expected value of the fertility
 #' matrix combining observed recruits for one time step and a Gamma prior for each column.
 #'
-#' Assumes that the reproductive individuals are in stage 3 ... needs generalizing.
+#' Assumes that only one stage reproduces ... needs generalizing.
 #'
 #' @param TF A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.
 #' @param N A vector of observed stage distribution.
@@ -88,17 +88,18 @@ fill_fecundity <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
     beta <- rep(beta[1], order)
   }
   Ffilled <- matrix(NA, nrow=order, ncol = order)
-  babies_next_year <- Fmat[1,] * N
+  babies_next_year <- Fmat[1,] * N # this is the start of the problem
+  # matrix multiplication doesn't preserve the column structure
 
   if ((all(N[!is.na(alpha)] > 0) | sum(beta, na.rm = TRUE) > 0)){
     if (priorweight > 0){
       alpha_post <- alpha*priorweight*N + babies_next_year
-      beta_post <- beta*priorweight*N + N # I don't think this is right if more than one stage reproduces
+      beta_post <- beta*priorweight*N + N
     } else {
       alpha_post <- alpha + babies_next_year
-      beta_post <- beta + N # I don't think this is right if more than one stage reproduces
+      beta_post <- beta + N
     }
-    Ffilled[1, ] <- alpha_post / beta_post
+    Ffilled[1, ] <- alpha_post / beta_post # here is the end of the problem!
   }
 
   Ffilled[is.na(Ffilled)] <- 0 #stages that can't reproduce are marked with NA_real_ in alpha and beta
@@ -114,7 +115,7 @@ fill_fecundity <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
   }
 }
 
-## helper functions for generating different priors
+#' Helper functions for generating different priors
 #' Extract the number of individuals in each stage from a dataframe
 #' of transitions
 #'
