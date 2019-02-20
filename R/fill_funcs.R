@@ -116,8 +116,9 @@ fill_fecundity <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
 }
 
 #' Helper functions for generating different priors
+#'
 #' Extract the number of individuals in each stage from a dataframe
-#' of transitions
+#' of transitions.
 #'
 #' @param transitions a dataframe of observations of individuals in different stages
 #' @param stage the name of the variable with the stage information

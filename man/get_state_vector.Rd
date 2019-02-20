@@ -2,8 +2,7 @@
 % Please edit documentation in R/fill_funcs.R
 \name{get_state_vector}
 \alias{get_state_vector}
-\title{Extract the number of individuals in each stage from a dataframe
-of transitions}
+\title{Helper functions for generating different priors}
 \usage{
 get_state_vector(transitions, stage = NULL, sort = NULL)
 }
@@ -19,5 +18,5 @@ a vector of the counts of observations in each level of stage.
 }
 \description{
 Extract the number of individuals in each stage from a dataframe
-of transitions
+of transitions.
 }

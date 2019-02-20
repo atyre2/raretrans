@@ -33,5 +33,5 @@ The return value depends on parameter returnType.
 matrix combining observed recruits for one time step and a Gamma prior for each column.
 }
 \details{
-Assumes that the reproductive individuals are in stage 3 ... needs generalizing.
+Assumes that only one stage reproduces ... needs generalizing.
 }
