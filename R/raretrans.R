@@ -6,7 +6,5 @@
 #' compensates for structural problems caused by missing observatons of rare
 #' transitions.
 #'
-#' @docType package
-#' @name raretrans
 #'
-NULL
+"_PACKAGE"
