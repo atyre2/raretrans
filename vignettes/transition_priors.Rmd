@@ -3,8 +3,6 @@ title: "Effect of prior information on transition probabilities and fertilities"
 author: "Drew Tyre"
 date: "`r format(Sys.Date(), '%b %d, %Y')`"
 output:
-  rmarkdown::pdf_document:
-    fig_caption: yes
   rmarkdown::html_vignette:
     fig_caption: yes
 vignette: >

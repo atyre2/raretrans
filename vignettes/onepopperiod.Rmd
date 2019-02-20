@@ -1,8 +1,6 @@
 ---
 title: "Working with a single population and transition"
 output:
-  rmarkdown::pdf_document:
-    fig_caption: yes
   rmarkdown::html_vignette:
     fig_caption: yes
 vignette: >
