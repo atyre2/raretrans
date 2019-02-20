@@ -110,7 +110,7 @@ allA <- ungroup(allA) %>%
   mutate(lmbda = map_dbl(A, lambda),
          ergodic = map_dbl(A, isErgodic),
          irreduc = map_dbl(A, isIrreducible),
-         primitv = map_dbl(A, is.matrix_primitive))
+         primitv = map_dbl(A, isPrimitive))
 ggplot(allA, aes(x=lmbda)) + geom_histogram() + facet_wrap(~year)+
  ylab("Frequency")+
   xlab(expression(paste(lambda, ", asymptotic population growth"))) + rlt_theme
@@ -641,5 +641,7 @@ for (i in seq_along(images)){
 }
 
 ```
+
+\clearpage
 
 # References
