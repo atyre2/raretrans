@@ -35,4 +35,4 @@ raretrans is not currently available from CRAN, but you can install the developm
 # install.packages("devtools")
 devtools::install_github("atyre2/raretrans")
 ```
-
+If you want the vignettes, you have to add `build_vignettes = TRUE` to `install_github()`. 
