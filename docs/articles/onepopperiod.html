@@ -60,7 +60,14 @@
   </ul>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/atyre2/raretrans">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -75,7 +82,7 @@
       <h1>Working with a single population and transition</h1>
             
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/atyre2/raretrans/blob/master/vignettes/onepopperiod.Rmd"><code>vignettes/onepopperiod.Rmd</code></a></small>
       <div class="hidden name"><code>onepopperiod.Rmd</code></div>
 
     </div>
@@ -153,7 +160,7 @@
 <div id="informative-priors" class="section level1">
 <h1 class="hasAnchor">
 <a href="#informative-priors" class="anchor"></a>Informative Priors</h1>
-<p>We can skip using <code>popbio::projection_matrix()</code> if the matrix is already calculated, as long as we also have the stage vector. There is something wrong with this matrix – transitions don’t add up to 1.</p>
+<p>We can skip using <code>popbio::projection_matrix()</code> if the matrix is already calculated, as long as we also have the stage vector.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="co"># Matrix</span></a>
 <a class="sourceLine" id="cb11-2" data-line-number="2">Lep_rup &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">T =</span> <span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">0</span>, <span class="fl">0.0</span>,   <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="dv">0</span>,</a>
 <a class="sourceLine" id="cb11-3" data-line-number="3">                             <span class="fl">0.0</span>,   <span class="fl">0.515</span>,   <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>,</a>
@@ -173,18 +180,31 @@
 <a class="sourceLine" id="cb11-17" data-line-number="17"><span class="co"># also a rare transition from juv to 2nd stage adult</span></a>
 <a class="sourceLine" id="cb11-18" data-line-number="18">TPrior &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>,</a>
 <a class="sourceLine" id="cb11-19" data-line-number="19">                   <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>,</a>
-<a class="sourceLine" id="cb11-20" data-line-number="20">                   <span class="dv">0</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">0</span>, <span class="dv">0</span>,</a>
+<a class="sourceLine" id="cb11-20" data-line-number="20">                   <span class="dv">0</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">0</span>, <span class="dv">0</span>,</a>
 <a class="sourceLine" id="cb11-21" data-line-number="21">                   <span class="dv">0</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">1</span>,</a>
 <a class="sourceLine" id="cb11-22" data-line-number="22">                   <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">3</span>,</a>
 <a class="sourceLine" id="cb11-23" data-line-number="23">                   <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">1</span>), <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">6</span>, <span class="dt">ncol =</span> <span class="dv">5</span>)</a>
 <a class="sourceLine" id="cb11-24" data-line-number="24">A &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(Lep_rup, N, <span class="dt">P =</span> TPrior, <span class="dt">priorweight =</span> <span class="dv">1</span>, <span class="dt">returnType =</span> <span class="st">"A"</span>)</a>
 <a class="sourceLine" id="cb11-25" data-line-number="25">A</a></code></pre></div>
-<pre><code>##           [,1]   [,2]     [,3]      [,4]      [,5]
-## [1,] 0.0000000 0.0000 0.000000 0.1200000 0.4140000
-## [2,] 0.1666667 0.2515 0.000000 0.0760000 0.0130000
-## [3,] 0.0000000 0.2000 0.347125 0.0000000 0.0000000
-## [4,] 0.0000000 0.2368 0.251375 0.6216667 0.1951667
-## [5,] 0.0000000 0.1037 0.125000 0.1948333 0.6316667</code></pre>
+<pre><code>##           [,1]   [,2]   [,3]      [,4]      [,5]
+## [1,] 0.0000000 0.0000 0.0000 0.1200000 0.4140000
+## [2,] 0.1666667 0.2515 0.0000 0.0760000 0.0130000
+## [3,] 0.0000000 0.2000 0.4777 0.0000000 0.0000000
+## [4,] 0.0000000 0.2368 0.2011 0.6216667 0.1951667
+## [5,] 0.0000000 0.1037 0.1000 0.1948333 0.6316667</code></pre>
+<p>This matrix demonstrates the problem with <code><a href="../reference/fill_fecundity.html">fill_fecundity()</a></code> – it won’t work when a stage produces more than one stage. But let’s test it out anyway.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">F_ &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fill_fecundity.html">fill_fecundity</a></span>(Lep_rup, N, </a>
+<a class="sourceLine" id="cb13-2" data-line-number="2">                     <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>, <span class="dv">4</span>),</a>
+<a class="sourceLine" id="cb13-3" data-line-number="3">                     <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">12</span>, <span class="dv">9</span>)</a>
+<a class="sourceLine" id="cb13-4" data-line-number="4">                     )</a>
+<a class="sourceLine" id="cb13-5" data-line-number="5">F_</a></code></pre></div>
+<pre><code>##      [,1] [,2] [,3]    [,4]      [,5]
+## [1,]    0    0    0 0.10625 0.4234483
+## [2,]    0    0    0 0.00000 0.0000000
+## [3,]    0    0    0 0.00000 0.0000000
+## [4,]    0    0    0 0.00000 0.0000000
+## [5,]    0    0    0 0.00000 0.0000000</code></pre>
+<p>So the 2nd row in <em>F</em> is missing.</p>
 </div>
 <div id="getting-credible-intervals" class="section level1">
 <h1 class="hasAnchor">

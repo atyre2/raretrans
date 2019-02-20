@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Simulate population projection matrices — sim_transitions • raretrans</title>
+<title>raretrans: A package for creating and updating Bayesian priors for matrix population models — raretrans-package • raretrans</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -30,10 +30,13 @@
 
 
 
-<meta property="og:title" content="Simulate population projection matrices — sim_transitions" />
+<meta property="og:title" content="raretrans: A package for creating and updating Bayesian priors for matrix population models — raretrans-package" />
 
-<meta property="og:description" content="sim_transition generates a list of simulated population projection matrices from the provided parameters
-and prior distributions." />
+<meta property="og:description" content="This package provides functions that combine data on transitions with prior beliefs about
+transition probabilities and fertilities. Includes functions to create matrix population models from a combination
+of data on stage/age transitions and Bayesian prior information. This
+compensates for structural problems caused by missing observatons of rare
+transitions." />
 <meta name="twitter:card" content="summary" />
 
 
@@ -113,67 +116,49 @@ and prior distributions." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Simulate population projection matrices</h1>
-    <small class="dont-index">Source: <a href='https://github.com/atyre2/raretrans/blob/master/R/sim_funcs.R'><code>R/sim_funcs.R</code></a></small>
-    <div class="hidden name"><code>sim_transitions.Rd</code></div>
+    <h1>raretrans: A package for creating and updating Bayesian priors for matrix population models</h1>
+    <small class="dont-index">Source: <a href='https://github.com/atyre2/raretrans/blob/master/R/raretrans.R'><code>R/raretrans.R</code></a></small>
+    <div class="hidden name"><code>raretrans-package.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p><code>sim_transition</code> generates a list of simulated population projection matrices from the provided parameters
-and prior distributions.</p>
+    <p>This package provides functions that combine data on transitions with prior beliefs about
+transition probabilities and fertilities. Includes functions to create matrix population models from a combination
+of data on stage/age transitions and Bayesian prior information. This
+compensates for structural problems caused by missing observatons of rare
+transitions.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>sim_transitions</span>(<span class='no'>TF</span>, <span class='no'>N</span>, <span class='kw'>P</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>alpha</span> <span class='kw'>=</span> <span class='fl'>1e-05</span>, <span class='kw'>beta</span> <span class='kw'>=</span> <span class='fl'>1e-05</span>,
-  <span class='kw'>priorweight</span> <span class='kw'>=</span> -<span class='fl'>1</span>, <span class='kw'>samples</span> <span class='kw'>=</span> <span class='fl'>1</span>)</pre>
-    
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>TF</th>
-      <td><p>A list of two matrices, T and F, as ouput by <code><a href='http://www.rdocumentation.org/packages/popbio/topics/projection.matrix'>projection.matrix</a></code>.</p></td>
-    </tr>
-    <tr>
-      <th>N</th>
-      <td><p>A vector of observed stages at start of transition.</p></td>
-    </tr>
-    <tr>
-      <th>P</th>
-      <td><p>A matrix of the priors for each column. Defaults to uniform.</p></td>
-    </tr>
-    <tr>
-      <th>alpha</th>
-      <td><p>A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_</p></td>
-    </tr>
-    <tr>
-      <th>beta</th>
-      <td><p>A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_</p></td>
-    </tr>
-    <tr>
-      <th>priorweight</th>
-      <td><p>total weight for each column of prior as a percentage of sample size or 1 if negative</p></td>
-    </tr>
-    <tr>
-      <th>samples</th>
-      <td><p>The number of matrices to return.</p></td>
-    </tr>
-    </table>
-    
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+        
+    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <p>Always returns a list.</p>
+    <div class='dont-index'><p>Useful links:</p><ul>
+<li><p><a href='https://atyre2.github.io/raretrans/'>https://atyre2.github.io/raretrans/</a></p></li>
+<li><p><a href='https://github.com/atyre2/raretrans'>https://github.com/atyre2/raretrans</a></p></li>
+<li><p>Report bugs at <a href='https://github.com/atyre2/raretrans/issues'>https://github.com/atyre2/raretrans/issues</a></p></li>
+</ul></div>
     
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
       
-      <li><a href="#value">Value</a></li>
+      <li><a href="#see-also">See also</a></li>
           </ul>
+
+    <h2>Author</h2>
+    
+<strong>Maintainer</strong>: Andrew Tyre <a href='mailto:atyre2@unl.edu'>atyre2@unl.edu</a> (0000-0001-9736-641X)
+
+Authors:
+<ul>
+<li><p>Raymond Tremblay <a href='mailto:raymond.tremblay@upr.edu'>raymond.tremblay@upr.edu</a></p></li>
+<li><p>Maria-Eglee Perez <a href='mailto:mariaeglee@gmail.com'>mariaeglee@gmail.com</a></p></li>
+</ul>
+
 
   </div>
 </div>

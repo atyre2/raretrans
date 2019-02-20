@@ -12,6 +12,15 @@ of data on stage/age transitions and Bayesian prior information. This
 compensates for structural problems caused by missing observatons of rare
 transitions.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://atyre2.github.io/raretrans/}
+  \item \url{https://github.com/atyre2/raretrans}
+  \item Report bugs at \url{https://github.com/atyre2/raretrans/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Andrew Tyre \email{atyre2@unl.edu} (0000-0001-9736-641X)
 
