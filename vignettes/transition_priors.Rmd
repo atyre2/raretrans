@@ -236,7 +236,7 @@ isIrreducible((tmat + fmat)[-2,-2])
 all.equal(lambda((tmat + fmat)[-2,-2]), lambda(tmat + fmat))
 ```
 
-So, to add a dirichlet prior with a weight of 1 to $T$, we have 4 fates (3 + death), so each fate adds 0.25 to the matrix of *observed* fates (not the transition matrix!).
+So, to add a uniform dirichlet prior with a weight of 1 to $T$, we have 4 fates (3 + death), so each fate adds 0.25 to the matrix of *observed* fates (not the transition matrix!).
 
 ```{r}
 # get matrix of observed fates, including a row for mortality
@@ -451,6 +451,7 @@ myfunc <- function(x){
   colnames(x) <- c("lcl", "ucl")
   x
 }
+# this doesn't give the same result as the beta distribution
 mnCI <- list(ci_95 = MultinomialCI::multinomialCI(c(1, 7, 0, 3), alpha = 0.05),
              ci_80 = MultinomialCI::multinomialCI(c(1, 7, 0, 3), alpha = 0.2),
              ci_50 = MultinomialCI::multinomialCI(c(1, 7, 0, 3), alpha = 0.5)) %>%
