@@ -206,13 +206,20 @@ set.seed(8390278) # make this part reproducible
 RLT_0.5 <- sim_transitions(TF, N, P = RLT_Tprior, alpha = c(NA, NA, 0.025), beta = c(NA, NA, 1),
                 priorweight = 0.5, samples = 1000)
 RLT_0.5 <- tibble(lposterior = map_dbl(RLT_0.5, lambda))
+
+ggplot(data = RLT_0.5,
+       mapping = aes(x = lposterior)) + 
+  geom_histogram(binwidth = 0.02)
+```
+
+We can calculate some summary statistics too.
+```{r}
 RLT_0.5_summary <- summarize(RLT_0.5,
                              medianL = median(lposterior),
                              meanL = mean(lposterior),
                              lcl = quantile(lposterior, probs = 0.025),
-                             ucl = quantile(lposterior, probs = 0.975))
-ggplot(data = RLT_0.5,
-       mapping = aes(x = lposterior)) + 
-  geom_histogram(binwidth = 0.02)
+                             ucl = quantile(lposterior, probs = 0.975),
+                             pincrease = sum(lposterior > 1.)/n())
+knitr::kable(RLT_0.5_summary, digits = 2)
 ```
 
