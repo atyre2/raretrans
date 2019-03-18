@@ -19,8 +19,6 @@ LazyData: true
 Depends: R (>= 2.10)
 Imports: dplyr,
     popbio,
-    popdemo,
-    raretrans,
     stats
 Suggests: 
     popdemo,
