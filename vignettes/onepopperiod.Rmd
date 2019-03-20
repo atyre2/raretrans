@@ -12,30 +12,36 @@ vignette: >
 ```{r setup, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE, tidy = TRUE)
 library(tidyverse)
-library(popbio)
-library(popdemo)
+library(popbio) # for projection.matrix()
 library(raretrans)
 # Raymond's theme modifications
 rlt_theme <- theme(axis.title.y = element_text(colour="grey20",size=15,face="bold"),
         axis.text.x = element_text(colour="grey20",size=15, face="bold"),
         axis.text.y = element_text(colour="grey20",size=15,face="bold"),  
         axis.title.x = element_text(colour="grey20",size=15,face="bold"))
-
 ```
-# Part I: Obtaining the projection matrix from `popbio::projection_matrix`
 
-The goal of this vignette is to demonstrate the use of package `raretrans`, which requires correct data formatting for input into `popbio::projection_matrix`. Although  `raretrans` can handle multiple populations, here we use only a single population as an example. Obtaining the correct data formatting of the data for `popbio::projection_matrix` requires us to extract the transition and fertility data for *L. elto* **POPNUM 250** in **period 5**. We demonstrate this below. 
+The goal of this vignette is to demonstrate the use of package `raretrans` on a single population and transition period.
+
+# Part I: Obtaining the projection matrix 
+
+`raretrans` assumes the projection matrix is a list of two matrices, a transition matrix and a fertility matrix. This is the output format of `popbio::projection.matrix`. If we have individual transitions in a dataframe
+we can use `popbio::projection.matrix` to obtain the required data. We demonstrate with the transition and fertility data for the epiphytic orchid *Lepanthes elto* **POPNUM 250** in **period 5**. 
 
 ## Step 1: Load and munge the single population data for *L. elto*
 
-```{r mungeData}
+```{r viewData}
 data("L_elto") # load the dataset `L_elto` into memory (from package `raretrans`)
-head(L_elto)# ???Perhaps preview the L_elto dataset..???
+head(L_elto) 
+```
 
+Each row of this dataframe has columns for current stage, the next stage, and average per individual fertility.
+
+```{r mungeData}
 onepop <- L_elto %>%   
 # Filter out population # 250, period (year) 5
   filter(POPNUM == 250, year == 5) %>% 
-  # Define stages (state why we are cahnging p --> s here)
+  # redefine p for el plantón to s for seedling
   mutate(stage = case_when(stage == "p" ~ "s",
                            TRUE ~ stage),
          next_stage = case_when(next_stage == "p"~ "s",
@@ -43,16 +49,20 @@ onepop <- L_elto %>%
 
 
 # popbio::projection.matrix doesn't like tibbles
+# set TF = TRUE to get the right format.
 TF <- popbio::projection.matrix(as.data.frame(onepop), 
                         stage = stage, fate = next_stage, 
                         fertility="fertility", sort=c("s","j","a"), TF = TRUE)
 TF # This is the stage-structured population model
+
 ```
 
 Our stages are now coded as **s** (seedling), **j** (juvenile), and **a** (adult), and we now have two matrices: **T** (stage transition) and **F** (fecundity).
-
+The observed asymptotic population growth rate is $\lambda =$ `r format(lambda(TF$T + TF$F),digits = 2)`.
+The rare transitions missing from our first transition matrix, `TF$T`, are the transition from seedling (*s*) to adult (*a*), and the transition from *j* to *s*. But we know that these happen. 
 
 ## Step 2: Obtain starting number of individuals per stage
+
 Since our priors are based on counts (number of individuals, *N*) and the prior equivalent sampling size is expressed as a multiple of the number of individuals observed, we need to obtain the  number of individuals in each stage ($N$) at the first time period.
 
 We use function `raretrans::get_state_vector()` to obtain the starting individual count, *N*.
@@ -62,27 +72,97 @@ N <- get_state_vector(onepop, stage = stage, sort=c("s","j","a"))
 N # A vector of # of starting individuals for each stage
 ```
 
-## Step 3: Incorporate rare transitions 
-The rare transition that is missing from our transition(?) matrix, `T`, is the transition from seedling (*s*) to adult (*a*). In the RLT (DEFINE THIS?) prior, this transitions happens ~ 1% of the time. Therefore, the observed asymptotic population growth rate is $\lambda =$ `r format(lambda(TF$T + TF$F),digits = 2)`.
+The list of matrices and vector of individual counts do not have to come from a dataframe as we've done here. 
+As long as they have the expected format they can be created by hand. We use population 231 in period 2 as an example, splitting the matrix into transition T and fecundity F matrices.
 
-(JLB -- I don't understand par 69):
-First, we use a default uniform prior on the transition (**T**), and an uninformative gamma prior on fecundity **F**. We must specify the parameters for the fecundity prior on the non-reproducing stages as **missing**, else the result will fill in the entire matrix. The default for both functions (`fill_transitions` and `fill_fecundity`) returns the full matrix **A**, so we need to specify the argument `returnType = FALSE`, to obtain only the transition and fecundity matrices. 
+```{r, echo=FALSE}
+Tmat <- L_elto %>% 
+  mutate(stage = factor(stage, levels=c("p","j","a","m")),
+         fate = factor(next_stage, levels=c("p","j","a","m"))) %>%
+  filter(POPNUM == 231, year == 2) %>%
+  as.data.frame() %>% 
+  xtabs(~fate + stage, data = .) %>% 
+  as.matrix()
+Tmat <- Tmat[,-4]
+N2 <- colSums(Tmat)
+Tmat <- sweep(Tmat[-4,], 1, N2, "/")
+# L_elto %>% 
+#   mutate(stage = factor(stage, levels=c("p","j","a","m")),
+#          fate = factor(next_stage, levels=c("p","j","a","m"))) %>%
+#   filter(POPNUM == 231, year == 3, stage == "p") %>%
+#   count(stage) 
+# 2 offspring from N[3] == 16 adults
+Fmat <- matrix(0, nrow=3, ncol=3)
+Fmat[1,3] <- 2/16 # counted 16 adults in this stage, and 2 seedlings in next year
+TF2 <- list(Tmat = Tmat, Fmat = Fmat)
+```
 
-```{r getFecund}
-unif <- list(T = fill_transitions(TF, N, returnType = "T"), 
+```{r}
+TF2
+N2
+```
+
+This matrix is missing the transition from seedling to juvenile, and none of the 6 juveniles died leading to an overestimate of survival. The observed asymptotic population growth rate is $\lambda =$ `r format(lambda(TF2$T + TF2$F),digits = 2)`. The matrix is not Ergodic (you can't get to every other state from one or more states), and
+reducible, meaning one or more columns and rows can be discarded and have the same eigen properties. 
+
+# Part 2: Using priors to incorporate rare transitions 
+
+## Use uninformative priors
+
+Tremblay et al (in prep) show that a dirichlet prior works on the columns of the transition matrix (**T**), and a gamma prior works for entries in the fecundity matrix **F**. 
+
+So, let's add a uniform dirichlet prior with weight = $1$ to the transition matrix, $T$. Here, we have 4 fates (3 + death), so each fate adds 0.25 to the matrix of *observed* fates (not the transition matrix!). When we specify a prior matrix for the transitions, there is one more row than columns. This extra row represents death.
+
+```{r posterior1}
+Tprior <- matrix(0.25, byrow = TRUE, ncol = 3, nrow=4)
+fill_transitions(TF, N, P = Tprior) # returns transition matrix by default
+```
+
+We can get the same result 'by hand' - we need the vector of observations because the posterior is calculated
+from the observed transitions, not the transition matrix. 
+
+```{r manualTransitionPost}
+Tobs <- sweep(TF$T, 2, N, "*") # get the observed transitions
+Tobs <- rbind(Tobs, N - colSums(Tobs)) # add the mortality row
+Tobs <- Tobs + 0.25 # add the prior
+sweep(Tobs, 2, colSums(Tobs), "/")[-4,] # divide by the column sum, and discard mortalityrow
+```
+
+The uniform prior fills in the missing transitions, but also creates problems because it provides transition values that are biologically impossible. For example, it provides a transition for adult->seedling, when this transition is only possible in the fecundity matrix $F$.
+
+We must specify the parameters for the fecundity prior on the non-reproducing stages as **missing**, else the result will fill in the entire matrix. 
+
+```{r}
+fill_fecundity(TF, N, alpha = c(NA_real_, NA_real_, 1e-05), beta = c(NA_real_, NA_real_, 1e-05))
+```
+
+The change in the fecundity is < 0.0001 compared to the observed value. Calculating by hand, prior alpha is 
+the number of observed offspring, and prior beta is the number of observed adults. 
+
+```{r}
+obs_offspring <- N[3]*TF$F[1,3] 
+prior_alpha <- 1e-05
+prior_beta <- 1e-05
+posterior_alpha <- obs_offspring + prior_alpha
+posterior_beta <- N[3] + prior_beta
+posterior_alpha / posterior_beta # expected value
+```
+
+This demonstrates why the posterior point estimate of fecundity does not change much; the non-informative values for $\alpha$ and $\beta$ barely change the observed values. 
+
+```{r uninformativePrior}
+unif <- list(T = fill_transitions(TF, N), 
              F = fill_fecundity(TF, N, 
                                 alpha = c(NA_real_, NA_real_, 1e-05),
-                                beta = c(NA_real_, NA_real_, 1e-05),
-                                returnType = "F"))
+                                beta = c(NA_real_, NA_real_, 1e-05)))
 unif
 ```
 
-The asymptotic population growth rate is now $\lambda =$ `r format(lambda(unif$T + unif$F),digits = 2)`. The growth rate shrinks slightly because applying the uniform prior to the transition probabilities causes the observed growth and survival transitions to shrink slightly relative to the  unobserved transitions. 
+The asymptotic population growth rate is now $\lambda =$ `r format(lambda(unif$T + unif$F),digits = 2)`. The growth rate shrinks slightly because applying the uniform prior to the transition probabilities causes the observed growth and survival transitions to shrink slightly relative to the unobserved transitions. 
 
+### Other options for `returnType`
 
-## Other options for `returnType`
-
-There are two other `returnType`s:
+There are three other `returnType`s:
 1. `fill_transitions()` returns an augmented matrix of fates, which is useful for simulation. The fourth row of this result (see below) is the mortality state.   
 ```{r}
 fill_transitions(TF, N, returnType = "TN")
@@ -94,63 +174,16 @@ fill_fecundity(TF, N,
                beta = c(NA_real_, NA_real_, 1e-05),
                returnType = "ab")
 ```
+3. Both functions can return the full matrix (not very useful)
+```{r}
+fill_transitions(TF, N, returnType = "A")
+```
 
 This demonstrates why the posterior point estimate of fecundity does not change much; the non-informative values for $\alpha$ and $\beta$ barely change the observed values. 
 
-# Part II: Informative Priors
+## Incorporate informative priors
 
-We can skip using `popbio::projection.matrix()` if the matrix is already calculated, and  we  have the stage vector. We demonstrate this using population 231 in period 2 as an example. We also  split the matrix into transition **T** and fecundity **F** matrices.
-
-## Step 1: Load and munge the data
-
-Get population #231 and year (period) 2 from the `L_elto` data and extract the **T** and **F** matrices. 
-
-```{r, echo=FALSE}
-# Matrix
-if(!exists("L_elto")) data("L_elto")
-Tmat <- L_elto %>% 
-  mutate(stage = factor(stage, levels=c("p","j","a","m")),
-         fate = factor(next_stage, levels=c("p","j","a","m"))) %>%
-  filter(POPNUM == 231, year == 2) %>%
-  as.data.frame() %>% 
-  xtabs(~fate + stage, data = .) %>% 
-  as.matrix()
-Tmat <- Tmat[,-4] # remove the final stage, m
-N <- colSums(Tmat) # get the number of individuals oer stage
-Tmat <- sweep(Tmat[-4,], 2, N, "/") # what is this doing?
-# L_elto %>%
-#   mutate(stage = factor(stage, levels=c("p","j","a","m")),
-#          fate = factor(next_stage, levels=c("p","j","a","m"))) %>%
-#   filter(POPNUM == 231, year == 3, stage == "p") %>%
-#   count(stage)
-# 2 offspring from N[3] == 16 adults
-Fmat <- matrix(0, nrow=3, ncol=3) # initialize an empty matrix (fill with zeroes)
-Fmat[1,3] <- 2/16 # where dd this # come from?
-(TF <- list(Tmat = Tmat, Fmat = Fmat))
-```
-
-There were `r paste(N, collapse=", ")` seedlings, juveniles, and adults, respectively, at the start of period 2 for population # 231.
-
-## Step 2: Incorporate informative priors
-This matrix is missing the rare transition from seedling to juvenile. All juveniles survived, which led to an overestimation of survival.
-So, let's add a uniform dirichlet prior ???(why dirichlet? maybe a footnote with ref?)??? with weight = $1$ to the transition matrix, $T$. Here, we have 4 fates (3 + death), so each fate adds 0.25 to the matrix of *observed* fates (not the transition matrix!). When we specify a prior matrix for the transitions, there is one more row than columns. This extra row represents death.
-
-```{r}
-Tprior <- matrix(0.25, byrow = TRUE, ncol = 3, nrow=4)
-fill_transitions(TF, N, P = Tprior) # returns transition matrix by default
-```
-
-We can get the same result 'by hand'
-
-```{r}
-Tobs <- sweep(TF$Tmat,2,N,"*") # get the observed transitions
-Tobs <- rbind(Tobs, N - colSums(Tobs)) # add the mortality row
-Tobs <- Tobs + 0.25 # add the prior
-sweep(Tobs, 2, colSums(Tobs), "/")[-4,] # divide by the column sum, and discard mortality
-```
-???(This seems out of place?)???
-The uniform prior creates problems because it provides transition values that are biologically impossible. For example, it provides a transition for adult->seedling in teh transition matrix $T$, when this transition is only possible in the fecundity matrix $F$. 
-To fix this problem we specify a more informative prior (see `RLT_Tprior`). It still has to have the same shape, one more row than columns.
+To fix this problem we specify a more informative prior elicited from an expert on epiphytic orchids (RLT). It still has to have the same shape, one more row than columns.
 
 ```{r}
 RLT_Tprior <- matrix(c(0.25, 0.025, 0.0,
@@ -160,7 +193,7 @@ RLT_Tprior <- matrix(c(0.25, 0.025, 0.0,
                      byrow = TRUE, nrow = 4, ncol = 3)
 ```
 This prior is constructed so the columns sum to 1, which creates the greatest flexibility 
-for weighting the prior.
+for weighting the prior. By default the weight is 1, interpreted as a prior sample size of 1.
 ```{r}
 fill_transitions(TF, N, P = RLT_Tprior)
 ```
@@ -171,8 +204,10 @@ fill_transitions(TF, N, P = RLT_Tprior, priorweight = 0.5)
 Here the prior is weighted half as much as the observed number of transitions, which is 
 larger than 1 but still allows the data to dominate. 
 
-# Part III: Obtain Credible Intervals 
+# Part III: Obtain Credible Intervals
+
 ## Obtain CI for indvidual matrix entries
+
 The marginal posterior distribution of one element in a multinomial is a beta distribution, and
 we use this to get credible intervals on our transition rates. We can use the 
 TN return type to get the parameters of the desired multinomial.
