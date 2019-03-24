@@ -111,6 +111,7 @@ reducible, meaning one or more columns and rows can be discarded and have the sa
 
 Tremblay et al (in prep) show that a dirichlet prior works on the columns of the transition matrix (**T**), and a gamma prior works for entries in the fecundity matrix **F**. 
 
+
 ### Transition matrix
 
 So, let's add a uniform dirichlet prior with weight = $1$ to the transition matrix, $T$. Here, we have 4 fates (3 + death), so each fate adds 0.25 to the matrix of *observed* fates (not the transition matrix!). When we specify a prior matrix for the transitions, there is one more row than columns. This extra row represents death.
@@ -198,9 +199,11 @@ RLT_Tprior <- matrix(c(0.25, 0.025, 0.0,
                        0.69, 0.05,  0.025), 
                      byrow = TRUE, nrow = 4, ncol = 3)
 ```
-This prior is constructed so the columns sum to 1, which creates the greatest flexibility 
-for weighting the prior. Note that the 1st row, 3rd column is 0.0, because this transition is 
-impossible. By default the weight is 1, interpreted as a prior sample size of 1.
+
+Note that the 1st row, 3rd column is 0.0, because this transition is 
+impossible. This prior is constructed so the columns sum to 1, which creates the greatest flexibility 
+for weighting the prior.  By default the weight is 1, interpreted as a prior sample size of 1.
+
 ```{r}
 fill_transitions(TF, N, P = RLT_Tprior)
 ```
@@ -211,8 +214,9 @@ We can specify the weight as a multiple of the sample size for each stage.
 fill_transitions(TF, N, P = RLT_Tprior, priorweight = 0.5)
 ```
 
-Here the prior is weighted half as much as the observed number of transitions, which is 
-larger than 1 but still allows the data to dominate. 
+Here the prior is weighted half as much as the observed number of transitions. In this case, 
+with only 2 transitions the prior effective sample size is still 1. If the number of observed
+transitions was larger, a prior weight of 0.5N would be larger than 1, but still allow the data to dominate.
 
 # Part III: Obtain Credible Intervals
 
