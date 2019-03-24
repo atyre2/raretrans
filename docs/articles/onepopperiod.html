@@ -89,31 +89,55 @@
 
     
     
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">knitr<span class="op">::</span>opts_chunk<span class="op">$</span><span class="kw">set</span>(<span class="dt">echo =</span> <span class="ot">TRUE</span>)</a>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">knitr<span class="op">::</span>opts_chunk<span class="op">$</span><span class="kw">set</span>(<span class="dt">echo =</span> <span class="ot">TRUE</span>, <span class="dt">tidy =</span> <span class="ot">TRUE</span>)</a>
 <a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">library</span>(tidyverse)</a></code></pre></div>
 <pre><code>## Warning: package 'tibble' was built under R version 3.5.2</code></pre>
+<pre><code>## Warning: package 'tidyr' was built under R version 3.5.2</code></pre>
+<pre><code>## Warning: package 'purrr' was built under R version 3.5.2</code></pre>
 <pre><code>## Warning: package 'dplyr' was built under R version 3.5.2</code></pre>
 <pre><code>## Warning: package 'stringr' was built under R version 3.5.2</code></pre>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="kw">library</span>(popbio)</a>
-<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="kw">library</span>(popdemo)</a>
-<a class="sourceLine" id="cb5-3" data-line-number="3"><span class="kw">library</span>(raretrans)</a>
-<a class="sourceLine" id="cb5-4" data-line-number="4"><span class="co"># Raymond's theme modifications</span></a>
-<a class="sourceLine" id="cb5-5" data-line-number="5">rlt_theme &lt;-<span class="st"> </span><span class="kw">theme</span>(<span class="dt">axis.title.y =</span> <span class="kw">element_text</span>(<span class="dt">colour=</span><span class="st">"grey20"</span>,<span class="dt">size=</span><span class="dv">15</span>,<span class="dt">face=</span><span class="st">"bold"</span>),</a>
-<a class="sourceLine" id="cb5-6" data-line-number="6">        <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">colour=</span><span class="st">"grey20"</span>,<span class="dt">size=</span><span class="dv">15</span>, <span class="dt">face=</span><span class="st">"bold"</span>),</a>
-<a class="sourceLine" id="cb5-7" data-line-number="7">        <span class="dt">axis.text.y =</span> <span class="kw">element_text</span>(<span class="dt">colour=</span><span class="st">"grey20"</span>,<span class="dt">size=</span><span class="dv">15</span>,<span class="dt">face=</span><span class="st">"bold"</span>),  </a>
-<a class="sourceLine" id="cb5-8" data-line-number="8">        <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">colour=</span><span class="st">"grey20"</span>,<span class="dt">size=</span><span class="dv">15</span>,<span class="dt">face=</span><span class="st">"bold"</span>))</a></code></pre></div>
-<p>We want to be able to use this package with single populations and transitions. Regardless of how many populations there are, we need the data in the form expected by <code>popbio::projection_matrix</code> to get the matrices we want. Here we demonstrate how the package works with a single population in the desired format, by extracting the transition and fertility data for <em>L. elto</em> POPNUM 250 in period 5.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="kw">data</span>(<span class="st">"L_elto"</span>)</a>
-<a class="sourceLine" id="cb6-2" data-line-number="2">onepop &lt;-<span class="st"> </span><span class="kw">filter</span>(L_elto, POPNUM <span class="op">==</span><span class="st"> </span><span class="dv">250</span>, year <span class="op">==</span><span class="st"> </span><span class="dv">5</span>) <span class="op">%&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb6-3" data-line-number="3"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">stage =</span> <span class="kw">case_when</span>(stage <span class="op">==</span><span class="st"> "p"</span> <span class="op">~</span><span class="st"> "s"</span>,</a>
-<a class="sourceLine" id="cb6-4" data-line-number="4">                           <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> </span>stage),</a>
-<a class="sourceLine" id="cb6-5" data-line-number="5">         <span class="dt">next_stage =</span> <span class="kw">case_when</span>(next_stage <span class="op">==</span><span class="st"> "p"</span><span class="op">~</span><span class="st"> "s"</span>,</a>
-<a class="sourceLine" id="cb6-6" data-line-number="6">                                <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> </span>next_stage))</a>
-<a class="sourceLine" id="cb6-7" data-line-number="7"><span class="co">#popbio::projection.matrix doesn't like tibbles</span></a>
-<a class="sourceLine" id="cb6-8" data-line-number="8">TF &lt;-<span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/projection.matrix">projection.matrix</a></span>(<span class="kw">as.data.frame</span>(onepop), </a>
-<a class="sourceLine" id="cb6-9" data-line-number="9">                        <span class="dt">stage =</span> stage, <span class="dt">fate =</span> next_stage, </a>
-<a class="sourceLine" id="cb6-10" data-line-number="10">                        <span class="dt">fertility=</span><span class="st">"fertility"</span>, <span class="dt">sort=</span><span class="kw">c</span>(<span class="st">"s"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>), <span class="dt">TF =</span> <span class="ot">TRUE</span>)</a>
-<a class="sourceLine" id="cb6-11" data-line-number="11">TF</a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1"><span class="kw">library</span>(popbio) <span class="co"># for projection.matrix()</span></a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="kw">library</span>(raretrans)</a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="co"># Raymond's theme modifications</span></a>
+<a class="sourceLine" id="cb7-4" data-line-number="4">rlt_theme &lt;-<span class="st"> </span><span class="kw">theme</span>(<span class="dt">axis.title.y =</span> <span class="kw">element_text</span>(<span class="dt">colour=</span><span class="st">"grey20"</span>,<span class="dt">size=</span><span class="dv">15</span>,<span class="dt">face=</span><span class="st">"bold"</span>),</a>
+<a class="sourceLine" id="cb7-5" data-line-number="5">        <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">colour=</span><span class="st">"grey20"</span>,<span class="dt">size=</span><span class="dv">15</span>, <span class="dt">face=</span><span class="st">"bold"</span>),</a>
+<a class="sourceLine" id="cb7-6" data-line-number="6">        <span class="dt">axis.text.y =</span> <span class="kw">element_text</span>(<span class="dt">colour=</span><span class="st">"grey20"</span>,<span class="dt">size=</span><span class="dv">15</span>,<span class="dt">face=</span><span class="st">"bold"</span>),  </a>
+<a class="sourceLine" id="cb7-7" data-line-number="7">        <span class="dt">axis.title.x =</span> <span class="kw">element_text</span>(<span class="dt">colour=</span><span class="st">"grey20"</span>,<span class="dt">size=</span><span class="dv">15</span>,<span class="dt">face=</span><span class="st">"bold"</span>))</a></code></pre></div>
+<p>The goal of this vignette is to demonstrate the use of package <code>raretrans</code> on a single population and transition period.</p>
+<div id="part-i-obtaining-the-projection-matrix" class="section level1">
+<h1 class="hasAnchor">
+<a href="#part-i-obtaining-the-projection-matrix" class="anchor"></a>Part I: Obtaining the projection matrix</h1>
+<p><code>raretrans</code> assumes the projection matrix is a list of two matrices, a transition matrix and a fertility matrix. This is the output format of <code><a href="http://www.rdocumentation.org/packages/popbio/topics/projection.matrix">popbio::projection.matrix</a></code>. If we have individual transitions in a dataframe we can use <code><a href="http://www.rdocumentation.org/packages/popbio/topics/projection.matrix">popbio::projection.matrix</a></code> to obtain the required data. We demonstrate with the transition and fertility data for the epiphytic orchid <em>Lepanthes elto</em> <strong>POPNUM 250</strong> in <strong>period 5</strong>.</p>
+<div id="step-1-load-and-munge-the-single-population-data-for-l--elto" class="section level2">
+<h2 class="hasAnchor">
+<a href="#step-1-load-and-munge-the-single-population-data-for-l--elto" class="anchor"></a>Step 1: Load and munge the single population data for <em>L. elto</em>
+</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="kw">data</span>(<span class="st">"L_elto"</span>)  <span class="co"># load the dataset `L_elto` into memory (from package `raretrans`)</span></a>
+<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="kw">head</span>(L_elto)</a></code></pre></div>
+<pre><code>## # A tibble: 6 x 15
+##   POPNUM  year seedlings adults fertility OCCUORNOT REMOVEDORNOT IND_NUM
+##    &lt;int&gt; &lt;dbl&gt;     &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;     &lt;chr&gt;          &lt;int&gt;
+## 1    209     1         1      6         0 Ocupado   No removido       67
+## 2    209     2         0      9         0 Ocupado   No removido       67
+## 3    209     3         0      9         0 Ocupado   No removido       67
+## 4    209     4         0      9         0 Ocupado   No removido       67
+## 5    209     1         1      6         0 Ocupado   No removido       68
+## 6    209     2         0      9         0 Ocupado   No removido       68
+## # … with 7 more variables: stage &lt;chr&gt;, next_stage &lt;chr&gt;,
+## #   first_year &lt;dbl&gt;, last_year &lt;dbl&gt;, recruited &lt;lgl&gt;, died &lt;dbl&gt;,
+## #   lifespan &lt;int&gt;</code></pre>
+<p>Each row of this dataframe has columns for current stage, the next stage, and average per individual fertility.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">onepop &lt;-<span class="st"> </span>L_elto <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># Filter out population # 250, period (year) 5</span></a>
+<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="kw">filter</span>(POPNUM <span class="op">==</span><span class="st"> </span><span class="dv">250</span>, year <span class="op">==</span><span class="st"> </span><span class="dv">5</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># redefine p for el plantón to s for seedling</span></a>
+<a class="sourceLine" id="cb10-3" data-line-number="3"><span class="kw">mutate</span>(<span class="dt">stage =</span> <span class="kw">case_when</span>(stage <span class="op">==</span><span class="st"> "p"</span> <span class="op">~</span><span class="st"> "s"</span>, <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> </span>stage), <span class="dt">next_stage =</span> <span class="kw">case_when</span>(next_stage <span class="op">==</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb10-4" data-line-number="4"><span class="st">    "p"</span> <span class="op">~</span><span class="st"> "s"</span>, <span class="ot">TRUE</span> <span class="op">~</span><span class="st"> </span>next_stage))</a>
+<a class="sourceLine" id="cb10-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb10-6" data-line-number="6"></a>
+<a class="sourceLine" id="cb10-7" data-line-number="7"><span class="co"># popbio::projection.matrix doesn't like tibbles set TF = TRUE to get the</span></a>
+<a class="sourceLine" id="cb10-8" data-line-number="8"><span class="co"># right format.</span></a>
+<a class="sourceLine" id="cb10-9" data-line-number="9">TF &lt;-<span class="st"> </span>popbio<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/popbio/topics/projection.matrix">projection.matrix</a></span>(<span class="kw">as.data.frame</span>(onepop), <span class="dt">stage =</span> stage, <span class="dt">fate =</span> next_stage, </a>
+<a class="sourceLine" id="cb10-10" data-line-number="10">    <span class="dt">fertility =</span> <span class="st">"fertility"</span>, <span class="dt">sort =</span> <span class="kw">c</span>(<span class="st">"s"</span>, <span class="st">"j"</span>, <span class="st">"a"</span>), <span class="dt">TF =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb10-11" data-line-number="11">TF  <span class="co"># This is the stage-structured population model</span></a></code></pre></div>
 <pre><code>## $T
 ##    
 ##              s          j          a
@@ -127,18 +151,87 @@
 ##   s 0.0000000 0.0000000 0.1176471
 ##   j 0.0000000 0.0000000 0.0000000
 ##   a 0.0000000 0.0000000 0.0000000</code></pre>
-<p>Now we also need the number of individuals in each stage at the start. This is because our priors are based on counts, and the prior equivalent sample size is expressed as a multiple of the number of individuals observed. We have a function <code><a href="../reference/get_state_vector.html">raretrans::get_state_vector()</a></code> to do this.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">N &lt;-<span class="st"> </span><span class="kw"><a href="../reference/get_state_vector.html">get_state_vector</a></span>(onepop, <span class="dt">stage =</span> stage, <span class="dt">sort=</span><span class="kw">c</span>(<span class="st">"s"</span>,<span class="st">"j"</span>,<span class="st">"a"</span>))</a>
-<a class="sourceLine" id="cb8-2" data-line-number="2">N</a></code></pre></div>
+<p>Our stages are now coded as <strong>s</strong> (seedling), <strong>j</strong> (juvenile), and <strong>a</strong> (adult), and we now have two matrices: <strong>T</strong> (stage transition) and <strong>F</strong> (fecundity). The observed asymptotic population growth rate is <span class="math inline">\(\lambda =\)</span> 0.93. The rare transitions missing from our first transition matrix, <code>TF$T</code>, are the transition from seedling (<em>s</em>) to adult (<em>a</em>), and the transition from <em>j</em> to <em>s</em>. But we know that these happen.</p>
+</div>
+<div id="step-2-obtain-starting-number-of-individuals-per-stage" class="section level2">
+<h2 class="hasAnchor">
+<a href="#step-2-obtain-starting-number-of-individuals-per-stage" class="anchor"></a>Step 2: Obtain starting number of individuals per stage</h2>
+<p>Since our priors are based on counts (number of individuals, <em>N</em>) and the prior equivalent sampling size is expressed as a multiple of the number of individuals observed, we need to obtain the number of individuals in each stage (<span class="math inline">\(N\)</span>) at the first time period.</p>
+<p>We use function <code><a href="../reference/get_state_vector.html">raretrans::get_state_vector()</a></code> to obtain the starting individual count, <em>N</em>.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1">N &lt;-<span class="st"> </span><span class="kw"><a href="../reference/get_state_vector.html">get_state_vector</a></span>(onepop, <span class="dt">stage =</span> stage, <span class="dt">sort =</span> <span class="kw">c</span>(<span class="st">"s"</span>, <span class="st">"j"</span>, <span class="st">"a"</span>))</a>
+<a class="sourceLine" id="cb12-2" data-line-number="2">N  <span class="co"># A vector of # of starting individuals for each stage</span></a></code></pre></div>
 <pre><code>## [1] 11 47 34</code></pre>
-<p>The rare transition that is missing from this matrix is the seedling to adult, which in the RLT prior happens ~ 1% of the time. The observed asymptotic population growth rate is <span class="math inline">\(\lambda =\)</span> 0.93.</p>
-<p>First, use the default uniform prior on transitions and uninformative gamma on fecundity. We have to specify the parameters for the fecundity prior on non-reproducing stages as missing, or the result will fill in the entire matrix. The default for both functions returns the full matrix <strong>A</strong>, so we have to tell the function to only return the transition and fecundity matrices.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">unif &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">T =</span> <span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">returnType =</span> <span class="st">"T"</span>), </a>
-<a class="sourceLine" id="cb10-2" data-line-number="2">             <span class="dt">F =</span> <span class="kw"><a href="../reference/fill_fecundity.html">fill_fecundity</a></span>(TF, N, </a>
-<a class="sourceLine" id="cb10-3" data-line-number="3">                                <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),</a>
-<a class="sourceLine" id="cb10-4" data-line-number="4">                                <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),</a>
-<a class="sourceLine" id="cb10-5" data-line-number="5">                                <span class="dt">returnType =</span> <span class="st">"F"</span>))</a>
-<a class="sourceLine" id="cb10-6" data-line-number="6">unif</a></code></pre></div>
+<p>The list of matrices and vector of individual counts do not have to come from a dataframe as we’ve done here. As long as they have the expected format they can be created by hand. We use population 231 in period 2 as an example, splitting the matrix into transition T and fecundity F matrices.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">TF2</a></code></pre></div>
+<pre><code>## $Tmat
+##     stage
+## fate         p         j         a
+##    p 0.5000000 0.0000000 0.0000000
+##    j 0.0000000 0.8333333 0.0000000
+##    a 0.0000000 0.0625000 0.8750000
+## 
+## $Fmat
+##      [,1] [,2]  [,3]
+## [1,]    0    0 0.125
+## [2,]    0    0 0.000
+## [3,]    0    0 0.000</code></pre>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">N2</a></code></pre></div>
+<pre><code>##  p  j  a 
+##  2  6 16</code></pre>
+<p>This matrix is missing the transition from seedling to juvenile, and none of the 6 juveniles died leading to an overestimate of survival. The observed asymptotic population growth rate is <span class="math inline">\(\lambda =\)</span> 0.88. The matrix is not Ergodic (you can’t get to every other state from one or more states), and reducible, meaning one or more columns and rows can be discarded and have the same eigen properties.</p>
+</div>
+</div>
+<div id="part-2-using-priors-to-incorporate-rare-transitions" class="section level1">
+<h1 class="hasAnchor">
+<a href="#part-2-using-priors-to-incorporate-rare-transitions" class="anchor"></a>Part 2: Using priors to incorporate rare transitions</h1>
+<div id="use-uninformative-priors" class="section level2">
+<h2 class="hasAnchor">
+<a href="#use-uninformative-priors" class="anchor"></a>Use uninformative priors</h2>
+<p>Tremblay et al (in prep) show that a dirichlet prior works on the columns of the transition matrix (<strong>T</strong>), and a gamma prior works for entries in the fecundity matrix <strong>F</strong>.</p>
+<div id="transition-matrix" class="section level3">
+<h3 class="hasAnchor">
+<a href="#transition-matrix" class="anchor"></a>Transition matrix</h3>
+<p>So, let’s add a uniform dirichlet prior with weight = <span class="math inline">\(1\)</span> to the transition matrix, <span class="math inline">\(T\)</span>. Here, we have 4 fates (3 + death), so each fate adds 0.25 to the matrix of <em>observed</em> fates (not the transition matrix!). When we specify a prior matrix for the transitions, there is one more row than columns. This extra row represents death.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1">Tprior &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="fl">0.25</span>, <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">ncol =</span> <span class="dv">3</span>, <span class="dt">nrow =</span> <span class="dv">4</span>)</a>
+<a class="sourceLine" id="cb18-2" data-line-number="2"><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">P =</span> Tprior)  <span class="co"># returns transition matrix by default</span></a></code></pre></div>
+<pre><code>##            [,1]        [,2]        [,3]
+## [1,] 0.10416667 0.005208333 0.007142857
+## [2,] 0.60416667 0.567708333 0.007142857
+## [3,] 0.02083333 0.296875000 0.835714286</code></pre>
+<p>We can get the same result ‘by hand’ - we need the vector of observations because the posterior is calculated from the observed transitions, not the transition matrix.</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" data-line-number="1">Tobs &lt;-<span class="st"> </span><span class="kw">sweep</span>(TF<span class="op">$</span>T, <span class="dv">2</span>, N, <span class="st">"*"</span>)  <span class="co"># get the observed transitions</span></a>
+<a class="sourceLine" id="cb20-2" data-line-number="2">Tobs &lt;-<span class="st"> </span><span class="kw">rbind</span>(Tobs, N <span class="op">-</span><span class="st"> </span><span class="kw">colSums</span>(Tobs))  <span class="co"># add the mortality row</span></a>
+<a class="sourceLine" id="cb20-3" data-line-number="3">Tobs &lt;-<span class="st"> </span>Tobs <span class="op">+</span><span class="st"> </span><span class="fl">0.25</span>  <span class="co"># add the prior</span></a>
+<a class="sourceLine" id="cb20-4" data-line-number="4"><span class="kw">sweep</span>(Tobs, <span class="dv">2</span>, <span class="kw">colSums</span>(Tobs), <span class="st">"/"</span>)[<span class="op">-</span><span class="dv">4</span>, ]  <span class="co"># divide by the column sum, and discard mortalityrow</span></a></code></pre></div>
+<pre><code>##            s           j           a
+## s 0.10416667 0.005208333 0.007142857
+## j 0.60416667 0.567708333 0.007142857
+## a 0.02083333 0.296875000 0.835714286</code></pre>
+<p>The uniform prior fills in the missing transitions, but also creates problems because it provides transition values that are biologically impossible. For example, it provides a transition for adult-&gt;seedling, when this transition is only possible in the fecundity matrix <span class="math inline">\(F\)</span>.</p>
+</div>
+<div id="fecundity-matrix" class="section level3">
+<h3 class="hasAnchor">
+<a href="#fecundity-matrix" class="anchor"></a>Fecundity matrix</h3>
+<p>We must specify the parameters for the fecundity prior on the non-reproducing stages as <strong>missing</strong>, else the result will fill in the entire matrix.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1"><span class="kw"><a href="../reference/fill_fecundity.html">fill_fecundity</a></span>(TF, N, <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>), <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, </a>
+<a class="sourceLine" id="cb22-2" data-line-number="2">    <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>))</a></code></pre></div>
+<pre><code>##      [,1] [,2]      [,3]
+## [1,]    0    0 0.1176473
+## [2,]    0    0 0.0000000
+## [3,]    0    0 0.0000000</code></pre>
+<p>The change in the fecundity is &lt; 0.0001 compared to the observed value. Calculating by hand, prior alpha is the number of observed offspring, and prior beta is the number of observed adults.</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" data-line-number="1">obs_offspring &lt;-<span class="st"> </span>N[<span class="dv">3</span>] <span class="op">*</span><span class="st"> </span>TF<span class="op">$</span>F[<span class="dv">1</span>, <span class="dv">3</span>]</a>
+<a class="sourceLine" id="cb24-2" data-line-number="2">prior_alpha &lt;-<span class="st"> </span><span class="fl">1e-05</span></a>
+<a class="sourceLine" id="cb24-3" data-line-number="3">prior_beta &lt;-<span class="st"> </span><span class="fl">1e-05</span></a>
+<a class="sourceLine" id="cb24-4" data-line-number="4">posterior_alpha &lt;-<span class="st"> </span>obs_offspring <span class="op">+</span><span class="st"> </span>prior_alpha</a>
+<a class="sourceLine" id="cb24-5" data-line-number="5">posterior_beta &lt;-<span class="st"> </span>N[<span class="dv">3</span>] <span class="op">+</span><span class="st"> </span>prior_beta</a>
+<a class="sourceLine" id="cb24-6" data-line-number="6">posterior_alpha<span class="op">/</span>posterior_beta  <span class="co"># expected value</span></a></code></pre></div>
+<pre><code>## [1] 0.1176473</code></pre>
+<p>This demonstrates why the posterior point estimate of fecundity does not change much; the non-informative values for <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> barely change the observed values.</p>
+<p>Now we can put them together.</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" data-line-number="1">unif &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">T =</span> <span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N), <span class="dt">F =</span> <span class="kw"><a href="../reference/fill_fecundity.html">fill_fecundity</a></span>(TF, N, <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, </a>
+<a class="sourceLine" id="cb26-2" data-line-number="2">    <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>), <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>)))</a>
+<a class="sourceLine" id="cb26-3" data-line-number="3">unif</a></code></pre></div>
 <pre><code>## $T
 ##            [,1]        [,2]        [,3]
 ## [1,] 0.10416667 0.005208333 0.007142857
@@ -150,133 +243,129 @@
 ## [1,]    0    0 0.1176473
 ## [2,]    0    0 0.0000000
 ## [3,]    0    0 0.0000000</code></pre>
-<p>And the asymptotic population growth rate is <span class="math inline">\(\lambda =\)</span> 0.92. The growth rate shrinks slightly because applying the uniform prior on transition probabilities causes observed growth and survival transitions to shrink slightly relative to those that are unobserved.</p>
-<p>There are two other returnTypes. <code><a href="../reference/fill_transitions.html">fill_transitions()</a></code> can return an augmented matrix of fates which is useful for simulation.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1"><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">returnType =</span> <span class="st">"TN"</span>)</a></code></pre></div>
+<p>The asymptotic population growth rate is now <span class="math inline">\(\lambda =\)</span> 0.92. The growth rate shrinks slightly because applying the uniform prior to the transition probabilities causes the observed growth and survival transitions to shrink slightly relative to the unobserved transitions.</p>
+</div>
+<div id="other-options-for-returntype" class="section level3">
+<h3 class="hasAnchor">
+<a href="#other-options-for-returntype" class="anchor"></a>Other options for <code>returnType</code>
+</h3>
+<p>There are three other <code>returnType</code>s:</p>
+<ol style="list-style-type: decimal">
+<li>
+<code><a href="../reference/fill_transitions.html">fill_transitions()</a></code> returns an augmented matrix of fates, which is useful for simulation. The fourth row of this result (see below) is the mortality state.</li>
+</ol>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" data-line-number="1"><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">returnType =</span> <span class="st">"TN"</span>)</a></code></pre></div>
 <pre><code>##      [,1]  [,2]  [,3]
 ## [1,] 1.25  0.25  0.25
 ## [2,] 7.25 27.25  0.25
 ## [3,] 0.25 14.25 29.25
 ## [4,] 3.25  6.25  5.25</code></pre>
-<p>The fourth row of this result is the mortality state. <code><a href="../reference/fill_fecundity.html">fill_fecundity()</a></code> can return the alpha and beta vectors of the posterior.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1"><span class="kw"><a href="../reference/fill_fecundity.html">fill_fecundity</a></span>(TF, N, </a>
-<a class="sourceLine" id="cb14-2" data-line-number="2">               <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),</a>
-<a class="sourceLine" id="cb14-3" data-line-number="3">               <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>),</a>
-<a class="sourceLine" id="cb14-4" data-line-number="4">               <span class="dt">returnType =</span> <span class="st">"ab"</span>)</a></code></pre></div>
+<ol start="2" style="list-style-type: decimal">
+<li>
+<code><a href="../reference/fill_fecundity.html">fill_fecundity()</a></code> returns the alpha and beta vectors of the posterior.</li>
+</ol>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb30-1" data-line-number="1"><span class="kw"><a href="../reference/fill_fecundity.html">fill_fecundity</a></span>(TF, N, <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>), <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA_real_</span>, </a>
+<a class="sourceLine" id="cb30-2" data-line-number="2">    <span class="ot">NA_real_</span>, <span class="fl">1e-05</span>), <span class="dt">returnType =</span> <span class="st">"ab"</span>)</a></code></pre></div>
 <pre><code>## $alpha
 ##       s       j       a 
 ##      NA      NA 4.00001 
 ## 
 ## $beta
 ## [1]       NA       NA 34.00001</code></pre>
-<p>This demonstrates why the posterior point estimate of fecundity does not change much; the non-informative values for <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span> barely change the observed values.</p>
-<div id="informative-priors" class="section level1">
-<h1 class="hasAnchor">
-<a href="#informative-priors" class="anchor"></a>Informative Priors</h1>
-<p>We can skip using <code><a href="http://www.rdocumentation.org/packages/popbio/topics/projection.matrix">popbio::projection.matrix()</a></code> if the matrix is already calculated, as long as we also have the stage vector. We use population 231 in period 2 as an example, splitting the matrix into transition T and fecundity F matrices.</p>
-<pre><code>## $Tmat
-##     stage
-## fate         p         j         a
-##    p 0.5000000 0.0000000 0.0000000
-##    j 0.0000000 0.8333333 0.0000000
-##    a 0.0000000 0.1666667 0.8750000
-## 
-## $Fmat
-##      [,1] [,2]  [,3]
-## [1,]    0    0 0.125
-## [2,]    0    0 0.000
-## [3,]    0    0 0.000</code></pre>
-<p>There were 2, 6, 16 seedlings, juveniles, and adults, respectively, at the start of period 2. This matrix is missing the rare transition from seedling to juvenile, and no juveniles died leading to an overestimate of survival. So, to add a uniform dirichlet prior with a weight of 1 to <span class="math inline">\(T\)</span>, we have 4 fates (3 + death), so each fate adds 0.25 to the matrix of <em>observed</em> fates (not the transition matrix!). When we specify a prior matrix for the transitions, there is one more row than columns. This extra row represents death.</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1">Tprior &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="fl">0.25</span>, <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">ncol =</span> <span class="dv">3</span>, <span class="dt">nrow=</span><span class="dv">4</span>)</a>
-<a class="sourceLine" id="cb17-2" data-line-number="2"><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">P =</span> Tprior) <span class="co"># returns transition matrix by default</span></a></code></pre></div>
-<pre><code>##            [,1]       [,2]       [,3]
-## [1,] 0.41666667 0.03571429 0.01470588
-## [2,] 0.08333333 0.75000000 0.01470588
-## [3,] 0.08333333 0.17857143 0.83823529</code></pre>
-<p>You can get the same result ‘by hand’</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" data-line-number="1">Tobs &lt;-<span class="st"> </span><span class="kw">sweep</span>(TF<span class="op">$</span>Tmat,<span class="dv">2</span>,N,<span class="st">"*"</span>) <span class="co"># get the observed transitions</span></a>
-<a class="sourceLine" id="cb19-2" data-line-number="2">Tobs &lt;-<span class="st"> </span><span class="kw">rbind</span>(Tobs, N <span class="op">-</span><span class="st"> </span><span class="kw">colSums</span>(Tobs)) <span class="co"># add the mortality row</span></a>
-<a class="sourceLine" id="cb19-3" data-line-number="3">Tobs &lt;-<span class="st"> </span>Tobs <span class="op">+</span><span class="st"> </span><span class="fl">0.25</span> <span class="co"># add the prior</span></a>
-<a class="sourceLine" id="cb19-4" data-line-number="4"><span class="kw">sweep</span>(Tobs, <span class="dv">2</span>, <span class="kw">colSums</span>(Tobs), <span class="st">"/"</span>)[<span class="op">-</span><span class="dv">4</span>,] <span class="co"># divide by the column sum, and discard mortality</span></a></code></pre></div>
-<pre><code>##            p          j          a
-## p 0.41666667 0.03571429 0.01470588
-## j 0.08333333 0.75000000 0.01470588
-## a 0.08333333 0.17857143 0.83823529</code></pre>
-<p>The uniform prior creates problems by filling in finite values for transitions that are impossible, such as adult-&gt;seedling (should only be in fecundity matrix). To fix this problem we specify a more informative prior. It still has to have the same shape, one more row than columns.</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1">RLT_Tprior &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="fl">0.25</span>, <span class="fl">0.025</span>, <span class="fl">0.0</span>,</a>
-<a class="sourceLine" id="cb21-2" data-line-number="2">                       <span class="fl">0.05</span>, <span class="fl">0.9</span>,   <span class="fl">0.025</span>,</a>
-<a class="sourceLine" id="cb21-3" data-line-number="3">                       <span class="fl">0.01</span>, <span class="fl">0.025</span>, <span class="fl">0.95</span>,</a>
-<a class="sourceLine" id="cb21-4" data-line-number="4">                       <span class="fl">0.69</span>, <span class="fl">0.05</span>,  <span class="fl">0.025</span>), </a>
-<a class="sourceLine" id="cb21-5" data-line-number="5">                     <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">4</span>, <span class="dt">ncol =</span> <span class="dv">3</span>)</a></code></pre></div>
-<p>This prior is constructed so the columns sum to 1, which creates the greatest flexibility for weighting the prior.</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb22-1" data-line-number="1"><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">P =</span> RLT_Tprior)</a></code></pre></div>
-<pre><code>##             [,1]        [,2]        [,3]
-## [1,] 0.416666667 0.003571429 0.000000000
-## [2,] 0.016666667 0.842857143 0.001470588
-## [3,] 0.003333333 0.146428571 0.879411765</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Both functions can return the full matrix (not very useful)</li>
+</ol>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb32-1" data-line-number="1"><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">returnType =</span> <span class="st">"A"</span>)</a></code></pre></div>
+<pre><code>##    
+##               s           j           a
+##   s 0.104166667 0.005208333 0.124789916
+##   j 0.604166667 0.567708333 0.007142857
+##   a 0.020833333 0.296875000 0.835714286</code></pre>
+</div>
+</div>
+<div id="incorporate-informative-priors" class="section level2">
+<h2 class="hasAnchor">
+<a href="#incorporate-informative-priors" class="anchor"></a>Incorporate informative priors</h2>
+<p>To fix the problem of creating impossible transitions, we specify a more informative prior elicited from an expert on epiphytic orchids (RLT). It still has to have the same shape, one more row than columns.</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" data-line-number="1">RLT_Tprior &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="fl">0.25</span>, <span class="fl">0.025</span>, <span class="dv">0</span>, <span class="fl">0.05</span>, <span class="fl">0.9</span>, <span class="fl">0.025</span>, <span class="fl">0.01</span>, <span class="fl">0.025</span>, <span class="fl">0.95</span>, </a>
+<a class="sourceLine" id="cb34-2" data-line-number="2">    <span class="fl">0.69</span>, <span class="fl">0.05</span>, <span class="fl">0.025</span>), <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">4</span>, <span class="dt">ncol =</span> <span class="dv">3</span>)</a></code></pre></div>
+<p>Note that the 1st row, 3rd column is 0.0, because this transition is impossible. This prior is constructed so the columns sum to 1, which creates the greatest flexibility for weighting the prior. By default the weight is 1, interpreted as a prior sample size of 1.</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb35-1" data-line-number="1"><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">P =</span> RLT_Tprior)</a></code></pre></div>
+<pre><code>##              [,1]         [,2]         [,3]
+## [1,] 0.1041666667 0.0005208333 0.0000000000
+## [2,] 0.5875000000 0.5812500000 0.0007142857
+## [3,] 0.0008333333 0.2921875000 0.8557142857</code></pre>
 <p>We can specify the weight as a multiple of the sample size for each stage.</p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" data-line-number="1"><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">P =</span> RLT_Tprior, <span class="dt">priorweight =</span> <span class="fl">0.5</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb37-1" data-line-number="1"><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">P =</span> RLT_Tprior, <span class="dt">priorweight =</span> <span class="fl">0.5</span>)</a></code></pre></div>
 <pre><code>##             [,1]        [,2]        [,3]
-## [1,] 0.416666667 0.008333333 0.000000000
-## [2,] 0.016666667 0.855555556 0.008333333
-## [3,] 0.003333333 0.119444444 0.900000000</code></pre>
-<p>Here the prior is weighted half as much as the observed number of transitions, which is larger than 1 but still allows the data to dominate.</p>
+## [1,] 0.143939394 0.008333333 0.000000000
+## [2,] 0.440909091 0.682978723 0.008333333
+## [3,] 0.003333333 0.206914894 0.885294118</code></pre>
+<p>Here the prior is weighted half as much as the observed number of transitions. In this case, with only 2 transitions the prior effective sample size is still 1. If the number of observed transitions was larger, a prior weight of 0.5N would be larger than 1, but still allow the data to dominate.</p>
 </div>
-<div id="getting-credible-intervals-on-individual-matrix-entries" class="section level1">
+</div>
+<div id="part-iii-obtain-credible-intervals" class="section level1">
 <h1 class="hasAnchor">
-<a href="#getting-credible-intervals-on-individual-matrix-entries" class="anchor"></a>Getting Credible Intervals on individual matrix entries</h1>
+<a href="#part-iii-obtain-credible-intervals" class="anchor"></a>Part III: Obtain Credible Intervals</h1>
+<div id="obtain-ci-for-indvidual-matrix-entries" class="section level2">
+<h2 class="hasAnchor">
+<a href="#obtain-ci-for-indvidual-matrix-entries" class="anchor"></a>Obtain CI for indvidual matrix entries</h2>
 <p>The marginal posterior distribution of one element in a multinomial is a beta distribution, and we use this to get credible intervals on our transition rates. We can use the TN return type to get the parameters of the desired multinomial.</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" data-line-number="1">TN &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">P =</span> RLT_Tprior, <span class="dt">priorweight =</span> <span class="fl">0.5</span>, <span class="dt">returnType =</span> <span class="st">"TN"</span>)</a>
-<a class="sourceLine" id="cb26-2" data-line-number="2">alpha &lt;-<span class="st"> </span>TN[,<span class="dv">1</span>]</a>
-<a class="sourceLine" id="cb26-3" data-line-number="3">beta &lt;-<span class="st"> </span><span class="kw">sum</span>(TN[,<span class="dv">1</span>]) <span class="op">-</span><span class="st"> </span>TN[,<span class="dv">1</span>]</a>
-<a class="sourceLine" id="cb26-4" data-line-number="4">p &lt;-<span class="st"> </span>alpha <span class="op">/</span><span class="st"> </span>(alpha <span class="op">+</span><span class="st"> </span>beta)</a>
-<a class="sourceLine" id="cb26-5" data-line-number="5">lcl &lt;-<span class="st"> </span><span class="kw">qbeta</span>(<span class="fl">0.025</span>, alpha, beta)</a>
-<a class="sourceLine" id="cb26-6" data-line-number="6">ucl &lt;-<span class="st"> </span><span class="kw">qbeta</span>(<span class="fl">0.975</span>, alpha, beta)</a>
-<a class="sourceLine" id="cb26-7" data-line-number="7"><span class="kw">sprintf</span>(<span class="st">"%.2f (%.2f, %.2f)"</span>, p, lcl, ucl)</a></code></pre></div>
-<pre><code>## [1] "0.42 (0.03, 0.90)" "0.02 (0.00, 0.20)" "0.00 (0.00, 0.02)"
-## [4] "0.56 (0.09, 0.96)"</code></pre>
-<p>Those are the point estimates (compare with first column above), lower and upper 95% credible intervals for transitions out of the seedling stage. There is a high degree of uncertainty because of the small sample size (2), and low weight on the prior (1), leading to an effective sample size of 3. If we up the effective sample size to 20 by setting priorweight = 9 (9*2 = 18 + 2 = 20)</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" data-line-number="1">TN &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">P =</span> RLT_Tprior, <span class="dt">priorweight =</span> <span class="dv">9</span>, <span class="dt">returnType =</span> <span class="st">"TN"</span>)</a>
-<a class="sourceLine" id="cb28-2" data-line-number="2">alpha &lt;-<span class="st"> </span>TN[,<span class="dv">1</span>]</a>
-<a class="sourceLine" id="cb28-3" data-line-number="3">beta &lt;-<span class="st"> </span><span class="kw">sum</span>(TN[,<span class="dv">1</span>]) <span class="op">-</span><span class="st"> </span>TN[,<span class="dv">1</span>] <span class="co"># beta parameter is sum of all other dirichlet parameters.</span></a>
-<a class="sourceLine" id="cb28-4" data-line-number="4">p &lt;-<span class="st"> </span>alpha <span class="op">/</span><span class="st"> </span>(alpha <span class="op">+</span><span class="st"> </span>beta)</a>
-<a class="sourceLine" id="cb28-5" data-line-number="5">lcl &lt;-<span class="st"> </span><span class="kw">qbeta</span>(<span class="fl">0.025</span>, alpha, beta)</a>
-<a class="sourceLine" id="cb28-6" data-line-number="6">ucl &lt;-<span class="st"> </span><span class="kw">qbeta</span>(<span class="fl">0.975</span>, alpha, beta)</a>
-<a class="sourceLine" id="cb28-7" data-line-number="7"><span class="kw">sprintf</span>(<span class="st">"%.2f (%.2f, %.2f)"</span>, p, lcl, ucl)</a></code></pre></div>
-<pre><code>## [1] "0.28 (0.11, 0.48)" "0.05 (0.00, 0.17)" "0.01 (0.00, 0.07)"
-## [4] "0.67 (0.46, 0.85)"</code></pre>
-<p>the credible intervals shrink quite a bit.</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb39-1" data-line-number="1">TN &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fill_transitions.html">fill_transitions</a></span>(TF, N, <span class="dt">P =</span> RLT_Tprior, <span class="dt">priorweight =</span> <span class="fl">0.5</span>, <span class="dt">returnType =</span> <span class="st">"TN"</span>)</a>
+<a class="sourceLine" id="cb39-2" data-line-number="2">alpha &lt;-<span class="st"> </span>TN[, <span class="dv">1</span>]</a>
+<a class="sourceLine" id="cb39-3" data-line-number="3">beta &lt;-<span class="st"> </span><span class="kw">sum</span>(TN[, <span class="dv">1</span>]) <span class="op">-</span><span class="st"> </span>TN[, <span class="dv">1</span>]</a>
+<a class="sourceLine" id="cb39-4" data-line-number="4">p &lt;-<span class="st"> </span>alpha<span class="op">/</span>(alpha <span class="op">+</span><span class="st"> </span>beta)</a>
+<a class="sourceLine" id="cb39-5" data-line-number="5">lcl &lt;-<span class="st"> </span><span class="kw">qbeta</span>(<span class="fl">0.025</span>, alpha, beta)</a>
+<a class="sourceLine" id="cb39-6" data-line-number="6">ucl &lt;-<span class="st"> </span><span class="kw">qbeta</span>(<span class="fl">0.975</span>, alpha, beta)</a>
+<a class="sourceLine" id="cb39-7" data-line-number="7">knitr<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/knitr/topics/kable">kable</a></span>(<span class="kw">sprintf</span>(<span class="st">"%.2f (%.2f, %.2f)"</span>, p, lcl, ucl))</a></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left">x</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">0.14 (0.02, 0.34)</td>
+</tr>
+<tr class="even">
+<td align="left">0.44 (0.22, 0.68)</td>
+</tr>
+<tr class="odd">
+<td align="left">0.00 (0.00, 0.04)</td>
+</tr>
+<tr class="even">
+<td align="left">0.41 (0.19, 0.65)</td>
+</tr>
+</tbody>
+</table>
+<p>Those are the point estimates (compare with first column above), lower and upper <span class="math inline">\(95\%\)</span> symmetric credible intervals for transitions out of the seedling stage. There is a high degree of uncertainty because of the small sample size (<span class="math inline">\(2\)</span>), and low weight on the prior (<span class="math inline">\(1\)</span>), leading to an effective sample size of 3. If we increase the effective sample size to <span class="math inline">\(20\)</span> by specifying: <code>priorweight</code><span class="math inline">\(= 9 (9*2 = 18 + 2 = 20)\)</span> the symmetric credible intervals shrink quite a bit:</p>
+<p><img src="onepopperiod_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
+<p>The transition rate from seedling to juvenile shrinks when the prior sample size is too large. In general the prior sample size should be less than the observed sample size.</p>
 </div>
-<div id="credible-intervals-on-lambda" class="section level1">
-<h1 class="hasAnchor">
+<div id="credible-intervals-on-lambda" class="section level2">
+<h2 class="hasAnchor">
 <a href="#credible-intervals-on-lambda" class="anchor"></a>Credible intervals on <span class="math inline">\(\lambda\)</span>
-</h1>
-<p>Obtaining credible intervals on the asymptotic growth rate, <span class="math inline">\(\lambda\)</span>, requires simulating matrices from the posterior distributions. This is somewhat complicated to do correctly, and we have written a function <code><a href="../reference/sim_transitions.html">sim_transitions()</a></code> to generate a list of simulated matrices given the observed matrix and prior specifications.</p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb30-1" data-line-number="1"><span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(TF, N, <span class="dt">P =</span> RLT_Tprior, <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA</span>, <span class="ot">NA</span>, <span class="fl">0.025</span>), <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA</span>, <span class="ot">NA</span>, <span class="dv">1</span>),</a>
-<a class="sourceLine" id="cb30-2" data-line-number="2">                <span class="dt">priorweight =</span> <span class="fl">0.5</span>)</a></code></pre></div>
+</h2>
+<p>Obtaining credible intervals on the asymptotic growth rate, <span class="math inline">\(\lambda\)</span>, requires simulating matrices from the posterior distributions. This is somewhat complicated to do correctly, and we have written a function <code><a href="../reference/sim_transitions.html">raretrans::sim_transitions()</a></code> to generate a list of simulated matrices given the observed matrix and prior specifications.</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb40-1" data-line-number="1"><span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(TF, N, <span class="dt">P =</span> RLT_Tprior, <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA</span>, <span class="ot">NA</span>, <span class="fl">0.025</span>), <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA</span>, </a>
+<a class="sourceLine" id="cb40-2" data-line-number="2">    <span class="ot">NA</span>, <span class="dv">1</span>), <span class="dt">priorweight =</span> <span class="fl">0.5</span>)</a></code></pre></div>
 <pre><code>## [[1]]
 ##              [,1]       [,2]       [,3]
-## [1,] 6.248136e-01 0.03034545 0.04479663
-## [2,] 3.912627e-21 0.87101236 0.00688868
-## [3,] 8.742142e-20 0.09607538 0.97573436</code></pre>
+## [1,] 4.998590e-02 0.01503749 0.02148950
+## [2,] 5.646228e-01 0.68159789 0.01823104
+## [3,] 3.546484e-17 0.20384823 0.89981659</code></pre>
 <p>Now we simulate 1000 times, calculate the leading eigenvalue of each matrix, and draw a histogram.</p>
-<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb32-1" data-line-number="1"><span class="kw">set.seed</span>(<span class="dv">8390278</span>) <span class="co"># make this part reproducible</span></a>
-<a class="sourceLine" id="cb32-2" data-line-number="2">RLT_<span class="fl">0.5</span> &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(TF, N, <span class="dt">P =</span> RLT_Tprior, <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA</span>, <span class="ot">NA</span>, <span class="fl">0.025</span>), <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA</span>, <span class="ot">NA</span>, <span class="dv">1</span>),</a>
-<a class="sourceLine" id="cb32-3" data-line-number="3">                <span class="dt">priorweight =</span> <span class="fl">0.5</span>, <span class="dt">samples =</span> <span class="dv">1000</span>)</a>
-<a class="sourceLine" id="cb32-4" data-line-number="4">RLT_<span class="fl">0.5</span> &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">lposterior =</span> <span class="kw">map_dbl</span>(RLT_<span class="fl">0.5</span>, lambda))</a>
-<a class="sourceLine" id="cb32-5" data-line-number="5"></a>
-<a class="sourceLine" id="cb32-6" data-line-number="6"><span class="kw">ggplot</span>(<span class="dt">data =</span> RLT_<span class="fl">0.5</span>,</a>
-<a class="sourceLine" id="cb32-7" data-line-number="7">       <span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x =</span> lposterior)) <span class="op">+</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb32-8" data-line-number="8"><span class="st">  </span><span class="kw">geom_histogram</span>(<span class="dt">binwidth =</span> <span class="fl">0.02</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb42-1" data-line-number="1"><span class="kw">set.seed</span>(<span class="dv">8390278</span>)  <span class="co"># make this part reproducible</span></a>
+<a class="sourceLine" id="cb42-2" data-line-number="2">RLT_<span class="fl">0.5</span> &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(TF, N, <span class="dt">P =</span> RLT_Tprior, <span class="dt">alpha =</span> <span class="kw">c</span>(<span class="ot">NA</span>, <span class="ot">NA</span>, <span class="fl">0.025</span>), </a>
+<a class="sourceLine" id="cb42-3" data-line-number="3">    <span class="dt">beta =</span> <span class="kw">c</span>(<span class="ot">NA</span>, <span class="ot">NA</span>, <span class="dv">1</span>), <span class="dt">priorweight =</span> <span class="fl">0.5</span>, <span class="dt">samples =</span> <span class="dv">1000</span>)</a>
+<a class="sourceLine" id="cb42-4" data-line-number="4">RLT_<span class="fl">0.5</span> &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">lposterior =</span> <span class="kw">map_dbl</span>(RLT_<span class="fl">0.5</span>, lambda))</a>
+<a class="sourceLine" id="cb42-5" data-line-number="5"></a>
+<a class="sourceLine" id="cb42-6" data-line-number="6"><span class="kw">ggplot</span>(<span class="dt">data =</span> RLT_<span class="fl">0.5</span>, <span class="dt">mapping =</span> <span class="kw">aes</span>(<span class="dt">x =</span> lposterior)) <span class="op">+</span><span class="st"> </span><span class="kw">geom_histogram</span>(<span class="dt">binwidth =</span> <span class="fl">0.02</span>)</a></code></pre></div>
 <p><img src="onepopperiod_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
 <p>We can calculate some summary statistics too.</p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" data-line-number="1">RLT_<span class="fl">0.5</span>_summary &lt;-<span class="st"> </span><span class="kw">summarize</span>(RLT_<span class="fl">0.5</span>,</a>
-<a class="sourceLine" id="cb33-2" data-line-number="2">                             <span class="dt">medianL =</span> <span class="kw">median</span>(lposterior),</a>
-<a class="sourceLine" id="cb33-3" data-line-number="3">                             <span class="dt">meanL =</span> <span class="kw">mean</span>(lposterior),</a>
-<a class="sourceLine" id="cb33-4" data-line-number="4">                             <span class="dt">lcl =</span> <span class="kw">quantile</span>(lposterior, <span class="dt">probs =</span> <span class="fl">0.025</span>),</a>
-<a class="sourceLine" id="cb33-5" data-line-number="5">                             <span class="dt">ucl =</span> <span class="kw">quantile</span>(lposterior, <span class="dt">probs =</span> <span class="fl">0.975</span>),</a>
-<a class="sourceLine" id="cb33-6" data-line-number="6">                             <span class="dt">pincrease =</span> <span class="kw">sum</span>(lposterior <span class="op">&gt;</span><span class="st"> </span><span class="fl">1.</span>)<span class="op">/</span><span class="kw">n</span>())</a>
-<a class="sourceLine" id="cb33-7" data-line-number="7">knitr<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/knitr/topics/kable">kable</a></span>(RLT_<span class="fl">0.5</span>_summary, <span class="dt">digits =</span> <span class="dv">2</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb43-1" data-line-number="1">RLT_<span class="fl">0.5</span>_summary &lt;-<span class="st"> </span><span class="kw">summarize</span>(RLT_<span class="fl">0.5</span>, <span class="dt">medianL =</span> <span class="kw">median</span>(lposterior), <span class="dt">meanL =</span> <span class="kw">mean</span>(lposterior), </a>
+<a class="sourceLine" id="cb43-2" data-line-number="2">    <span class="dt">lcl =</span> <span class="kw">quantile</span>(lposterior, <span class="dt">probs =</span> <span class="fl">0.025</span>), <span class="dt">ucl =</span> <span class="kw">quantile</span>(lposterior, <span class="dt">probs =</span> <span class="fl">0.975</span>), </a>
+<a class="sourceLine" id="cb43-3" data-line-number="3">    <span class="dt">pincrease =</span> <span class="kw">sum</span>(lposterior <span class="op">&gt;</span><span class="st"> </span><span class="dv">1</span>)<span class="op">/</span><span class="kw">n</span>())</a>
+<a class="sourceLine" id="cb43-4" data-line-number="4">knitr<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/knitr/topics/kable">kable</a></span>(RLT_<span class="fl">0.5</span>_summary, <span class="dt">digits =</span> <span class="dv">2</span>)</a></code></pre></div>
 <table class="table">
 <thead><tr class="header">
 <th align="right">medianL</th>
@@ -286,13 +375,14 @@
 <th align="right">pincrease</th>
 </tr></thead>
 <tbody><tr class="odd">
-<td align="right">0.95</td>
 <td align="right">0.94</td>
-<td align="right">0.83</td>
+<td align="right">0.93</td>
+<td align="right">0.85</td>
 <td align="right">1</td>
-<td align="right">0.01</td>
+<td align="right">0.03</td>
 </tr></tbody>
 </table>
+</div>
 </div>
   </div>
 
@@ -301,9 +391,24 @@
       <h2 class="hasAnchor">
 <a href="#tocnav" class="anchor"></a>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
-<li><a href="#informative-priors">Informative Priors</a></li>
-      <li><a href="#getting-credible-intervals-on-individual-matrix-entries">Getting Credible Intervals on individual matrix entries</a></li>
+<li>
+<a href="#part-i-obtaining-the-projection-matrix">Part I: Obtaining the projection matrix</a><ul class="nav nav-pills nav-stacked">
+<li><a href="#step-1-load-and-munge-the-single-population-data-for-l--elto">Step 1: Load and munge the single population data for <em>L. elto</em></a></li>
+      <li><a href="#step-2-obtain-starting-number-of-individuals-per-stage">Step 2: Obtain starting number of individuals per stage</a></li>
+      </ul>
+</li>
+      <li>
+<a href="#part-2-using-priors-to-incorporate-rare-transitions">Part 2: Using priors to incorporate rare transitions</a><ul class="nav nav-pills nav-stacked">
+<li><a href="#use-uninformative-priors">Use uninformative priors</a></li>
+      <li><a href="#incorporate-informative-priors">Incorporate informative priors</a></li>
+      </ul>
+</li>
+      <li>
+<a href="#part-iii-obtain-credible-intervals">Part III: Obtain Credible Intervals</a><ul class="nav nav-pills nav-stacked">
+<li><a href="#obtain-ci-for-indvidual-matrix-entries">Obtain CI for indvidual matrix entries</a></li>
       <li><a href="#credible-intervals-on-lambda">Credible intervals on <span class="math inline">\(\lambda\)</span></a></li>
+      </ul>
+</li>
       </ul>
 </div>
       </div>
