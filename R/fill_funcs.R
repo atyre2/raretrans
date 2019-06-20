@@ -78,7 +78,7 @@ fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "T"
 #'
 #' @export
 #'
-fill_fecundity <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight = -1, returnType = "F"){
+fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight = -1, returnType = "F"){
   Tmat <- TF$T
   Fmat <- TF$F
   order <- dim(Tmat)[1]
