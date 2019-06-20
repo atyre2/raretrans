@@ -49,7 +49,7 @@ sim_transitions <- function(TF, N, P = NULL, alpha = 0.00001, beta = 0.00001, pr
     }
   }
   TN <- fill_transitions(TF, N, P, priorweight, returnType = "TN")
-  ab_post <- fill_fecundity(TF, N, alpha = alpha, beta = beta, priorweight = priorweight, returnType = "ab")
+  ab_post <- fill_fertility(TF, N, alpha = alpha, beta = beta, priorweight = priorweight, returnType = "ab")
   alpha <- ab_post$alpha
   beta <- ab_post$beta
 

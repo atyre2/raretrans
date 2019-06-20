@@ -111,7 +111,7 @@ fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
   } else if (returnType == "ab"){
     return(list(alpha = alpha_post, beta = beta_post))
   } else {
-    stop("Bad returntype in fill_fecundity()")
+    stop("Bad returntype in fill_fertility()")
   }
 }
 
