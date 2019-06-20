@@ -282,6 +282,10 @@ ggplot(testing, aes(x=lmbda, y=ldirch)) + geom_point() +
 ggsave("fillDirichlet.png", path=pathtoimages)
 ```
 
+```{r}
+testing %>% summarize(m_ldirch = mean(ldirch)) %>% kableExtra::kable()
+```
+
 The matrices with $\lambda = 0$ typically have very few individuals that all die. Matrices with $\lambda = 1$ usually have observed transitions only on the main diagonal. 
 
 ```{r checkErgIrr}
