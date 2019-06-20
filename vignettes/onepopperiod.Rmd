@@ -35,7 +35,7 @@ data("L_elto") # load the dataset `L_elto` into memory (from package `raretrans`
 head(L_elto) 
 ```
 
-Each row of this dataframe has columns for current stage, the next stage, and average per individual fertility.
+Each row of this dataframe has columns for current stage, the next stage, and average per individual fertility. Note that “p" stands from "plantula" which means "seedlings" in Spanish. The first set of lines below change the name of the life history stage  from “p” to “s” after selecting the population and time period. 
 
 ```{r mungeData}
 onepop <- L_elto %>%   
@@ -73,7 +73,7 @@ N # A vector of # of starting individuals for each stage
 ```
 
 The list of matrices and vector of individual counts do not have to come from a dataframe as we've done here. 
-As long as they have the expected format they can be created by hand. We use population 231 in period 2 as an example, splitting the matrix into transition T and fecundity F matrices.
+As long as they have the expected format they can be created by hand. We use population 231 in period 2 as an example, splitting the matrix into transition T and fecundity F matrices. Below, "m" stands for "muerte" that is plants that are dead.
 
 ```{r, echo=FALSE}
 Tmat <- L_elto %>% 
@@ -83,16 +83,17 @@ Tmat <- L_elto %>%
   as.data.frame() %>% 
   xtabs(~fate + stage, data = .) %>% 
   as.matrix()
-Tmat <- Tmat[,-4]
-N2 <- colSums(Tmat)
+Tmat <- Tmat[,-4] #throw away the row for transitions to death
+N2 <- colSums(Tmat) #get the total number ... CHECK should be before 86
 Tmat <- sweep(Tmat[-4,], 1, N2, "/")
+# figure out how much reproduction happened in year 2 by looking at year 3
 # L_elto %>% 
 #   mutate(stage = factor(stage, levels=c("p","j","a","m")),
 #          fate = factor(next_stage, levels=c("p","j","a","m"))) %>%
 #   filter(POPNUM == 231, year == 3, stage == "p") %>%
 #   count(stage) 
 # 2 offspring from N[3] == 16 adults
-Fmat <- matrix(0, nrow=3, ncol=3)
+Fmat <- matrix(0, nrow=3, ncol=3) # create a matrix full of zeros
 Fmat[1,3] <- 2/16 # counted 16 adults in this stage, and 2 seedlings in next year
 TF2 <- list(Tmat = Tmat, Fmat = Fmat)
 ```
@@ -131,18 +132,19 @@ Tobs <- Tobs + 0.25 # add the prior
 sweep(Tobs, 2, colSums(Tobs), "/")[-4,] # divide by the column sum, and discard mortalityrow
 ```
 
-The uniform prior fills in the missing transitions, but also creates problems because it provides transition values that are biologically impossible. For example, it provides a transition for adult->seedling, when this transition is only possible in the fecundity matrix $F$.
+The uniform prior fills in the missing transitions, but also creates problems because it provides transition values that are biologically impossible. For example, it provides a transition for adult->seedling, when this transition is only possible in the fecundity matrix $F$. For this reason
+we do not recommend using uniform priors.
 
 
-### Fecundity matrix
+### Fertility matrix
 
-We must specify the parameters for the fecundity prior on the non-reproducing stages as **missing**, else the result will fill in the entire matrix. 
+We must specify the parameters for the fertility prior on the non-reproducing stages as **missing**, else the result will fill in the entire matrix. 
 
 ```{r}
-fill_fecundity(TF, N, alpha = c(NA_real_, NA_real_, 1e-05), beta = c(NA_real_, NA_real_, 1e-05))
+fill_fertilityt(TF, N, alpha = c(NA_real_, NA_real_, 1e-05), beta = c(NA_real_, NA_real_, 1e-05))
 ```
 
-The change in the fecundity is < 0.0001 compared to the observed value. Calculating by hand, prior alpha is 
+The change in the fertility is < 0.0001 compared to the observed value. Calculating by hand, prior alpha is 
 the number of observed offspring, and prior beta is the number of observed adults. 
 
 ```{r}
@@ -160,7 +162,7 @@ Now we can put them together.
 
 ```{r uninformativePrior}
 unif <- list(T = fill_transitions(TF, N), 
-             F = fill_fecundity(TF, N, 
+             F = fill_fertility(TF, N, 
                                 alpha = c(NA_real_, NA_real_, 1e-05),
                                 beta = c(NA_real_, NA_real_, 1e-05)))
 unif
@@ -168,17 +170,17 @@ unif
 
 The asymptotic population growth rate is now $\lambda =$ `r format(lambda(unif$T + unif$F),digits = 2)`. The growth rate shrinks slightly because applying the uniform prior to the transition probabilities causes the observed growth and survival transitions to shrink slightly relative to the unobserved transitions. 
 
-### Other options for `returnType`
+### Other options for argument `returnType`
 
-There are three other `returnType`s:
+By default `fill_transitions()` returns the transition matrix $T$, and `fill_fertility()` returns the fertility matrix $F$. There are three other values that the argument `returnType` can take:
 
-1. `fill_transitions()` returns an augmented matrix of fates, which is useful for simulation. The fourth row of this result (see below) is the mortality state.   
+1. `fill_transitions(... returnType = "TN")` can return an augmented matrix of fates, which is useful for simulation. The fourth row of this result (see below) is the mortality state.   
 ```{r}
 fill_transitions(TF, N, returnType = "TN")
 ```
-2. `fill_fecundity()` returns the alpha and beta vectors of the posterior.  
+2. `fill_fertility(... returnType = "ab")` returns the alpha and beta vectors of the posterior.  
 ```{r}
-fill_fecundity(TF, N, 
+fill_fertility(TF, N, 
                alpha = c(NA_real_, NA_real_, 1e-05),
                beta = c(NA_real_, NA_real_, 1e-05),
                returnType = "ab")
@@ -257,7 +259,8 @@ ggplot(data = alltogethernow,
   geom_point(mapping = aes(shape = priorweight), 
              position = position_dodge(width =0.5)) + 
   geom_errorbar(mapping = aes(ymin = lcl, ymax = ucl),
-                position = position_dodge(width = 0.5))
+                position = position_dodge(width = 0.5)) + 
+  rlt_theme
 ```
 
 The transition rate from seedling to juvenile shrinks when the prior sample size is too large. 
@@ -284,7 +287,8 @@ RLT_0.5 <- tibble(lposterior = map_dbl(RLT_0.5, lambda))
 
 ggplot(data = RLT_0.5,
        mapping = aes(x = lposterior)) + 
-  geom_histogram(binwidth = 0.02)
+  geom_histogram(binwidth = 0.02) + 
+  rlt_theme
 ```
 
 We can calculate some summary statistics too.
