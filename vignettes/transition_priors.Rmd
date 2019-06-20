@@ -318,7 +318,7 @@ So using a Dirichlet prior to fill in the gaps works, and doesn't appear to dist
 
 ## Fill in using uninformative priors on fertility
 
-The other component of the matrix is the fertility. We do this by using a Gamma prior with the function `fill_fecundity()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Gamma prior only applies to the $F$ matrix. If not specified, the function assumes an uniformative prior with $\alpha = 0.00001, \beta = 0.00001$ across all stages. Stages that do not reproduce are marked with `NA_real_` in the prior probability vectors. Again, demonstrate with a single example. The posterior $\alpha$ is given by the sum of the prior $\alpha = 0.00001$ and the number of offspring next year (2 in this case), while the posterior $\beta$ is simply the sum of the prior and the number of adults contributing to the observed reproduction.
+The other component of the matrix is the fertility. We do this by using a Gamma prior with the function `fill_fertility()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Gamma prior only applies to the $F$ matrix. If not specified, the function assumes an uniformative prior with $\alpha = 0.00001, \beta = 0.00001$ across all stages. Stages that do not reproduce are marked with `NA_real_` in the prior probability vectors. Again, demonstrate with a single example. The posterior $\alpha$ is given by the sum of the prior $\alpha = 0.00001$ and the number of offspring next year (2 in this case), while the posterior $\beta$ is simply the sum of the prior and the number of adults contributing to the observed reproduction.
 
 ```{r}
 post_alpha = 0.00001 + 2
@@ -337,10 +337,10 @@ isErgodic(tmat+fmat2)
 isIrreducible(tmat+fmat2)
 ```
 
-The uninformative prior on fecundity makes very little difference to lambda, and does not help with issues of ergodicity and irreducibility. 
+The uninformative prior on fertility makes very little difference to lambda, and does not help with issues of ergodicity and irreducibility. 
 
 ```{r fillGamma, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data."}
-testing <- allA %>% mutate(Agamma = map2(TF, N, fill_fecundity, 
+testing <- allA %>% mutate(Agamma = map2(TF, N, fill_fertility, 
                                          alpha = c(NA_real_, NA_real_, 0.00001), 
                                          beta = c(NA_real_, NA_real_, 0.00001), 
                                          priorweight = 1, returnType = "A"),
@@ -360,7 +360,7 @@ ggplot(testing, aes(x=lmbda, y=lgamma)) + geom_point() +
 
 ```
 
-The matrices with $\lambda = 0$ typically have very few individuals. Matrices with $\lambda = 1$ usually have transitions only on the main diagonal. The uninformative Gamma prior does not change $\lambda$, and does not improve the ergodicity and irreducibility issue. When there is at least 1 adult present, the expected value of Fecundity is very close to zero. When there are no adults present, all those matrices cannot reach the adult stage and so the expected value of Fecundity does not affect $\lambda$. However, this is not a necessary condition. 
+The matrices with $\lambda = 0$ typically have very few individuals. Matrices with $\lambda = 1$ usually have transitions only on the main diagonal. The uninformative Gamma prior does not change $\lambda$, and does not improve the ergodicity and irreducibility issue. When there is at least 1 adult present, the expected value of fertility is very close to zero. When there are no adults present, all those matrices cannot reach the adult stage and so the expected value of fertility does not affect $\lambda$. However, this is not a necessary condition. 
 
 ```{r checkErgIrrGamma}
 ergo_irr <- as.data.frame(with(testing, table(erggamma, irrgamma)))
@@ -387,11 +387,11 @@ RLT_Fprior <- matrix(c(0.0, 0.0, 0.025,
 
 The RLT prior gives $\lambda = `r format(lambda(RLT_Tprior[-4,] + RLT_Fprior), digits = 2)`$. In an ideal world this prior would be extracted prior to collecting the data. In this case the prior is only being used to demonstrate the technique.
 
-```{r fillDirichletPrior1, fig.cap="Asymptotic growth rates using prior information on transitions and fecundity vs. the raw observations alone. The horizontal red line indicates $\\lambda$ for the RLT prior. Points for all four priors shown in transparent grey."}
+```{r fillDirichletPrior1, fig.cap="Asymptotic growth rates using prior information on transitions and fertility vs. the raw observations alone. The horizontal red line indicates $\\lambda$ for the RLT prior. Points for all four priors shown in transparent grey."}
 diffPriors <- list()
 diffPriors[["Uniform"]] <- testing %>% 
   mutate(Tprior = map2(TF, N, fill_transitions, returnType = "T"),
-         Fprior = map2(TF, N, fill_fecundity,
+         Fprior = map2(TF, N, fill_fertility,
                        alpha = c(NA_real_, NA_real_, 0.00001),
                        beta = c(NA_real_, NA_real_, 0.00001), priorweight = -1, returnType = "F"),
          Aprior = map2(Tprior, Fprior, `+`),
@@ -401,7 +401,7 @@ diffPriors[["Uniform"]] <- testing %>%
 diffPriors[["RLT, weight = 1"]] <- testing %>% 
   mutate(Tprior = map2(TF, N, fill_transitions, 
                        P = RLT_Tprior, returnType = "T"),
-         Fprior = map2(TF, N, fill_fecundity,
+         Fprior = map2(TF, N, fill_fertility,
                        alpha = c(NA_real_, NA_real_, 0.025),
                        beta = c(NA_real_, NA_real_, 1), priorweight = -1, returnType = "F"),
          Aprior = map2(Tprior, Fprior, `+`),
@@ -410,7 +410,7 @@ diffPriors[["RLT, weight = 1"]] <- testing %>%
 diffPriors[["RLT, weight = 0.5N"]] <- testing %>% 
   mutate(Tprior = map2(TF, N, fill_transitions, 
                        P = RLT_Tprior, priorweight = 0.5, returnType = "T"),
-         Fprior = map2(TF, N, fill_fecundity,
+         Fprior = map2(TF, N, fill_fertility,
                        alpha = c(NA_real_, NA_real_, 0.025),
                        beta = c(NA_real_, NA_real_, 1), priorweight = 0.5, returnType = "F"),
          Aprior = map2(Tprior, Fprior, `+`),
@@ -419,7 +419,7 @@ diffPriors[["RLT, weight = 0.5N"]] <- testing %>%
 diffPriors[["RLT, weight = N"]] <- testing %>% 
   mutate(Tprior = map2(TF, N, fill_transitions, 
                        P = RLT_Tprior, priorweight = 1, returnType = "T"),
-         Fprior = map2(TF, N, fill_fecundity,
+         Fprior = map2(TF, N, fill_fertility,
                        alpha = c(NA_real_, NA_real_, 0.025),
                        beta = c(NA_real_, NA_real_, 1), priorweight = 1, returnType = "F"),
          Aprior = map2(Tprior, Fprior, `+`),
