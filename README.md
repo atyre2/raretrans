@@ -28,5 +28,9 @@ development version from github with:
 devtools::install_github("atyre2/raretrans")
 ```
 
-If you want the vignettes, you have to add `build_vignettes = TRUE` to
-`install_github()`.
+If you want the vignettes, you have to add some additional
+arguments.
+
+``` r
+devtools::install_github("atyre2/raretrans", build = TRUE, build_opts = c("--no-resave-data", "--no-manual"))
+```
