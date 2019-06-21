@@ -83,8 +83,8 @@ Tmat <- L_elto %>%
   as.data.frame() %>% 
   xtabs(~fate + stage, data = .) %>% 
   as.matrix()
+Tmat <- Tmat[,-4] #throw away the column for transitions to death
 N2 <- colSums(Tmat) #get the total number ... CHECK should be before 86
-Tmat <- Tmat[,-4] #throw away the row for transitions to death
 Tmat <- sweep(Tmat[-4,], 1, N2, "/") #normalize to 1, discarding transitions FROM death
 # figure out how much reproduction happened in year 2 by looking at year 3
 # L_elto %>% 
@@ -103,7 +103,8 @@ TF2
 N2
 ```
 
-This matrix is missing the transition from seedling to juvenile, and none of the 6 juveniles died leading to an overestimate of survival. The observed asymptotic population growth rate is $\lambda =$ `r format(lambda(TF2$T + TF2$F),digits = 2)`. The matrix is not Ergodic (you can't get to every other state from one or more states), and
+This matrix is missing the transition from seedling to juvenile, and none of the 6 juveniles died leading to an overestimate of survival. The observed asymptotic population growth rate is $\lambda =$ 
+`r format(lambda(TF2$T + TF2$F),digits = 2)`. The matrix is not Ergodic (you can't get to every other state from one or more states), and
 reducible, meaning one or more columns and rows can be discarded and have the same eigen properties. 
 
 # Part 2: Using priors to incorporate rare transitions 
@@ -220,7 +221,7 @@ Here the prior is weighted half as much as the observed number of transitions. I
 with only 2 transitions the prior effective sample size is still 1. If the number of observed
 transitions was larger, a prior weight of 0.5N would be larger than 1, but still allow the data to dominate.
 
-# Part III: Obtain Credible Intervals
+# Part 3: Obtain Credible Intervals
 
 ## Obtain CI for indvidual matrix entries
 
