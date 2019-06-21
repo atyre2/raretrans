@@ -5,8 +5,8 @@ output:
     fig_caption: yes
 vignette: >
   %\VignetteIndexEntry{Working with a single population and transition period}
-  \VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
 ---
 
 ```{r setup, message = FALSE}
@@ -141,7 +141,7 @@ we do not recommend using uniform priors.
 We must specify the parameters for the fertility prior on the non-reproducing stages as **missing**, else the result will fill in the entire matrix. 
 
 ```{r}
-fill_fertilityt(TF, N, alpha = c(NA_real_, NA_real_, 1e-05), beta = c(NA_real_, NA_real_, 1e-05))
+fill_fertility(TF, N, alpha = c(NA_real_, NA_real_, 1e-05), beta = c(NA_real_, NA_real_, 1e-05))
 ```
 
 The change in the fertility is < 0.0001 compared to the observed value. Calculating by hand, prior alpha is 
