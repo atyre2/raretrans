@@ -30,7 +30,18 @@ Functions to create matrix population models from a combination
 
 ## Installation
 
-raretrans is not currently available from CRAN, but you can install the development version from github with:
+raretrans is not currently available from CRAN, but you can install from github.
+
+Code and data used to produce Raymond L. Tremblay, Andrew J. Tyre , Maria-Eglée Pérez, James D. Ackerman (in review) Population projections from holey matrices: Using prior information to estimate rare transition events is tagged v1.0.0, so:
+
+```{r, eval = FALSE}
+# install.packages("devtools") # if needed
+devtools::install_github("atyre2/raretrans@v1.0.0")
+```
+
+Alternatively, [download a package archive file from the release page](https://github.com/atyre2/raretrans/releases). 
+
+Get the development version from github with:
 
 ```{r, eval = FALSE}
 # install.packages("devtools")
