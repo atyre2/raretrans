@@ -2,10 +2,11 @@
 library(tidyverse)
 df <- read_csv("data-raw/L.elto.george-30-08-2004_Drew.csv")
 newnames <- toupper(gsub("[^a-zA-Z0-9_]","",names(df)))
-newnames[5:6] <- c("NUMLEA1","NUMINF1")
+#newnames[5:6] <- c("NUMLEA1","NUMINF1")
 newnames[1] <- "POPNUM"
+newnames[2] <- "IND_NUM"
 names(df) <- newnames
-df_stages <- select(df, 1:4, matches("STAGE0[1-9]+")) %>%
+df_stages <- select(df, 1:2, matches("STAGE0[1-9]+")) %>%
   gather(key="year", value="stage", matches("STAGE[0-9]+"))
 df_stages$year <- as.numeric(regmatches(df_stages$year,regexpr("[0-9]+",df_stages$year)))
 df_stages <- group_by(df_stages, POPNUM, IND_NUM) %>%
@@ -45,7 +46,7 @@ L_elto <- df_4 %>% group_by(POPNUM, year) %>%
   ungroup()
 
 # push it out to data/
-devtools::use_data(L_elto, overwrite = TRUE)
+usethis::use_data(L_elto, overwrite = TRUE)
 
 # if changed deliberately, push to tests/testthat/one.rds as well
 saveRDS(L_elto, "tests/testthat/one.rds")
