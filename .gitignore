@@ -6,5 +6,6 @@ inst/doc
 .httr-oauth
 vignettes/images/
 vignettes/.DS_Store
+.DS_Store
 doc
 Meta
