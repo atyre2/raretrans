@@ -83,9 +83,9 @@ Tmat <- L_elto %>%
   as.data.frame() %>% 
   xtabs(~fate + stage, data = .) %>% 
   as.matrix()
-Tmat <- Tmat[,-4] #throw away the row for transitions to death
 N2 <- colSums(Tmat) #get the total number ... CHECK should be before 86
-Tmat <- sweep(Tmat[-4,], 1, N2, "/")
+Tmat <- Tmat[,-4] #throw away the row for transitions to death
+Tmat <- sweep(Tmat[-4,], 1, N2, "/") #normalize to 1, discarding transitions FROM death
 # figure out how much reproduction happened in year 2 by looking at year 3
 # L_elto %>% 
 #   mutate(stage = factor(stage, levels=c("p","j","a","m")),
@@ -185,7 +185,7 @@ fill_fertility(TF, N,
                beta = c(NA_real_, NA_real_, 1e-05),
                returnType = "ab")
 ```
-3. Both functions can return the full matrix (not very useful)
+3. Both functions can also return the full matrix, the sum of $T$ and $F$.
 ```{r}
 fill_transitions(TF, N, returnType = "A")
 ```
@@ -230,12 +230,12 @@ TN return type to get the parameters of the desired multinomial.
 
 ```{r}
 TN <- fill_transitions(TF, N, P = RLT_Tprior, priorweight = 0.5, returnType = "TN")
-alpha <- TN[,1]
-beta <- sum(TN[,1]) - TN[,1]
+alpha <- TN[,1] # change 1 to 2, 3 etc to get marginal distribution of other columns
+beta <- sum(TN[,1]) - TN[,1]# change 1 to 2, 3 etc to get marginal distribution of other columns
 p <- alpha / (alpha + beta)
 lcl <- qbeta(0.025, alpha, beta)
 ucl <- qbeta(0.975, alpha, beta)
-knitr::kable(sprintf("%.2f (%.2f, %.2f)", p, lcl, ucl))
+knitr::kable(sprintf("%.3f (%.3f, %.3f)", p, lcl, ucl))
 ```
 
 Those are the point estimates (compare with first column above), lower and upper $95\%$ symmetric credible 
@@ -281,8 +281,10 @@ Now we simulate 1000 times, calculate the leading eigenvalue of each matrix, and
 
 ```{r}
 set.seed(8390278) # make this part reproducible
+# generate 1000 matrices based on the prior transitions and fertilities plus the data
 RLT_0.5 <- sim_transitions(TF, N, P = RLT_Tprior, alpha = c(NA, NA, 0.025), beta = c(NA, NA, 1),
                 priorweight = 0.5, samples = 1000)
+# extract the lambdas for each matrix
 RLT_0.5 <- tibble(lposterior = map_dbl(RLT_0.5, lambda))
 
 ggplot(data = RLT_0.5,
@@ -291,7 +293,7 @@ ggplot(data = RLT_0.5,
   rlt_theme
 ```
 
-We can calculate some summary statistics too.
+We can calculate some summary statistics too. `pincrease` is the probability that $\lambda > 1$.
 
 ```{r}
 RLT_0.5_summary <- summarize(RLT_0.5,
