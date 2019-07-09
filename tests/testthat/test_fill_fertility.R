@@ -39,8 +39,9 @@ test_that("priorweight can be changed", {
 })
 
 test_that("returnType can be changed", {
-  expect_type(fill_fertility(TF, N, c(NA_real_, NA_real_, 1e-05), c(NA_real_, NA_real_, 1e-05), returnType=ab), "list")
-  expect_vector(fill_fertility(TF, N, c(NA_real_, NA_real_, 1e-05), c(NA_real_, NA_real_, 1e-05), returnType=A))
+  expect_type(fill_fertility(TF, N, c(NA_real_, NA_real_, 1e-05), c(NA_real_, NA_real_, 1e-05), returnType="ab"), "list")
+  expect_vector(fill_fertility(TF, N, c(NA_real_, NA_real_, 1e-05), c(NA_real_, NA_real_, 1e-05), returnType="A"))
+  expect_error(fill_fertility(TF, N, c(NA_real_, NA_real_, 1e-05), c(NA_real_, NA_real_, 1e-05), returnType=""))
 })
 
 test_that("fill fertility throws errors", {
