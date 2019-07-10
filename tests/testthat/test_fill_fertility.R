@@ -41,7 +41,7 @@ test_that("returnType can be changed", {
   expect_error(fill_fertility(TF, N, c(NA_real_, NA_real_, 1e-05), c(NA_real_, NA_real_, 1e-05), returnType=""))
 })
 
-test_that("fill fertility throws errors", {
+test_that("fill fertility throws errors and warnings with invalid arguments", {
   expect_error(fill_fertility(N, TF, c(NA_real_, NA_real_, 1e-05), c(NA_real_, NA_real_, 1e-05)))
   expect_error(fill_fertility(N, TF, c(NA_real_, NA_real_, 1e-05)))
   expect_error(fill_fertility(N, c(NA_real_, NA_real_, 1e-05), c(NA_real_, NA_real_, 1e-05)))
@@ -53,5 +53,5 @@ test_that("fill fertility throws errors", {
   expect_error(fill_fertility(N = TF, TF = N, alpha = c(NA_real_, NA_real_, 1e-05), beta = c(NA_real_, NA_real_, 1e-05)))
   expect_error(fill_fertility(TF, TF, TF, TF))
   expect_error(fill_fertility(TF, N, TF, N))
-  expect_error(fill_fertility(TF, N, 1, 1))
+  expect_warning(fill_fertility(TF, N, 1, 1))
 })
