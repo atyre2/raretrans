@@ -1,6 +1,6 @@
 library(dplyr)
 
-context("fill fecundity")
+context("fill fertility")
 
 data(L_elto)
 
@@ -21,7 +21,7 @@ test_that("args are correct", {
   expect_equal(N, c(11, 47, 34))
 })
 
-test_that("fill fertility behaves", {
+test_that("fill_fertility behaves", {
   expect_length(fill_fertility(TF, N, c(NA_real_, NA_real_, 1e-05), c(NA_real_, NA_real_, 1e-05)), 9)
   expect_type(fill_fertility(TF, N, c(NA_real_, NA_real_, 1e-05), c(NA_real_, NA_real_, 1e-05)), "double")
   expect_vector(fill_fertility(TF, N, c(NA_real_, NA_real_, 1e-05), c(NA_real_, NA_real_, 1e-05)))
