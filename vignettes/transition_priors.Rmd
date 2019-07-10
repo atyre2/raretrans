@@ -318,7 +318,7 @@ So using a Dirichlet prior to fill in the gaps works, and doesn't appear to dist
 
 ## Fill in using uninformative priors on fertility
 
-The other component of the matrix is the fertility. We do this by using a Gamma prior with the function `fill_fertility()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Gamma prior only applies to the $F$ matrix. If not specified, the function assumes an uniformative prior with $\alpha = 0.00001, \beta = 0.00001$ across all stages. Stages that do not reproduce are marked with `NA_real_` in the prior probability vectors. Again, demonstrate with a single example. The posterior $\alpha$ is given by the sum of the prior $\alpha = 0.00001$ and the number of offspring next year (2 in this case), while the posterior $\beta$ is simply the sum of the prior and the number of adults contributing to the observed reproduction.
+The other component of the matrix is the fertility. We do this by using a Gamma prior with the function `fill_fertility()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Gamma prior only applies to the $F$ matrix. If not specified, the function assumes an uniformative prior with $\alpha = 0.00001, \beta = 0.00001$ across all stages. Again, demonstrate with a single example. The posterior $\alpha$ is given by the sum of the prior $\alpha = 0.00001$ and the number of offspring next year (2 in this case), while the posterior $\beta$ is simply the sum of the prior and the number of adults contributing to the observed reproduction.
 
 ```{r}
 post_alpha = 0.00001 + 2
@@ -341,8 +341,8 @@ The uninformative prior on fertility makes very little difference to lambda, and
 
 ```{r fillGamma, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data."}
 testing <- allA %>% mutate(Agamma = map2(TF, N, fill_fertility, 
-                                         alpha = c(NA_real_, NA_real_, 0.00001), 
-                                         beta = c(NA_real_, NA_real_, 0.00001), 
+                                         alpha = 0.00001, 
+                                         beta =  0.00001, 
                                          priorweight = 1, returnType = "A"),
                            lgamma = map_dbl(Agamma, lambda),                 
          irrgamma = map_dbl(Agamma, isIrreducible),
@@ -379,9 +379,13 @@ RLT_Tprior <- matrix(c(0.25, 0.025, 0.0,
                        0.01, 0.025, 0.95,
                        0.69, 0.05,  0.025), 
                      byrow = TRUE, nrow = 4, ncol = 3)
-RLT_Fprior <- matrix(c(0.0, 0.0, 0.025,
-                       0.0, 0.0, 0.0,
-                       0.0, 0.0, 0.0), 
+RLT_Fprior <- matrix(c(NA_real_, NA_real_, 0.025,
+                       NA_real_, NA_real_, NA_real_,
+                       NA_real_, NA_real_, NA_real_), 
+                     byrow = TRUE, nrow = 3, ncol = 3)
+unif_gamma <- matrix(c(NA_real_, NA_real_, 0.00001,
+                       NA_real_, NA_real_, NA_real_,
+                       NA_real_, NA_real_, NA_real_), 
                      byrow = TRUE, nrow = 3, ncol = 3)
 ```
 
@@ -392,8 +396,8 @@ diffPriors <- list()
 diffPriors[["Uniform"]] <- testing %>% 
   mutate(Tprior = map2(TF, N, fill_transitions, returnType = "T"),
          Fprior = map2(TF, N, fill_fertility,
-                       alpha = c(NA_real_, NA_real_, 0.00001),
-                       beta = c(NA_real_, NA_real_, 0.00001), priorweight = -1, returnType = "F"),
+                       alpha = unif_gamma,
+                       beta = unif_gamma, priorweight = -1, returnType = "F"),
          Aprior = map2(Tprior, Fprior, `+`),
          lprior = map_dbl(Aprior, lambda))
 
@@ -402,8 +406,8 @@ diffPriors[["RLT, weight = 1"]] <- testing %>%
   mutate(Tprior = map2(TF, N, fill_transitions, 
                        P = RLT_Tprior, returnType = "T"),
          Fprior = map2(TF, N, fill_fertility,
-                       alpha = c(NA_real_, NA_real_, 0.025),
-                       beta = c(NA_real_, NA_real_, 1), priorweight = -1, returnType = "F"),
+                       alpha = RLT_Fprior,
+                       beta = unif_gamma + 1, priorweight = -1, returnType = "F"),
          Aprior = map2(Tprior, Fprior, `+`),
          lprior = map_dbl(Aprior, lambda))
 
