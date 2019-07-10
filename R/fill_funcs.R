@@ -64,8 +64,8 @@ fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "T"
 #'
 #' @param TF A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.
 #' @param N A vector of observed stage distribution.
-#' @param alpha A matrix of the prior parameter for each stage.
-#' @param beta A matrix of the prior parameter for each stage.
+#' @param alpha A matrix of the prior parameter for each stage. Impossible stage combinations marked with NA_real_.
+#' @param beta A matrix of the prior parameter for each stage. Impossible stage combinations marked with NA_real_.
 #' @param priorweight total weight for each column of prior as a percentage of sample size or 1 if negative
 #' @param returnType A character vector describing the desired return value. Defaults to "F" the fertility matrix
 #'
@@ -88,9 +88,9 @@ fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
   if (!(is.numeric(alpha)&is.numeric(beta))){
     stop("alpha or beta must be numeric matrices or single values.")
   }
-  if (sum(is.na(alpha))>0 | sum(is.na(beta)) > 0) {
-    stop("alpha or beta cannot have missing values")
-  }
+  # if (sum(is.na(alpha))>0 | sum(is.na(beta)) > 0) {
+  #   stop("alpha or beta cannot have missing values")
+  # }
   if (length(alpha) != order^2 | length(beta) != order^2) {
     warning("length(alpha | beta) != order^2: only using first value of alpha and beta")
     alpha <- matrix(rep(alpha[1], order^2), nrow = order, ncol = order)
@@ -98,9 +98,11 @@ fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
   }
   Ffilled <- matrix(NA, nrow=order, ncol = order)
   babies_next_year <- sweep(Fmat, 2, N, FUN = "*")
+  # test reproducing stages with beta, because of divide by zero issues
+  reproducing_stages <- apply(beta, 2, function(x) sum(!is.na(x))) > 0
   # matrix multiplication doesn't preserve the column structure
 
-  if ((all(N[!is.na(alpha)] > 0) | sum(beta, na.rm = TRUE) > 0)){
+  if ((all(N[reproducing_stages] > 0) | sum(beta, na.rm = TRUE) > 0)){
     if (priorweight > 0){
       alpha_post <- sweep(alpha, 2, N, FUN = "*")*priorweight + babies_next_year
       beta_post <- sweep(beta, 2, N, FUN = "*")*priorweight + N
@@ -109,6 +111,9 @@ fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
       beta_post <- sweep(beta, 2, N, FUN = "+")
     }
     Ffilled <- alpha_post / beta_post
+    Ffilled[is.na(Ffilled)] <- 0
+  } else {
+    stop("No reproducing stages in N, and no positive values in beta.")
   }
 
   #shouldn't be any missing values in the output

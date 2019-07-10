@@ -14,12 +14,12 @@ TF <- popbio::projection.matrix(as.data.frame(onepop), stage = stage, fate = nex
 
 N <- get_state_vector(onepop, stage = stage, sort = c("s", "j", "a"))
 
-alpha <- matrix(c(0, 0, 1,
-                  0, 0, 0,
-                  0, 0, 0), nrow=3, ncol = 3, byrow = TRUE)
-beta <- matrix(c(0, 0, 1,
-                 0, 0, 0,
-                 0, 0, 0), nrow=3, ncol = 3, byrow = TRUE)
+alpha <- matrix(c(NA_real_, NA_real_, 1,
+                  NA_real_, NA_real_, NA_real_,
+                  NA_real_, NA_real_, NA_real_), nrow=3, ncol = 3, byrow = TRUE)
+beta <- matrix(c(NA_real_, NA_real_, 1,
+                 NA_real_, NA_real_, NA_real_,
+                 NA_real_, NA_real_, NA_real_), nrow=3, ncol = 3, byrow = TRUE)
 
 test_that("args are correct", {
   expect_length(TF, 2)
@@ -42,6 +42,12 @@ test_that("priorweight can be changed", {
   expect_vector(fill_fertility(TF, N, alpha, beta, priorweight = -3))
   expect_vector(fill_fertility(TF, N, alpha, beta, priorweight = 500))
   expect_vector(fill_fertility(TF, N, alpha, beta, priorweight = 0))
+})
+
+test_that("some N == 0 not a problem", {
+  expect_vector(fill_fertility(TF, N = c(0,1,1), alpha, beta))
+  expect_vector(fill_fertility(TF, N = c(1,0,1), alpha, beta))
+  expect_vector(fill_fertility(TF, N = c(1,1,0), alpha, beta))
 })
 
 test_that("returnType can be changed", {
