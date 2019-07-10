@@ -4,10 +4,6 @@ context("fill fecundity")
 
 data(L_elto)
 
-test_that("data hasn't changed", {
-  expect_equal_to_reference(L_elto, "one.rds")
-  })
-
 onepop <- L_elto %>% # Filter out population # 250, period (year) 5
   filter(POPNUM == 250, year == 5) %>% # redefine p for el plantón to s for seedling
   mutate(stage = case_when(stage == "p" ~ "s", TRUE ~ stage), next_stage = case_when(next_stage == "p" ~ "s", TRUE ~ next_stage))
@@ -15,6 +11,7 @@ TF <- popbio::projection.matrix(as.data.frame(onepop), stage = stage, fate = nex
                                 fertility = "fertility", sort = c("s", "j", "a"), TF = TRUE)
 
 N <- get_state_vector(onepop, stage = stage, sort = c("s", "j", "a"))
+
 test_that("args are correct", {
   expect_length(TF, 2)
   expect_type(TF, "list")
