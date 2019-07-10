@@ -46,7 +46,7 @@ test_that("fill fertility throws errors", {
   expect_error(fill_fertility(N, TF, c(NA_real_, NA_real_, 1e-05)))
   expect_error(fill_fertility(N, c(NA_real_, NA_real_, 1e-05), c(NA_real_, NA_real_, 1e-05)))
   expect_error(fill_fertility(TF, c(NA_real_, NA_real_, 1e-05), c(NA_real_, NA_real_, 1e-05)))
-  expect_error(fill_fertility(TF, N))
+  expect_warning(fill_fertility(TF, N))
   expect_error(fill_fertility(c(NA_real_, NA_real_, 1e-05), c(NA_real_, NA_real_, 1e-05)))
   expect_error(fill_fertility())
   expect_error(fill_fertility(c(NA_real_, NA_real_, 1e-05)))
