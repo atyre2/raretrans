@@ -12,6 +12,7 @@ TF <- popbio::projection.matrix(as.data.frame(onepop), stage = stage, fate = nex
 
 N <- get_state_vector(onepop, stage = stage, sort = c("s", "j", "a"))
 
+
 test_that("args are correct", {
   expect_length(TF, 2)
   expect_type(TF, "list")
