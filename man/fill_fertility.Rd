@@ -12,9 +12,9 @@ fill_fertility(TF, N, alpha = 1e-05, beta = 1e-05, priorweight = -1,
 
 \item{N}{A vector of observed stage distribution.}
 
-\item{alpha}{A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_}
+\item{alpha}{A matrix of the prior parameter for each stage.}
 
-\item{beta}{A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_}
+\item{beta}{A matrix of the prior parameter for each stage.}
 
 \item{priorweight}{total weight for each column of prior as a percentage of sample size or 1 if negative}
 
