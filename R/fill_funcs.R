@@ -82,8 +82,11 @@ fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
   Tmat <- TF$T
   Fmat <- TF$F
   order <- dim(Tmat)[1]
-  if (length(alpha) != order) {
-    warning("length(alpha) != order: only using first value of alpha and beta")
+  if (length(N) != order | sum(is.na(N)) > 0){
+    error("N isn't the correct length or has missing values.")
+  }
+  if (length(alpha) != order | length(beta) != order) {
+    warning("length(alpha | beta) != order: only using first value of alpha and beta")
     alpha <- rep(alpha[1], order)
     beta <- rep(beta[1], order)
   }
