@@ -30,7 +30,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">raretrans</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.1</span>
       </span>
     </div>
 
@@ -83,7 +83,7 @@
       <h1>Effect of prior information on transition probabilities and fertilities</h1>
                         <h4 class="author">Drew Tyre</h4>
             
-            <h4 class="date">Jun 21, 2019</h4>
+            <h4 class="date">Jul 10, 2019</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/atyre2/raretrans/blob/master/vignettes/transition_priors.Rmd"><code>vignettes/transition_priors.Rmd</code></a></small>
       <div class="hidden name"><code>transition_priors.Rmd</code></div>
@@ -573,7 +573,7 @@ Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the a
 <div id="fill-in-using-uninformative-priors-on-fertility" class="section level2">
 <h2 class="hasAnchor">
 <a href="#fill-in-using-uninformative-priors-on-fertility" class="anchor"></a>Fill in using uninformative priors on fertility</h2>
-<p>The other component of the matrix is the fertility. We do this by using a Gamma prior with the function <code><a href="../reference/fill_fertility.html">fill_fertility()</a></code>. This function takes the matrix as a list of 2 components, a matrix of transition probabilities <span class="math inline">\(T\)</span> and a matrix of fertility contributions <span class="math inline">\(F\)</span>. The Gamma prior only applies to the <span class="math inline">\(F\)</span> matrix. If not specified, the function assumes an uniformative prior with <span class="math inline">\(\alpha = 0.00001, \beta = 0.00001\)</span> across all stages. Stages that do not reproduce are marked with <code>NA_real_</code> in the prior probability vectors. Again, demonstrate with a single example. The posterior <span class="math inline">\(\alpha\)</span> is given by the sum of the prior <span class="math inline">\(\alpha = 0.00001\)</span> and the number of offspring next year (2 in this case), while the posterior <span class="math inline">\(\beta\)</span> is simply the sum of the prior and the number of adults contributing to the observed reproduction.</p>
+<p>The other component of the matrix is the fertility. We do this by using a Gamma prior with the function <code><a href="../reference/fill_fertility.html">fill_fertility()</a></code>. This function takes the matrix as a list of 2 components, a matrix of transition probabilities <span class="math inline">\(T\)</span> and a matrix of fertility contributions <span class="math inline">\(F\)</span>. The Gamma prior only applies to the <span class="math inline">\(F\)</span> matrix. If not specified, the function assumes an uniformative prior with <span class="math inline">\(\alpha = 0.00001, \beta = 0.00001\)</span> across all stages. Again, demonstrate with a single example. The posterior <span class="math inline">\(\alpha\)</span> is given by the sum of the prior <span class="math inline">\(\alpha = 0.00001\)</span> and the number of offspring next year (2 in this case), while the posterior <span class="math inline">\(\beta\)</span> is simply the sum of the prior and the number of adults contributing to the observed reproduction.</p>
 <div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb30-1" data-line-number="1">post_alpha =<span class="st"> </span><span class="fl">0.00001</span> <span class="op">+</span><span class="st"> </span><span class="dv">2</span></a>
 <a class="sourceLine" id="cb30-2" data-line-number="2">post_beta =<span class="st"> </span><span class="fl">0.00001</span> <span class="op">+</span><span class="st"> </span>N[<span class="dv">3</span>]</a></code></pre></div>
 <p>The expected value for the posterior <span class="math inline">\(F\)</span> is <span class="math inline">\(\alpha / \beta\)</span>.</p>
@@ -593,8 +593,8 @@ Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the a
 <pre><code>## [1] FALSE</code></pre>
 <p>The uninformative prior on fertility makes very little difference to lambda, and does not help with issues of ergodicity and irreducibility.</p>
 <div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb39-1" data-line-number="1">testing &lt;-<span class="st"> </span>allA <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">mutate</span>(<span class="dt">Agamma =</span> <span class="kw">map2</span>(TF, N, fill_fertility, </a>
-<a class="sourceLine" id="cb39-2" data-line-number="2">                                         <span class="dt">alpha =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.00001</span>), </a>
-<a class="sourceLine" id="cb39-3" data-line-number="3">                                         <span class="dt">beta =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.00001</span>), </a>
+<a class="sourceLine" id="cb39-2" data-line-number="2">                                         <span class="dt">alpha =</span> <span class="fl">0.00001</span>, </a>
+<a class="sourceLine" id="cb39-3" data-line-number="3">                                         <span class="dt">beta =</span>  <span class="fl">0.00001</span>, </a>
 <a class="sourceLine" id="cb39-4" data-line-number="4">                                         <span class="dt">priorweight =</span> <span class="dv">1</span>, <span class="dt">returnType =</span> <span class="st">"A"</span>),</a>
 <a class="sourceLine" id="cb39-5" data-line-number="5">                           <span class="dt">lgamma =</span> <span class="kw">map_dbl</span>(Agamma, lambda),                 </a>
 <a class="sourceLine" id="cb39-6" data-line-number="6">         <span class="dt">irrgamma =</span> <span class="kw">map_dbl</span>(Agamma, isIrreducible),</a>
@@ -625,12 +625,12 @@ Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the a
 <tr class="odd">
 <td align="left">0</td>
 <td align="left">0</td>
-<td align="right">209</td>
+<td align="right">162</td>
 </tr>
 <tr class="even">
 <td align="left">1</td>
 <td align="left">0</td>
-<td align="right">8</td>
+<td align="right">0</td>
 </tr>
 <tr class="odd">
 <td align="left">0</td>
@@ -640,7 +640,7 @@ Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the a
 <tr class="even">
 <td align="left">1</td>
 <td align="left">1</td>
-<td align="right">21</td>
+<td align="right">76</td>
 </tr>
 </tbody>
 </table>
@@ -654,17 +654,21 @@ Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the a
 <a class="sourceLine" id="cb41-3" data-line-number="3">                       <span class="fl">0.01</span>, <span class="fl">0.025</span>, <span class="fl">0.95</span>,</a>
 <a class="sourceLine" id="cb41-4" data-line-number="4">                       <span class="fl">0.69</span>, <span class="fl">0.05</span>,  <span class="fl">0.025</span>), </a>
 <a class="sourceLine" id="cb41-5" data-line-number="5">                     <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">4</span>, <span class="dt">ncol =</span> <span class="dv">3</span>)</a>
-<a class="sourceLine" id="cb41-6" data-line-number="6">RLT_Fprior &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">matrix</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.025</span>,</a>
-<a class="sourceLine" id="cb41-7" data-line-number="7">                       <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>,</a>
-<a class="sourceLine" id="cb41-8" data-line-number="8">                       <span class="fl">0.0</span>, <span class="fl">0.0</span>, <span class="fl">0.0</span>), </a>
-<a class="sourceLine" id="cb41-9" data-line-number="9">                     <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">3</span>, <span class="dt">ncol =</span> <span class="dv">3</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb41-6" data-line-number="6">RLT_Fprior &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">matrix</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>,</a>
+<a class="sourceLine" id="cb41-7" data-line-number="7">                       <span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>,</a>
+<a class="sourceLine" id="cb41-8" data-line-number="8">                       <span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>), </a>
+<a class="sourceLine" id="cb41-9" data-line-number="9">                     <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">3</span>, <span class="dt">ncol =</span> <span class="dv">3</span>)</a>
+<a class="sourceLine" id="cb41-10" data-line-number="10">unif_gamma &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">matrix</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.00001</span>,</a>
+<a class="sourceLine" id="cb41-11" data-line-number="11">                       <span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>,</a>
+<a class="sourceLine" id="cb41-12" data-line-number="12">                       <span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>), </a>
+<a class="sourceLine" id="cb41-13" data-line-number="13">                     <span class="dt">byrow =</span> <span class="ot">TRUE</span>, <span class="dt">nrow =</span> <span class="dv">3</span>, <span class="dt">ncol =</span> <span class="dv">3</span>)</a></code></pre></div>
 <p>The RLT prior gives <span class="math inline">\(\lambda = 0.96\)</span>. In an ideal world this prior would be extracted prior to collecting the data. In this case the prior is only being used to demonstrate the technique.</p>
 <div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb42-1" data-line-number="1">diffPriors &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/list">list</a></span>()</a>
 <a class="sourceLine" id="cb42-2" data-line-number="2">diffPriors[[<span class="st">"Uniform"</span>]] &lt;-<span class="st"> </span>testing <span class="op">%&gt;%</span><span class="st"> </span></a>
 <a class="sourceLine" id="cb42-3" data-line-number="3"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Tprior =</span> <span class="kw">map2</span>(TF, N, fill_transitions, <span class="dt">returnType =</span> <span class="st">"T"</span>),</a>
 <a class="sourceLine" id="cb42-4" data-line-number="4">         <span class="dt">Fprior =</span> <span class="kw">map2</span>(TF, N, fill_fertility,</a>
-<a class="sourceLine" id="cb42-5" data-line-number="5">                       <span class="dt">alpha =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.00001</span>),</a>
-<a class="sourceLine" id="cb42-6" data-line-number="6">                       <span class="dt">beta =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.00001</span>), <span class="dt">priorweight =</span> <span class="dv">-1</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
+<a class="sourceLine" id="cb42-5" data-line-number="5">                       <span class="dt">alpha =</span> unif_gamma,</a>
+<a class="sourceLine" id="cb42-6" data-line-number="6">                       <span class="dt">beta =</span> unif_gamma, <span class="dt">priorweight =</span> <span class="dv">-1</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
 <a class="sourceLine" id="cb42-7" data-line-number="7">         <span class="dt">Aprior =</span> <span class="kw">map2</span>(Tprior, Fprior, <span class="st">`</span><span class="dt">+</span><span class="st">`</span>),</a>
 <a class="sourceLine" id="cb42-8" data-line-number="8">         <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(Aprior, lambda))</a>
 <a class="sourceLine" id="cb42-9" data-line-number="9"></a>
@@ -673,8 +677,8 @@ Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the a
 <a class="sourceLine" id="cb42-12" data-line-number="12"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Tprior =</span> <span class="kw">map2</span>(TF, N, fill_transitions, </a>
 <a class="sourceLine" id="cb42-13" data-line-number="13">                       <span class="dt">P =</span> RLT_Tprior, <span class="dt">returnType =</span> <span class="st">"T"</span>),</a>
 <a class="sourceLine" id="cb42-14" data-line-number="14">         <span class="dt">Fprior =</span> <span class="kw">map2</span>(TF, N, fill_fertility,</a>
-<a class="sourceLine" id="cb42-15" data-line-number="15">                       <span class="dt">alpha =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
-<a class="sourceLine" id="cb42-16" data-line-number="16">                       <span class="dt">beta =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>), <span class="dt">priorweight =</span> <span class="dv">-1</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
+<a class="sourceLine" id="cb42-15" data-line-number="15">                       <span class="dt">alpha =</span> RLT_Fprior,</a>
+<a class="sourceLine" id="cb42-16" data-line-number="16">                       <span class="dt">beta =</span> unif_gamma <span class="op">+</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">priorweight =</span> <span class="dv">-1</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
 <a class="sourceLine" id="cb42-17" data-line-number="17">         <span class="dt">Aprior =</span> <span class="kw">map2</span>(Tprior, Fprior, <span class="st">`</span><span class="dt">+</span><span class="st">`</span>),</a>
 <a class="sourceLine" id="cb42-18" data-line-number="18">         <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(Aprior, lambda))</a>
 <a class="sourceLine" id="cb42-19" data-line-number="19"></a>
@@ -682,8 +686,8 @@ Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the a
 <a class="sourceLine" id="cb42-21" data-line-number="21"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Tprior =</span> <span class="kw">map2</span>(TF, N, fill_transitions, </a>
 <a class="sourceLine" id="cb42-22" data-line-number="22">                       <span class="dt">P =</span> RLT_Tprior, <span class="dt">priorweight =</span> <span class="fl">0.5</span>, <span class="dt">returnType =</span> <span class="st">"T"</span>),</a>
 <a class="sourceLine" id="cb42-23" data-line-number="23">         <span class="dt">Fprior =</span> <span class="kw">map2</span>(TF, N, fill_fertility,</a>
-<a class="sourceLine" id="cb42-24" data-line-number="24">                       <span class="dt">alpha =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
-<a class="sourceLine" id="cb42-25" data-line-number="25">                       <span class="dt">beta =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>), <span class="dt">priorweight =</span> <span class="fl">0.5</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
+<a class="sourceLine" id="cb42-24" data-line-number="24">                       <span class="dt">alpha =</span> RLT_Fprior,</a>
+<a class="sourceLine" id="cb42-25" data-line-number="25">                       <span class="dt">beta =</span> unif_gamma <span class="op">+</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">priorweight =</span> <span class="fl">0.5</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
 <a class="sourceLine" id="cb42-26" data-line-number="26">         <span class="dt">Aprior =</span> <span class="kw">map2</span>(Tprior, Fprior, <span class="st">`</span><span class="dt">+</span><span class="st">`</span>),</a>
 <a class="sourceLine" id="cb42-27" data-line-number="27">         <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(Aprior, lambda))</a>
 <a class="sourceLine" id="cb42-28" data-line-number="28"></a>
@@ -691,8 +695,8 @@ Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the a
 <a class="sourceLine" id="cb42-30" data-line-number="30"><span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Tprior =</span> <span class="kw">map2</span>(TF, N, fill_transitions, </a>
 <a class="sourceLine" id="cb42-31" data-line-number="31">                       <span class="dt">P =</span> RLT_Tprior, <span class="dt">priorweight =</span> <span class="dv">1</span>, <span class="dt">returnType =</span> <span class="st">"T"</span>),</a>
 <a class="sourceLine" id="cb42-32" data-line-number="32">         <span class="dt">Fprior =</span> <span class="kw">map2</span>(TF, N, fill_fertility,</a>
-<a class="sourceLine" id="cb42-33" data-line-number="33">                       <span class="dt">alpha =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
-<a class="sourceLine" id="cb42-34" data-line-number="34">                       <span class="dt">beta =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>), <span class="dt">priorweight =</span> <span class="dv">1</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
+<a class="sourceLine" id="cb42-33" data-line-number="33">                       <span class="dt">alpha =</span> RLT_Fprior,</a>
+<a class="sourceLine" id="cb42-34" data-line-number="34">                       <span class="dt">beta =</span> unif_gamma <span class="op">+</span><span class="st"> </span><span class="dv">1</span>, <span class="dt">priorweight =</span> <span class="dv">1</span>, <span class="dt">returnType =</span> <span class="st">"F"</span>),</a>
 <a class="sourceLine" id="cb42-35" data-line-number="35">         <span class="dt">Aprior =</span> <span class="kw">map2</span>(Tprior, Fprior, <span class="st">`</span><span class="dt">+</span><span class="st">`</span>),</a>
 <a class="sourceLine" id="cb42-36" data-line-number="36">         <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(Aprior, lambda))</a>
 <a class="sourceLine" id="cb42-37" data-line-number="37"></a>
@@ -729,38 +733,38 @@ Confidence limits or Credible intervals for transition probabilities out of seed
 <a class="sourceLine" id="cb43-2" data-line-number="2">diffPriors_lci &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/list">list</a></span>()</a>
 <a class="sourceLine" id="cb43-3" data-line-number="3">samples =<span class="st"> </span><span class="dv">10000</span></a>
 <a class="sourceLine" id="cb43-4" data-line-number="4">diffPriors_lci[[<span class="st">"Uniform"</span>]] &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">A =</span> <span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(allA<span class="op">$</span>TF[[<span class="dv">71</span>]], </a>
-<a class="sourceLine" id="cb43-5" data-line-number="5">                                                              allA<span class="op">$</span>N[[<span class="dv">71</span>]], </a>
-<a class="sourceLine" id="cb43-6" data-line-number="6">                                                              <span class="dt">samples =</span> samples), </a>
-<a class="sourceLine" id="cb43-7" data-line-number="7">                                          <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a></code></pre></div>
+<a class="sourceLine" id="cb43-5" data-line-number="5">                                                          allA<span class="op">$</span>N[[<span class="dv">71</span>]], </a>
+<a class="sourceLine" id="cb43-6" data-line-number="6">                                                          <span class="dt">samples =</span> samples), </a>
+<a class="sourceLine" id="cb43-7" data-line-number="7">                                      <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a></code></pre></div>
 <pre><code>## Warning in fill_fertility(TF, N, alpha = alpha, beta = beta, priorweight =
-## priorweight, : length(alpha) != order: only using first value of alpha and
-## beta</code></pre>
+## priorweight, : length(alpha | beta) != order^2: only using first value of
+## alpha and beta</code></pre>
 <div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb45-1" data-line-number="1">diffPriors_lci[[<span class="st">"RLT, weight = 1"</span>]] &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">A =</span> <span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(allA<span class="op">$</span>TF[[<span class="dv">71</span>]], allA<span class="op">$</span>N[[<span class="dv">71</span>]], </a>
-<a class="sourceLine" id="cb45-2" data-line-number="2">                                                                      <span class="dt">P=</span>RLT_Tprior, </a>
-<a class="sourceLine" id="cb45-3" data-line-number="3">                                                                      <span class="dt">alpha =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
-<a class="sourceLine" id="cb45-4" data-line-number="4">                                                                      <span class="dt">beta =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>), </a>
-<a class="sourceLine" id="cb45-5" data-line-number="5">                                                                      <span class="dt">samples =</span> samples), </a>
-<a class="sourceLine" id="cb45-6" data-line-number="6">                                                  <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a>
+<a class="sourceLine" id="cb45-2" data-line-number="2">                                                                  <span class="dt">P=</span>RLT_Tprior, </a>
+<a class="sourceLine" id="cb45-3" data-line-number="3">                                                                  <span class="dt">alpha =</span> RLT_Fprior,</a>
+<a class="sourceLine" id="cb45-4" data-line-number="4">                                                                  <span class="dt">beta =</span> unif_gamma <span class="op">+</span><span class="st"> </span><span class="dv">1</span>, </a>
+<a class="sourceLine" id="cb45-5" data-line-number="5">                                                                  <span class="dt">samples =</span> samples), </a>
+<a class="sourceLine" id="cb45-6" data-line-number="6">                                              <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a>
 <a class="sourceLine" id="cb45-7" data-line-number="7"></a>
 <a class="sourceLine" id="cb45-8" data-line-number="8">diffPriors_lci[[<span class="st">"RLT, weight = 0.5N"</span>]] &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">A =</span> <span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(allA<span class="op">$</span>TF[[<span class="dv">71</span>]], allA<span class="op">$</span>N[[<span class="dv">71</span>]], </a>
-<a class="sourceLine" id="cb45-9" data-line-number="9">                                                                         <span class="dt">P=</span>RLT_Tprior,</a>
-<a class="sourceLine" id="cb45-10" data-line-number="10">                                                                         <span class="dt">alpha =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
-<a class="sourceLine" id="cb45-11" data-line-number="11">                                                                         <span class="dt">beta =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>), </a>
-<a class="sourceLine" id="cb45-12" data-line-number="12">                                                                         <span class="dt">priorweight =</span> <span class="fl">0.5</span>,</a>
-<a class="sourceLine" id="cb45-13" data-line-number="13">                                                                         <span class="dt">samples =</span> samples), </a>
-<a class="sourceLine" id="cb45-14" data-line-number="14">                                                     <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a>
+<a class="sourceLine" id="cb45-9" data-line-number="9">                                                                     <span class="dt">P=</span>RLT_Tprior,</a>
+<a class="sourceLine" id="cb45-10" data-line-number="10">                                                                     <span class="dt">alpha =</span> RLT_Fprior,</a>
+<a class="sourceLine" id="cb45-11" data-line-number="11">                                                                     <span class="dt">beta =</span> unif_gamma <span class="op">+</span><span class="st"> </span><span class="dv">1</span>, </a>
+<a class="sourceLine" id="cb45-12" data-line-number="12">                                                                     <span class="dt">priorweight =</span> <span class="fl">0.5</span>,</a>
+<a class="sourceLine" id="cb45-13" data-line-number="13">                                                                     <span class="dt">samples =</span> samples), </a>
+<a class="sourceLine" id="cb45-14" data-line-number="14">                                                 <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a>
 <a class="sourceLine" id="cb45-15" data-line-number="15"></a>
 <a class="sourceLine" id="cb45-16" data-line-number="16">diffPriors_lci[[<span class="st">"RLT, weight = N"</span>]] &lt;-<span class="st"> </span><span class="kw">tibble</span>(<span class="dt">A =</span> <span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(allA<span class="op">$</span>TF[[<span class="dv">71</span>]], allA<span class="op">$</span>N[[<span class="dv">71</span>]], </a>
-<a class="sourceLine" id="cb45-17" data-line-number="17">                                                                      <span class="dt">P=</span>RLT_Tprior, </a>
-<a class="sourceLine" id="cb45-18" data-line-number="18">                                                                      <span class="dt">alpha =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>),</a>
-<a class="sourceLine" id="cb45-19" data-line-number="19">                                                                      <span class="dt">beta =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="dv">1</span>),</a>
-<a class="sourceLine" id="cb45-20" data-line-number="20">                                                                      <span class="dt">priorweight =</span> <span class="dv">1</span>,</a>
-<a class="sourceLine" id="cb45-21" data-line-number="21">                                                                      <span class="dt">samples =</span> samples), </a>
-<a class="sourceLine" id="cb45-22" data-line-number="22">                                                  <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a>
+<a class="sourceLine" id="cb45-17" data-line-number="17">                                                                  <span class="dt">P=</span>RLT_Tprior, </a>
+<a class="sourceLine" id="cb45-18" data-line-number="18">                                                                  <span class="dt">alpha =</span> RLT_Fprior,</a>
+<a class="sourceLine" id="cb45-19" data-line-number="19">                                                                  <span class="dt">beta =</span> unif_gamma <span class="op">+</span><span class="st"> </span><span class="dv">1</span>,</a>
+<a class="sourceLine" id="cb45-20" data-line-number="20">                                                                  <span class="dt">priorweight =</span> <span class="dv">1</span>,</a>
+<a class="sourceLine" id="cb45-21" data-line-number="21">                                                                  <span class="dt">samples =</span> samples), </a>
+<a class="sourceLine" id="cb45-22" data-line-number="22">                                              <span class="dt">lprior =</span> <span class="kw">map_dbl</span>(A, lambda))</a>
 <a class="sourceLine" id="cb45-23" data-line-number="23"></a>
 <a class="sourceLine" id="cb45-24" data-line-number="24">diffPriors_lci &lt;-<span class="st"> </span><span class="kw">bind_rows</span>(diffPriors_lci, <span class="dt">.id=</span><span class="st">"prior"</span>)</a>
 <a class="sourceLine" id="cb45-25" data-line-number="25">diffPriors_lci<span class="op">$</span>prior &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/factor">factor</a></span>(diffPriors_lci<span class="op">$</span>prior, <span class="dt">levels =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"Uniform"</span>, <span class="st">"RLT, weight = 1"</span>,</a>
-<a class="sourceLine" id="cb45-26" data-line-number="26">                                                        <span class="st">"RLT, weight = 0.5N"</span>, <span class="st">"RLT, weight = N"</span>))</a>
+<a class="sourceLine" id="cb45-26" data-line-number="26">                                                                <span class="st">"RLT, weight = 0.5N"</span>, <span class="st">"RLT, weight = N"</span>))</a>
 <a class="sourceLine" id="cb45-27" data-line-number="27"></a>
 <a class="sourceLine" id="cb45-28" data-line-number="28">diffPriors_lci_sum &lt;-<span class="st"> </span><span class="kw">group_by</span>(diffPriors_lci, prior) <span class="op">%&gt;%</span><span class="st"> </span></a>
 <a class="sourceLine" id="cb45-29" data-line-number="29"><span class="st">  </span><span class="kw">summarize</span>(<span class="dt">pgt1 =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/sum">sum</a></span>(lprior <span class="op">&gt;</span><span class="st"> </span><span class="dv">1</span>)<span class="op">/</span>samples,</a>
