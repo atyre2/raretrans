@@ -139,15 +139,15 @@ we do not recommend using uniform priors.
 
 ### Fertility matrix
 
-We must specify the parameters for the fertility prior as a matrix. Entries representing stages that are non-reproducing or outcome stages that don't occur by reproduction should be zero. 
+We must specify the parameters for the fertility prior as a matrix. Entries representing stages that are non-reproducing or outcome stages that don't occur by reproduction should be `NA`. 
 
 ```{r}
-alpha <- matrix(c(0, 0, 1e-5,
-                  0, 0, 0,
-                  0, 0, 0), nrow=3, ncol = 3, byrow = TRUE)
-beta <- matrix(c(0, 0, 1e-5,
-                  0, 0, 0,
-                  0, 0, 0), nrow=3, ncol = 3, byrow = TRUE)
+alpha <- matrix(c(NA_real_, NA_real_, 1e-5,
+                  NA_real_, NA_real_, NA_real_,
+                  NA_real_, NA_real_, NA_real_), nrow=3, ncol = 3, byrow = TRUE)
+beta <- matrix(c(NA_real_, NA_real_, 1e-5,
+                  NA_real_, NA_real_, NA_real_,
+                  NA_real_, NA_real_, NA_real_), nrow=3, ncol = 3, byrow = TRUE)
 fill_fertility(TF, N, alpha = alpha, beta = beta)
 ```
 
@@ -288,12 +288,12 @@ Now we simulate 1000 times, calculate the leading eigenvalue of each matrix, and
 
 ```{r}
 set.seed(8390278) # make this part reproducible
-alpha2 <- matrix(c(0, 0, 0.025,
-                  0, 0, 0,
-                  0, 0, 0), nrow=3, ncol = 3, byrow = TRUE)
-beta2 <- matrix(c(0, 0, 1,
-                  0, 0, 0,
-                  0, 0, 0), nrow=3, ncol = 3, byrow = TRUE)
+alpha2 <- matrix(c(NA_real_, NA_real_, 0.025,
+                  NA_real_, NA_real_, NA_real_,
+                  NA_real_, NA_real_, NA_real_), nrow=3, ncol = 3, byrow = TRUE)
+beta2 <- matrix(c(NA_real_, NA_real_, 1,
+                  NA_real_, NA_real_, NA_real_,
+                  NA_real_, NA_real_, NA_real_), nrow=3, ncol = 3, byrow = TRUE)
 # generate 1000 matrices based on the prior transitions and fertilities plus the data
 RLT_0.5 <- sim_transitions(TF, N, P = RLT_Tprior, alpha = alpha2, beta = beta2,
                 priorweight = 0.5, samples = 1000)
