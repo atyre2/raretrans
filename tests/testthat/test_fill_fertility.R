@@ -14,12 +14,14 @@ TF <- popbio::projection.matrix(as.data.frame(onepop), stage = stage, fate = nex
 
 N <- get_state_vector(onepop, stage = stage, sort = c("s", "j", "a"))
 
+
 alpha <- matrix(c(NA_real_, NA_real_, 1,
                   NA_real_, NA_real_, NA_real_,
                   NA_real_, NA_real_, NA_real_), nrow=3, ncol = 3, byrow = TRUE)
 beta <- matrix(c(NA_real_, NA_real_, 1,
                  NA_real_, NA_real_, NA_real_,
                  NA_real_, NA_real_, NA_real_), nrow=3, ncol = 3, byrow = TRUE)
+
 
 test_that("args are correct", {
   expect_length(TF, 2)
