@@ -139,10 +139,16 @@ we do not recommend using uniform priors.
 
 ### Fertility matrix
 
-We must specify the parameters for the fertility prior on the non-reproducing stages as **missing**, else the result will fill in the entire matrix. 
+We must specify the parameters for the fertility prior as a matrix. Entries representing stages that are non-reproducing or outcome stages that don't occur by reproduction should be `NA`. 
 
 ```{r}
-fill_fertility(TF, N, alpha = c(NA_real_, NA_real_, 1e-05), beta = c(NA_real_, NA_real_, 1e-05))
+alpha <- matrix(c(NA_real_, NA_real_, 1e-5,
+                  NA_real_, NA_real_, NA_real_,
+                  NA_real_, NA_real_, NA_real_), nrow=3, ncol = 3, byrow = TRUE)
+beta <- matrix(c(NA_real_, NA_real_, 1e-5,
+                  NA_real_, NA_real_, NA_real_,
+                  NA_real_, NA_real_, NA_real_), nrow=3, ncol = 3, byrow = TRUE)
+fill_fertility(TF, N, alpha = alpha, beta = beta)
 ```
 
 The change in the fertility is < 0.0001 compared to the observed value. Calculating by hand, prior alpha is 
@@ -164,8 +170,8 @@ Now we can put them together.
 ```{r uninformativePrior}
 unif <- list(T = fill_transitions(TF, N), 
              F = fill_fertility(TF, N, 
-                                alpha = c(NA_real_, NA_real_, 1e-05),
-                                beta = c(NA_real_, NA_real_, 1e-05)))
+                                alpha = alpha,
+                                beta = beta))
 unif
 ```
 
@@ -182,8 +188,8 @@ fill_transitions(TF, N, returnType = "TN")
 2. `fill_fertility(... returnType = "ab")` returns the alpha and beta vectors of the posterior.  
 ```{r}
 fill_fertility(TF, N, 
-               alpha = c(NA_real_, NA_real_, 1e-05),
-               beta = c(NA_real_, NA_real_, 1e-05),
+               alpha = alpha,
+               beta = beta,
                returnType = "ab")
 ```
 3. Both functions can also return the full matrix, the sum of $T$ and $F$.
@@ -231,11 +237,11 @@ TN return type to get the parameters of the desired multinomial.
 
 ```{r}
 TN <- fill_transitions(TF, N, P = RLT_Tprior, priorweight = 0.5, returnType = "TN")
-alpha <- TN[,1] # change 1 to 2, 3 etc to get marginal distribution of other columns
-beta <- sum(TN[,1]) - TN[,1]# change 1 to 2, 3 etc to get marginal distribution of other columns
-p <- alpha / (alpha + beta)
-lcl <- qbeta(0.025, alpha, beta)
-ucl <- qbeta(0.975, alpha, beta)
+a <- TN[,1] # change 1 to 2, 3 etc to get marginal distribution of other columns
+b <- sum(TN[,1]) - TN[,1]# change 1 to 2, 3 etc to get marginal distribution of other columns
+p <- a / (a + b)
+lcl <- qbeta(0.025, a, b)
+ucl <- qbeta(0.975, a, b)
 knitr::kable(sprintf("%.3f (%.3f, %.3f)", p, lcl, ucl))
 ```
 
@@ -244,11 +250,11 @@ intervals for transitions out of the seedling stage. There is a high degree of u
 
 ```{r, echo=FALSE}
 TN <- fill_transitions(TF, N, P = RLT_Tprior, priorweight = 9, returnType = "TN")
-alpha <- TN[,1]
-beta <- sum(TN[,1]) - TN[,1] # beta parameter is sum of all other dirichlet parameters.
-p2 <- alpha / (alpha + beta)
-lcl2 <- qbeta(0.025, alpha, beta)
-ucl2 <- qbeta(0.975, alpha, beta)
+a <- TN[,1]
+b <- sum(TN[,1]) - TN[,1] # beta parameter is sum of all other dirichlet parameters.
+p2 <- a / (a + b)
+lcl2 <- qbeta(0.025, a, b)
+ucl2 <- qbeta(0.975, a, b)
 alltogethernow <- tibble(priorweight = factor(rep(c(1,9),each = 4)),
                          fate = factor(rep(c("s","j","a","dead"), times = 2), levels = c("s","j","a","dead")),
                          p = c(p, p2),
@@ -274,7 +280,7 @@ from the posterior distributions. This is somewhat complicated to do correctly, 
 a function `raretrans::sim_transitions()` to generate a list of simulated matrices given the observed matrix and prior specifications.
 
 ```{r}
-sim_transitions(TF, N, P = RLT_Tprior, alpha = c(NA, NA, 0.025), beta = c(NA, NA, 1),
+sim_transitions(TF, N, P = RLT_Tprior, alpha = alpha, beta = beta,
                 priorweight = 0.5)
 ```
 
@@ -282,8 +288,14 @@ Now we simulate 1000 times, calculate the leading eigenvalue of each matrix, and
 
 ```{r}
 set.seed(8390278) # make this part reproducible
+alpha2 <- matrix(c(NA_real_, NA_real_, 0.025,
+                  NA_real_, NA_real_, NA_real_,
+                  NA_real_, NA_real_, NA_real_), nrow=3, ncol = 3, byrow = TRUE)
+beta2 <- matrix(c(NA_real_, NA_real_, 1,
+                  NA_real_, NA_real_, NA_real_,
+                  NA_real_, NA_real_, NA_real_), nrow=3, ncol = 3, byrow = TRUE)
 # generate 1000 matrices based on the prior transitions and fertilities plus the data
-RLT_0.5 <- sim_transitions(TF, N, P = RLT_Tprior, alpha = c(NA, NA, 0.025), beta = c(NA, NA, 1),
+RLT_0.5 <- sim_transitions(TF, N, P = RLT_Tprior, alpha = alpha2, beta = beta2,
                 priorweight = 0.5, samples = 1000)
 # extract the lambdas for each matrix
 RLT_0.5 <- tibble(lposterior = map_dbl(RLT_0.5, lambda))

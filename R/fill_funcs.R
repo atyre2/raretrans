@@ -64,8 +64,8 @@ fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "T"
 #'
 #' @param TF A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.
 #' @param N A vector of observed stage distribution.
-#' @param alpha A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_
-#' @param beta A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_
+#' @param alpha A matrix of the prior parameter for each stage. Impossible stage combinations marked with NA_real_.
+#' @param beta A matrix of the prior parameter for each stage. Impossible stage combinations marked with NA_real_.
 #' @param priorweight total weight for each column of prior as a percentage of sample size or 1 if negative
 #' @param returnType A character vector describing the desired return value. Defaults to "F" the fertility matrix
 #'
@@ -83,33 +83,43 @@ fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
   Fmat <- TF$F
   order <- dim(Tmat)[1]
   if (length(N) != order | sum(is.na(N)) > 0){
-    error("N isn't the correct length or has missing values.")
+    stop("N isn't the correct length or has missing values.")
   }
-  if (!(is.vector(alpha, mode = "numeric")&is.vector(beta, mode = "numeric"))){
-    error("alpha or beta must be numeric vectors.")
+  if (!(is.numeric(alpha)&is.numeric(beta))){
+    stop("alpha or beta must be numeric matrices or single values.")
   }
-  if (length(alpha) != order | length(beta) != order) {
-    warning("length(alpha | beta) != order: only using first value of alpha and beta")
-    alpha <- rep(alpha[1], order)
-    beta <- rep(beta[1], order)
+  # if (sum(is.na(alpha))>0 | sum(is.na(beta)) > 0) {
+  #   stop("alpha or beta cannot have missing values")
+  # }
+  if (length(alpha) != order^2 | length(beta) != order^2) {
+    warning("length(alpha | beta) != order^2: only using first value of alpha and beta")
+    alpha <- matrix(rep(alpha[1], order^2), nrow = order, ncol = order)
+    beta <- matrix(rep(beta[1], order^2), nrow = order, ncol = order)
   }
   Ffilled <- matrix(NA, nrow=order, ncol = order)
-  babies_next_year <- Fmat[1,] * N # this is the start of the problem
+  babies_next_year <- sweep(Fmat, 2, N, FUN = "*")
+  # test reproducing stages with beta, because of divide by zero issues
+  reproducing_stages <- apply(beta, 2, function(x) sum(!is.na(x))) > 0
   # matrix multiplication doesn't preserve the column structure
 
-  if ((all(N[!is.na(alpha)] > 0) | sum(beta, na.rm = TRUE) > 0)){
+  if ((all(N[reproducing_stages] > 0) | sum(beta, na.rm = TRUE) > 0)){
     if (priorweight > 0){
-      alpha_post <- alpha*priorweight*N + babies_next_year
-      beta_post <- beta*priorweight*N + N
+      alpha_post <- sweep(alpha, 2, N, FUN = "*")*priorweight + babies_next_year
+      beta_post <- sweep(beta, 2, N, FUN = "*")*priorweight + N
     } else {
       alpha_post <- alpha + babies_next_year
-      beta_post <- beta + N
+      beta_post <- sweep(beta, 2, N, FUN = "+")
     }
-    Ffilled[1, ] <- alpha_post / beta_post # here is the end of the problem!
+    Ffilled <- alpha_post / beta_post
+    Ffilled[is.na(Ffilled)] <- 0
+  } else {
+    stop("No reproducing stages in N, and no positive values in beta.")
   }
 
-  Ffilled[is.na(Ffilled)] <- 0 #stages that can't reproduce are marked with NA_real_ in alpha and beta
-
+  #shouldn't be any missing values in the output
+  if (any(is.na(Ffilled))){
+    stop("Missing values in filled fertility matrix: check inputs for missing values.")
+  }
   if (returnType == "A"){
     return(Tmat + Ffilled)
   } else if (returnType == "F"){
@@ -153,10 +163,3 @@ get_state_vector <- function (transitions, stage = NULL,
   return(as.vector(tf))
 }
 
-## testing
-# df_5 %>%
-#   mutate(stage = factor(stage, levels=c("p","j","a","m")),
-#          fate = factor(next_stage, levels=c("p","j","a","m"))) %>%
-#   filter(POPNUM==209, year==1) %>%
-#   as.data.frame() %>%
-#   get_state_vector(sort=c("p","j","a"))
