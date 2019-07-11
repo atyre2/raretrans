@@ -71,4 +71,8 @@ test_that("fill fertility throws errors and warnings with invalid arguments", {
   expect_error(fill_fertility(TF, TF, TF, TF))
   expect_error(fill_fertility(TF, N, TF, N))
   expect_warning(fill_fertility(TF, N, 1, 1))
+  expect_error(fill_fertility(TF, N, alpha = c(NA_real_, NA_real_, 1e-05, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_),
+                               beta = c(NA_real_, NA_real_, 1e-05, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_)))
+  expect_error(fill_fertility(TF, N, alpha = c(NA_real_, NA_real_, 1e-05, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_), beta = beta))
+  expect_error(fill_fertility(TF, N, alpha = alpha, beta = c(NA_real_, NA_real_, 1e-05, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_)))
 })
