@@ -264,7 +264,7 @@ isIrreducible(tmat2 + fmat)
 
 Comparing these matrices, we can see that all transitions are now represented, even those that were not observed in the actual data. We can automate this exercise for all matrices.
 
-```{r fillDirichlet, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data."}
+```{r fillDirichlet, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data.", warning=FALSE}
 testing <- allA %>% mutate(Adirch = map2(TF, N, fill_transitions, returnType = "A"),
                            ldirch = map_dbl(Adirch, lambda),                 
          irrdirch = map_dbl(Adirch, isIrreducible),
@@ -318,7 +318,7 @@ So using a Dirichlet prior to fill in the gaps works, and doesn't appear to dist
 
 ## Fill in using uninformative priors on fertility
 
-The other component of the matrix is the fertility. We do this by using a Gamma prior with the function `fill_fertility()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Gamma prior only applies to the $F$ matrix. If not specified, the function assumes an uniformative prior with $\alpha = 0.00001, \beta = 0.00001$ across all stages. Stages that do not reproduce are marked with `NA_real_` in the prior probability vectors. Again, demonstrate with a single example. The posterior $\alpha$ is given by the sum of the prior $\alpha = 0.00001$ and the number of offspring next year (2 in this case), while the posterior $\beta$ is simply the sum of the prior and the number of adults contributing to the observed reproduction.
+The other component of the matrix is the fertility. We do this by using a Gamma prior with the function `fill_fertility()`. This function takes the matrix as a list of 2 components, a matrix of transition probabilities $T$ and a matrix of fertility contributions $F$. The Gamma prior only applies to the $F$ matrix. If not specified, the function assumes an uniformative prior with $\alpha = 0.00001, \beta = 0.00001$ across all stages. Again, demonstrate with a single example. The posterior $\alpha$ is given by the sum of the prior $\alpha = 0.00001$ and the number of offspring next year (2 in this case), while the posterior $\beta$ is simply the sum of the prior and the number of adults contributing to the observed reproduction.
 
 ```{r}
 post_alpha = 0.00001 + 2
@@ -339,10 +339,10 @@ isIrreducible(tmat+fmat2)
 
 The uninformative prior on fertility makes very little difference to lambda, and does not help with issues of ergodicity and irreducibility. 
 
-```{r fillGamma, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data."}
+```{r fillGamma, fig.cap = "Asymptotic growth rate using a uniform prior with a total weight of 1 vs. the asymptotic growth rate for the observed data.", warning=FALSE}
 testing <- allA %>% mutate(Agamma = map2(TF, N, fill_fertility, 
-                                         alpha = c(NA_real_, NA_real_, 0.00001), 
-                                         beta = c(NA_real_, NA_real_, 0.00001), 
+                                         alpha = 0.00001, 
+                                         beta =  0.00001, 
                                          priorweight = 1, returnType = "A"),
                            lgamma = map_dbl(Agamma, lambda),                 
          irrgamma = map_dbl(Agamma, isIrreducible),
@@ -373,27 +373,37 @@ knitr::kable(ergo_irr, caption = "Ergodicity and irreducibility of individual tr
 
 We extracted an informative prior from an expert on epiphytic orchids (RLT) to compare with the uniform prior. In particular, we considered the effects of weighting the prior by different fractions of the actual sample size for each population and year. 
 
-```{r makePriors, eval=FALSE}
+```{r makePriors, eval=TRUE}
 RLT_Tprior <- matrix(c(0.25, 0.025, 0.0,
                        0.05, 0.9,   0.025,
                        0.01, 0.025, 0.95,
                        0.69, 0.05,  0.025), 
                      byrow = TRUE, nrow = 4, ncol = 3)
-RLT_Fprior <- matrix(c(0.0, 0.0, 0.025,
-                       0.0, 0.0, 0.0,
-                       0.0, 0.0, 0.0), 
+RLT_Fprior <- matrix(c(NA_real_, NA_real_, 0.025,
+                       NA_real_, NA_real_, NA_real_,
+                       NA_real_, NA_real_, NA_real_), 
+                     byrow = TRUE, nrow = 3, ncol = 3)
+unif_gamma <- matrix(c(NA_real_, NA_real_, 0.00001,
+                       NA_real_, NA_real_, NA_real_,
+                       NA_real_, NA_real_, NA_real_), 
                      byrow = TRUE, nrow = 3, ncol = 3)
 ```
 
-The RLT prior gives $\lambda = `r format(lambda(RLT_Tprior[-4,] + RLT_Fprior), digits = 2)`$. In an ideal world this prior would be extracted prior to collecting the data. In this case the prior is only being used to demonstrate the technique.
+```{r calcPriorLambda, include = FALSE}
+F1 <- RLT_Fprior
+F1[is.na(F1)] <- 0
+prior_lambda <- lambda(RLT_Tprior[-4,] + F1)
+```
+
+The RLT prior gives $\lambda = `r format(prior_lambda, digits = 2)`$. In an ideal world this prior would be extracted prior to collecting the data. In this case the prior is only being used to demonstrate the technique.
 
 ```{r fillDirichletPrior1, fig.cap="Asymptotic growth rates using prior information on transitions and fertility vs. the raw observations alone. The horizontal red line indicates $\\lambda$ for the RLT prior. Points for all four priors shown in transparent grey."}
 diffPriors <- list()
 diffPriors[["Uniform"]] <- testing %>% 
   mutate(Tprior = map2(TF, N, fill_transitions, returnType = "T"),
          Fprior = map2(TF, N, fill_fertility,
-                       alpha = c(NA_real_, NA_real_, 0.00001),
-                       beta = c(NA_real_, NA_real_, 0.00001), priorweight = -1, returnType = "F"),
+                       alpha = unif_gamma,
+                       beta = unif_gamma, priorweight = -1, returnType = "F"),
          Aprior = map2(Tprior, Fprior, `+`),
          lprior = map_dbl(Aprior, lambda))
 
@@ -402,8 +412,8 @@ diffPriors[["RLT, weight = 1"]] <- testing %>%
   mutate(Tprior = map2(TF, N, fill_transitions, 
                        P = RLT_Tprior, returnType = "T"),
          Fprior = map2(TF, N, fill_fertility,
-                       alpha = c(NA_real_, NA_real_, 0.025),
-                       beta = c(NA_real_, NA_real_, 1), priorweight = -1, returnType = "F"),
+                       alpha = RLT_Fprior,
+                       beta = unif_gamma + 1, priorweight = -1, returnType = "F"),
          Aprior = map2(Tprior, Fprior, `+`),
          lprior = map_dbl(Aprior, lambda))
 
@@ -411,8 +421,8 @@ diffPriors[["RLT, weight = 0.5N"]] <- testing %>%
   mutate(Tprior = map2(TF, N, fill_transitions, 
                        P = RLT_Tprior, priorweight = 0.5, returnType = "T"),
          Fprior = map2(TF, N, fill_fertility,
-                       alpha = c(NA_real_, NA_real_, 0.025),
-                       beta = c(NA_real_, NA_real_, 1), priorweight = 0.5, returnType = "F"),
+                       alpha = RLT_Fprior,
+                       beta = unif_gamma + 1, priorweight = 0.5, returnType = "F"),
          Aprior = map2(Tprior, Fprior, `+`),
          lprior = map_dbl(Aprior, lambda))
 
@@ -420,8 +430,8 @@ diffPriors[["RLT, weight = N"]] <- testing %>%
   mutate(Tprior = map2(TF, N, fill_transitions, 
                        P = RLT_Tprior, priorweight = 1, returnType = "T"),
          Fprior = map2(TF, N, fill_fertility,
-                       alpha = c(NA_real_, NA_real_, 0.025),
-                       beta = c(NA_real_, NA_real_, 1), priorweight = 1, returnType = "F"),
+                       alpha = RLT_Fprior,
+                       beta = unif_gamma + 1, priorweight = 1, returnType = "F"),
          Aprior = map2(Tprior, Fprior, `+`),
          lprior = map_dbl(Aprior, lambda))
 
@@ -568,37 +578,37 @@ Obtaining credible intervals on $\lambda$ requires simulation, because it is dif
 diffPriors_lci <- list()
 samples = 10000
 diffPriors_lci[["Uniform"]] <- tibble(A = sim_transitions(allA$TF[[71]], 
-                                                              allA$N[[71]], 
-                                                              samples = samples), 
-                                          lprior = map_dbl(A, lambda))
+                                                          allA$N[[71]], 
+                                                          samples = samples), 
+                                      lprior = map_dbl(A, lambda))
 
 
 diffPriors_lci[["RLT, weight = 1"]] <- tibble(A = sim_transitions(allA$TF[[71]], allA$N[[71]], 
-                                                                      P=RLT_Tprior, 
-                                                                      alpha = c(NA_real_, NA_real_, 0.025),
-                                                                      beta = c(NA_real_, NA_real_, 1), 
-                                                                      samples = samples), 
-                                                  lprior = map_dbl(A, lambda))
+                                                                  P=RLT_Tprior, 
+                                                                  alpha = RLT_Fprior,
+                                                                  beta = unif_gamma + 1, 
+                                                                  samples = samples), 
+                                              lprior = map_dbl(A, lambda))
 
 diffPriors_lci[["RLT, weight = 0.5N"]] <- tibble(A = sim_transitions(allA$TF[[71]], allA$N[[71]], 
-                                                                         P=RLT_Tprior,
-                                                                         alpha = c(NA_real_, NA_real_, 0.025),
-                                                                         beta = c(NA_real_, NA_real_, 1), 
-                                                                         priorweight = 0.5,
-                                                                         samples = samples), 
-                                                     lprior = map_dbl(A, lambda))
+                                                                     P=RLT_Tprior,
+                                                                     alpha = RLT_Fprior,
+                                                                     beta = unif_gamma + 1, 
+                                                                     priorweight = 0.5,
+                                                                     samples = samples), 
+                                                 lprior = map_dbl(A, lambda))
 
 diffPriors_lci[["RLT, weight = N"]] <- tibble(A = sim_transitions(allA$TF[[71]], allA$N[[71]], 
-                                                                      P=RLT_Tprior, 
-                                                                      alpha = c(NA_real_, NA_real_, 0.025),
-                                                                      beta = c(NA_real_, NA_real_, 1),
-                                                                      priorweight = 1,
-                                                                      samples = samples), 
-                                                  lprior = map_dbl(A, lambda))
+                                                                  P=RLT_Tprior, 
+                                                                  alpha = RLT_Fprior,
+                                                                  beta = unif_gamma + 1,
+                                                                  priorweight = 1,
+                                                                  samples = samples), 
+                                              lprior = map_dbl(A, lambda))
 
 diffPriors_lci <- bind_rows(diffPriors_lci, .id="prior")
 diffPriors_lci$prior <- factor(diffPriors_lci$prior, levels = c("Uniform", "RLT, weight = 1",
-                                                        "RLT, weight = 0.5N", "RLT, weight = N"))
+                                                                "RLT, weight = 0.5N", "RLT, weight = N"))
 
 diffPriors_lci_sum <- group_by(diffPriors_lci, prior) %>% 
   summarize(pgt1 = sum(lprior > 1)/samples,
