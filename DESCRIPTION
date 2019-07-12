@@ -6,7 +6,8 @@ Authors@R: c(
     person("Andrew", "Tyre", email = "atyre2@unl.edu", role = "cre",
     comment = c(ORCID = "0000-0001-9736-641X")),
     person("Raymond", "Tremblay", email = "raymond.tremblay@upr.edu", role = "aut"),
-    person("Maria-Eglee", "Perez", email = "mariaeglee@gmail.com", role = "aut")) 
+    person("Maria-Eglee", "Perez", email = "mariaeglee@gmail.com", role = "aut"),
+    person("Sasha", "Tenhumberg", role = "ctb")) 
 Description: Functions to create matrix population models from a combination
     of data on stage/age transitions and Bayesian prior information. This 
     compensates for structural problems caused by missing observatons of rare
