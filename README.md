@@ -47,6 +47,32 @@ arguments.
 devtools::install_github("atyre2/raretrans", build = TRUE, build_opts = c("--no-resave-data", "--no-manual"))
 ```
 
+## Overview
+
+There are two main functions in this package, `fill_transitions()` and
+`fill_fertility()`. Both of them take a list of two matrices as their
+first argument, the population projection matrix decomposed into a
+matrix of the probability of transitions between stages, and a matrix
+describing the contribution to the next census via reproduction. These
+matrices can be constructed by hand, or created with
+`popbio::projection_matrix(..., TF = TRUE)` from a data frame with
+transitions between stages for individuals. By default, they return a
+matrix ‘filled in’ with uninformative or uniform priors. Informative
+priors can be specified as well.
+
+For detailed examples of using these functions with a single population
+see the vignette [Working with a single population and
+transition](https://atyre2.github.io/raretrans/articles/onepopperiod.html).
+The vignette [Effect of prior information on transition probabilities
+and
+fertilities](https://atyre2.github.io/raretrans/articles/transition_priors.html)
+shows how to work with a dataset of many populations and transitions,
+and produces all the figures for Tremblay et al. (submitted).
+
+For an overview of population projection models generally, see [Hal
+Caswell, 2001, Matrix Population Models: Construction, Analysis, and
+Interpretation](https://books.google.com/books/about/Matrix_Population_Models.html?id=CPsTAQAAIAAJ).
+
 ## Code of Conduct
 
 Please note that the ‘raretrans’ project is released with a [Contributor
