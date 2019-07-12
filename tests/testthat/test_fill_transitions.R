@@ -16,6 +16,7 @@ TF <- popbio::projection.matrix(as.data.frame(onepop), stage = stage, fate = nex
                                 fertility = "fertility", sort = c("s", "j", "a"), TF = TRUE)
 N <- get_state_vector(onepop, stage = stage, sort = c("s", "j", "a"))
 Tprior <- matrix(0.25, byrow = TRUE, ncol = 3, nrow = 4)
+RLT_Tprior <- matrix(c(0.25, 0.025, 0, 0.05, 0.9, 0.025, 0.01, 0.025, 0.95, 0.69, 0.05, 0.025), byrow = TRUE, nrow = 4, ncol = 3)
 
 test_that("args are correct", {
   expect_equal_to_reference(TF, "TF.rds")
@@ -26,6 +27,7 @@ test_that("fill_transitions behaves", {
   expect_length(fill_transitions(TF, N, P = Tprior), 9)
   expect_length(fill_transitions(TF, N), 9)
   expect_equal_to_reference(fill_transitions(TF, N, P = Tprior), "transmatrix.rds")
+  expect_equal_to_reference(fill_transitions(TF, N, P = RLT_Tprior, priorweight = 0.5), "transmatrix2.rds")
 })
 
 test_that("priorweight can be changed", {
