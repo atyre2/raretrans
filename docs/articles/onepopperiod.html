@@ -30,7 +30,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">raretrans</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">2.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.1.9000</span>
       </span>
     </div>
 
@@ -357,9 +357,9 @@
 <div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" data-line-number="1"><span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(TF, N, <span class="dt">P =</span> RLT_Tprior, <span class="dt">alpha =</span> alpha, <span class="dt">beta =</span> beta, <span class="dt">priorweight =</span> <span class="fl">0.5</span>)</a></code></pre></div>
 <pre><code>## [[1]]
 ##              [,1]       [,2]         [,3]
-## [1,] 7.261332e-02 0.01202102 0.0000000000
-## [2,] 6.129123e-01 0.64099184 0.0001809654
-## [3,] 4.610927e-06 0.24434552 0.9338248029</code></pre>
+## [1,] 0.3140828178 0.02590449 0.0000000000
+## [2,] 0.3337127386 0.64780192 0.0002954301
+## [3,] 0.0005094581 0.13445799 0.9322539353</code></pre>
 <p>Now we simulate 1000 times, calculate the leading eigenvalue of each matrix, and draw a histogram.</p>
 <div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb36-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Random">set.seed</a></span>(<span class="dv">8390278</span>)  <span class="co"># make this part reproducible</span></a>
 <a class="sourceLine" id="cb36-2" data-line-number="2">alpha2 &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">matrix</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>, <span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, </a>
