@@ -13,11 +13,11 @@
 #' was taken from Greg's Miscellaneous Functions (gregmisc). His code was based
 #' on code posted by Ben Bolker to R-News on 15 Dec 2000.
 #'
-rdirichlet <- function (n, alpha){
+rdirichlet <- function(n, alpha) {
   l <- length(alpha)
   x <- matrix(stats::rgamma(l * n, alpha), ncol = l, byrow = TRUE)
   sm <- x %*% rep(1, l)
-  return(x/as.vector(sm))
+  return(x / as.vector(sm))
 }
 
 #' Simulate population projection matrices
@@ -36,15 +36,15 @@ rdirichlet <- function (n, alpha){
 #' @return Always returns a list.
 #' @export
 #'
-sim_transitions <- function(TF, N, P = NULL, alpha = 0.00001, beta = 0.00001, priorweight = -1, samples = 1){
+sim_transitions <- function(TF, N, P = NULL, alpha = 0.00001, beta = 0.00001, priorweight = -1, samples = 1) {
   Tmat <- TF$T
   Fmat <- TF$F
   order <- dim(Tmat)[1]
-  if(missing(P)){
+  if (missing(P)) {
     # fill in with a uniform prior <- <- <-
-    P <- matrix(1/(order+1), nrow=order+1, ncol = order)
+    P <- matrix(1 / (order + 1), nrow = order + 1, ncol = order)
   } else {
-    if(ncol(P)!=order | nrow(P) != (order+1)) {
+    if (ncol(P) != order | nrow(P) != (order + 1)) {
       stop("Bad dimensions on P")
     }
   }
@@ -54,14 +54,14 @@ sim_transitions <- function(TF, N, P = NULL, alpha = 0.00001, beta = 0.00001, pr
   beta <- ab_post$beta
 
   Amats <- list()
-  for(i in 1:samples){
-    T_ <- matrix(0, nrow=order, ncol=order)
-    F_ <- matrix(0, nrow=order, ncol=order)
+  for (i in 1:samples) {
+    T_ <- matrix(0, nrow = order, ncol = order)
+    F_ <- matrix(0, nrow = order, ncol = order)
 
-    for(j in 1:order){
-      T_[,j] <- rdirichlet(1, TN[,j])[1:order]
-      if (!is.na(alpha[j])){
-        F_[1,j] <- stats::rgamma(1, shape = alpha[j], rate = beta[j])
+    for (j in 1:order) {
+      T_[, j] <- rdirichlet(1, TN[, j])[1:order]
+      if (!is.na(alpha[j])) {
+        F_[1, j] <- stats::rgamma(1, shape = alpha[j], rate = beta[j])
       }
     }
     Amats[[i]] <- T_ + F_

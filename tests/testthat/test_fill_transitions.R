@@ -12,8 +12,10 @@ test_that("data hasn't changed", {
 onepop <- L_elto %>% # Filter out population # 250, period (year) 5
   filter(POPNUM == 250, year == 5) %>% # redefine p for el plantón to s for seedling
   mutate(stage = case_when(stage == "p" ~ "s", TRUE ~ stage), next_stage = case_when(next_stage == "p" ~ "s", TRUE ~ next_stage))
-TF <- popbio::projection.matrix(as.data.frame(onepop), stage = stage, fate = next_stage,
-                                fertility = "fertility", sort = c("s", "j", "a"), TF = TRUE)
+TF <- popbio::projection.matrix(as.data.frame(onepop),
+  stage = stage, fate = next_stage,
+  fertility = "fertility", sort = c("s", "j", "a"), TF = TRUE
+)
 N <- get_state_vector(onepop, stage = stage, sort = c("s", "j", "a"))
 Tprior <- matrix(0.25, byrow = TRUE, ncol = 3, nrow = 4)
 RLT_Tprior <- matrix(c(0.25, 0.025, 0, 0.05, 0.9, 0.025, 0.01, 0.025, 0.95, 0.69, 0.05, 0.025), byrow = TRUE, nrow = 4, ncol = 3)
@@ -31,7 +33,7 @@ test_that("fill_transitions behaves", {
 })
 
 test_that("priorweight can be changed", {
-  expect_vector(fill_transitions(TF, N, P= Tprior, priorweight = 1))
+  expect_vector(fill_transitions(TF, N, P = Tprior, priorweight = 1))
   expect_vector(fill_transitions(TF, N, P = Tprior, priorweight = 531))
   expect_vector(fill_transitions(TF, N, P = Tprior, priorweight = -531))
 })

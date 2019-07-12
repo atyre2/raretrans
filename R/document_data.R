@@ -3,7 +3,7 @@
 #' @param object data set to document
 #'
 #' @keywords internal
-document_data <- function(object){
+document_data <- function(object) {
   x1 <- "#' ~~ data name/kind ... \n#'"
   x1b <- "#' ~~ A concise (1-5 lines) description of the dataset. ~~\n#'"
   x2 <- "#' \\itemize{"
@@ -13,9 +13,10 @@ document_data <- function(object){
   x6 <- "#' @keywords ..."
   x7 <- paste("#' @name", deparse(substitute(object)))
   x8 <- paste0("#' @usage data(", deparse(substitute(object)), ")")
-  x9 <- paste("#' @format A data frame with", NROW(object), "rows and",
-              NCOL(object), "variables"
+  x9 <- paste(
+    "#' @format A data frame with", NROW(object), "rows and",
+    NCOL(object), "variables"
   )
-  x = paste(c(x1, x1b, x2, x3, x4, x5, x6, x7, x8, x9), collapse = "\n")
-  writeLines(x, con = file.path("R", paste0(deparse(substitute(object)), '.R')))
+  x <- paste(c(x1, x1b, x2, x3, x4, x5, x6, x7, x8, x9), collapse = "\n")
+  writeLines(x, con = file.path("R", paste0(deparse(substitute(object)), ".R")))
 }

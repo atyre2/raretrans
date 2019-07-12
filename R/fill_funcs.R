@@ -18,33 +18,33 @@
 #'
 #' @export
 #'
-fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "T"){
+fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "T") {
   Tmat <- TF$T
   Fmat <- TF$F
   order <- dim(Tmat)[1]
-  if(missing(P)){
+  if (missing(P)) {
     # fill in with a uniform prior <- <- <-
-    P <- matrix(1/(order+1), nrow=order+1, ncol = order)
+    P <- matrix(1 / (order + 1), nrow = order + 1, ncol = order)
   } else {
-    if(ncol(P)!=order | nrow(P) != (order+1)) {
+    if (ncol(P) != order | nrow(P) != (order + 1)) {
       stop("Bad dimensions on P")
     }
   }
-  Tfilled <- matrix(NA, nrow=order, ncol=order)
-  TN <- matrix(NA, nrow=order+1, ncol = order)
-  for (i in 1:order){
-    observed <- Tmat[,i] * N[i]
-    if (priorweight > 0 & N[i] > 0){
-      P[,i] <- P[,i]*priorweight*N[i]
+  Tfilled <- matrix(NA, nrow = order, ncol = order)
+  TN <- matrix(NA, nrow = order + 1, ncol = order)
+  for (i in 1:order) {
+    observed <- Tmat[, i] * N[i]
+    if (priorweight > 0 & N[i] > 0) {
+      P[, i] <- P[, i] * priorweight * N[i]
     }
-    allfates <- c(observed, N[i]-sum(observed)) + P[,i]
+    allfates <- c(observed, N[i] - sum(observed)) + P[, i]
     # missing <- allfates == 0
     # allfates[missing] <- 1
     # allfates[!missing] <- allfates[!missing] + sum(missing)
-    Tfilled[,i] <- allfates[1:order] / sum(allfates)
-    TN[,i] <- allfates
+    Tfilled[, i] <- allfates[1:order] / sum(allfates)
+    TN[, i] <- allfates
   }
-  if (returnType == "A"){
+  if (returnType == "A") {
     return(Tfilled + Fmat)
   } else if (returnType == "T") {
     return(Tfilled)
@@ -78,20 +78,20 @@ fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "T"
 #'
 #' @export
 #'
-fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight = -1, returnType = "F"){
+fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight = -1, returnType = "F") {
   Tmat <- TF$T
   Fmat <- TF$F
   order <- dim(Tmat)[1]
 
-  if (length(N) != order | sum(is.na(N)) > 0){
+  if (length(N) != order | sum(is.na(N)) > 0) {
     stop("N isn't the correct length or has missing values.")
   }
 
-  if (is.null(dim(alpha)) & length(alpha)!=1 | is.null(dim(beta)) & length(beta)!=1){
+  if (is.null(dim(alpha)) & length(alpha) != 1 | is.null(dim(beta)) & length(beta) != 1) {
     stop("alpha or beta is not a matrix or a single value.")
   }
 
-  if (!(is.numeric(alpha)&is.numeric(beta))){
+  if (!(is.numeric(alpha) & is.numeric(beta))) {
     stop("alpha or beta must be numeric matrices or single values.")
   }
 
@@ -101,16 +101,16 @@ fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
     beta <- matrix(rep(beta[1], order^2), nrow = order, ncol = order)
   }
 
-  Ffilled <- matrix(NA, nrow=order, ncol = order)
+  Ffilled <- matrix(NA, nrow = order, ncol = order)
   babies_next_year <- sweep(Fmat, 2, N, FUN = "*")
   # test reproducing stages with beta, because of divide by zero issues
   reproducing_stages <- apply(beta, 2, function(x) sum(!is.na(x))) > 0
   # matrix multiplication doesn't preserve the column structure
 
-  if ((all(N[reproducing_stages] > 0) | sum(beta, na.rm = TRUE) > 0)){
-    if (priorweight > 0){
-      alpha_post <- sweep(alpha, 2, N, FUN = "*")*priorweight + babies_next_year
-      beta_post <- sweep(beta, 2, N, FUN = "*")*priorweight + N
+  if ((all(N[reproducing_stages] > 0) | sum(beta, na.rm = TRUE) > 0)) {
+    if (priorweight > 0) {
+      alpha_post <- sweep(alpha, 2, N, FUN = "*") * priorweight + babies_next_year
+      beta_post <- sweep(beta, 2, N, FUN = "*") * priorweight + N
     } else {
       alpha_post <- alpha + babies_next_year
       beta_post <- sweep(beta, 2, N, FUN = "+")
@@ -121,15 +121,15 @@ fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
     stop("No reproducing stages in N, and no positive values in beta.")
   }
 
-  #shouldn't be any missing values in the output
-  if (any(is.na(Ffilled))){
+  # shouldn't be any missing values in the output
+  if (any(is.na(Ffilled))) {
     stop("Missing values in filled fertility matrix: check inputs for missing values.")
   }
-  if (returnType == "A"){
+  if (returnType == "A") {
     return(Tmat + Ffilled)
-  } else if (returnType == "F"){
+  } else if (returnType == "F") {
     return(Ffilled)
-  } else if (returnType == "ab"){
+  } else if (returnType == "ab") {
     return(list(alpha = alpha_post, beta = beta_post))
   } else {
     stop("Bad returntype in fill_fertility()")
@@ -149,9 +149,8 @@ fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
 #' @export
 #'
 
-get_state_vector <- function (transitions, stage = NULL,
-                              sort = NULL)
-{
+get_state_vector <- function(transitions, stage = NULL,
+                             sort = NULL) {
   if (missing(stage)) {
     stage <- "stage"
   }
@@ -167,4 +166,3 @@ get_state_vector <- function (transitions, stage = NULL,
   tf <- table(transitions[[stage]])[sort]
   return(as.vector(tf))
 }
-
