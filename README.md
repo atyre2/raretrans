@@ -5,12 +5,9 @@
 
 [![Build
 Status](https://travis-ci.com/atyre2/raretrans.svg?token=fZ6v1nEUhWRrRW3uj9TH&branch=master)](https://travis-ci.com/atyre2/raretrans)
-
 [![AppVeyor Build
 Status](https://ci.appveyor.com/api/projects/status/github/atyre2/raretrans?branch=master&svg=true)](https://ci.appveyor.com/project/atyre2/raretrans)
-
 [![codecov](https://codecov.io/gh/atyre2/raretrans/branch/master/graph/badge.svg?token=NWFl8m4owW)](https://codecov.io/gh/atyre2/raretrans)
-
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/raretrans)](https://cran.r-project.org/package=raretrans)
 
 Functions to create matrix population models from a combination of data
