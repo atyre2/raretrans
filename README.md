@@ -49,3 +49,9 @@ arguments.
 ``` r
 devtools::install_github("atyre2/raretrans", build = TRUE, build_opts = c("--no-resave-data", "--no-manual"))
 ```
+
+## Code of Conduct
+
+Please note that the ‘raretrans’ project is released with a [Contributor
+Code of Conduct](CODE_OF_CONDUCT.md). By contributing to this project,
+you agree to abide by its terms.
