@@ -1,34 +1,49 @@
-Package: raretrans
 Type: Package
+Package: raretrans
 Title: Bayesian Priors for Matrix Population Models
 Version: 1.0.1.9000
-Authors@R: c(
-    person("Andrew", "Tyre", email = "atyre2@unl.edu", role = "cre",
-    comment = c(ORCID = "0000-0001-9736-641X")),
-    person("Raymond", "Tremblay", email = "raymond.tremblay@upr.edu", role = "aut"),
-    person("Maria-Eglee", "Perez", email = "mariaeglee@gmail.com", role = "aut"),
-    person("Sasha", "Tenhumberg", role = "ctb")) 
-Description: Functions to create matrix population models from a combination
-    of data on stage/age transitions and Bayesian prior information. This 
-    compensates for structural problems caused by missing observatons of rare
-    transitions. 
-URL: https://atyre2.github.io/raretrans/, https://github.com/atyre2/raretrans
-BugReports: https://github.com/atyre2/raretrans/issues
+Authors@R: 
+    c(person(given = "Andrew",
+             family = "Tyre",
+             role = "cre",
+             email = "atyre2@unl.edu",
+             comment = c(ORCID = "0000-0001-9736-641X")),
+      person(given = "Raymond",
+             family = "Tremblay",
+             role = "aut",
+             email = "raymond.tremblay@upr.edu"),
+      person(given = "Maria-Eglee",
+             family = "Perez",
+             role = "aut",
+             email = "mariaeglee@gmail.com"),
+      person(given = "Sasha",
+             family = "Tenhumberg",
+             role = "ctb"))
+Description: Functions to create matrix population models from a
+    combination of data on stage/age transitions and Bayesian prior
+    information. This compensates for structural problems caused by
+    missing observations of rare transitions.
 License: MIT + file LICENSE
-Encoding: UTF-8
-LazyData: true
-Depends: R (>= 3.5)
-Imports: dplyr,
+URL: https://atyre2.github.io/raretrans/,
+    https://github.com/atyre2/raretrans
+BugReports: https://github.com/atyre2/raretrans/issues
+Depends: 
+    R (>= 3.5)
+Imports: 
+    dplyr,
     popbio,
     stats
 Suggests: 
-    popdemo,
+    covr,
+    gridExtra,
     knitr,
+    MultinomialCI,
+    popdemo,
     rmarkdown,
     testthat,
-    tidyverse,
-    MultinomialCI,
-    gridExtra,
-    covr
+    tidyverse
+VignetteBuilder: 
+    knitr
+Encoding: UTF-8
+LazyData: true
 RoxygenNote: 6.1.1
-VignetteBuilder: knitr
