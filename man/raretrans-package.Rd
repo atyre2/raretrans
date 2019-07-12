@@ -30,4 +30,9 @@ Authors:
   \item Maria-Eglee Perez \email{mariaeglee@gmail.com}
 }
 
+Other contributors:
+\itemize{
+  \item Sasha Tenhumberg [contributor]
+}
+
 }

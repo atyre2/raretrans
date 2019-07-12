@@ -15,3 +15,4 @@
 ^Meta$
 ^.covrignore$
 ^CODE_OF_CONDUCT\.md$
+^tests/testthat/random_helper_code.R$

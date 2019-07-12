@@ -82,20 +82,25 @@ fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
   Tmat <- TF$T
   Fmat <- TF$F
   order <- dim(Tmat)[1]
+
   if (length(N) != order | sum(is.na(N)) > 0){
     stop("N isn't the correct length or has missing values.")
   }
+
+  if (is.null(dim(alpha)) & length(alpha)!=1 | is.null(dim(beta)) & length(beta)!=1){
+    stop("alpha or beta is not a matrix or a single value.")
+  }
+
   if (!(is.numeric(alpha)&is.numeric(beta))){
     stop("alpha or beta must be numeric matrices or single values.")
   }
-  # if (sum(is.na(alpha))>0 | sum(is.na(beta)) > 0) {
-  #   stop("alpha or beta cannot have missing values")
-  # }
-  if (length(alpha) != order^2 | length(beta) != order^2) {
+
+  if ((length(alpha) != order^2 | length(beta) != order^2)) {
     warning("length(alpha | beta) != order^2: only using first value of alpha and beta")
     alpha <- matrix(rep(alpha[1], order^2), nrow = order, ncol = order)
     beta <- matrix(rep(beta[1], order^2), nrow = order, ncol = order)
   }
+
   Ffilled <- matrix(NA, nrow=order, ncol = order)
   babies_next_year <- sweep(Fmat, 2, N, FUN = "*")
   # test reproducing stages with beta, because of divide by zero issues

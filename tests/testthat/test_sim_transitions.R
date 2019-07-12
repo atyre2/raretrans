@@ -30,7 +30,7 @@ test_that("# of samples can change", {
 
 test_that("warnings work", {
   expect_warning(sim_transitions(TF, N, P = RLT_Tprior, alpha = 1e-05, beta = 1e-05, priorweight = 0.5))
-  expect_warning(sim_transitions(TF, N, P = RLT_Tprior, alpha = N, beta = beta))
+  expect_error(sim_transitions(TF, N, P = RLT_Tprior, alpha = N, beta = beta))
 })
 
 test_that("errors are thrown", {
