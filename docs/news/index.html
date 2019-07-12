@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Combine prior and data for fertility matrix — fill_fertility • raretrans</title>
+<title>Changelog • raretrans</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,11 +30,7 @@
 
 
 
-<meta property="og:title" content="Combine prior and data for fertility matrix — fill_fertility" />
-
-<meta property="og:description" content="fill_fertility returns the expected value of the fertility
-matrix combining observed recruits for one time step and a Gamma prior for each column." />
-<meta name="twitter:card" content="summary" />
+<meta property="og:title" content="Changelog" />
 
 
 
@@ -51,7 +47,7 @@ matrix combining observed recruits for one time step and a Gamma prior for each 
   </head>
 
   <body>
-    <div class="container template-reference-topic">
+    <div class="container template-news">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -118,76 +114,47 @@ matrix combining observed recruits for one time step and a Gamma prior for each 
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Combine prior and data for fertility matrix</h1>
-    <small class="dont-index">Source: <a href='https://github.com/atyre2/raretrans/blob/master/R/fill_funcs.R'><code>R/fill_funcs.R</code></a></small>
-    <div class="hidden name"><code>fill_fertility.Rd</code></div>
+      <h1>Changelog <small></small></h1>
+      <small>Source: <a href='https://github.com/atyre2/raretrans/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
-    <div class="ref-description">
-    
-    <p><code>fill_fertility</code> returns the expected value of the fertility
-matrix combining observed recruits for one time step and a Gamma prior for each column.</p>
-    
-    </div>
-
-    <pre class="usage"><span class='fu'>fill_fertility</span>(<span class='no'>TF</span>, <span class='no'>N</span>, <span class='kw'>alpha</span> <span class='kw'>=</span> <span class='fl'>1e-05</span>, <span class='kw'>beta</span> <span class='kw'>=</span> <span class='fl'>1e-05</span>, <span class='kw'>priorweight</span> <span class='kw'>=</span> -<span class='fl'>1</span>,
-  <span class='kw'>returnType</span> <span class='kw'>=</span> <span class='st'>"F"</span>)</pre>
-    
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>TF</th>
-      <td><p>A list of two matrices, T and F, as ouput by <code><a href='https://www.rdocumentation.org/packages/popbio/topics/projection.matrix'>projection.matrix</a></code>.</p></td>
-    </tr>
-    <tr>
-      <th>N</th>
-      <td><p>A vector of observed stage distribution.</p></td>
-    </tr>
-    <tr>
-      <th>alpha</th>
-      <td><p>A matrix of the prior parameter for each stage. Impossible stage combinations marked with NA_real_.</p></td>
-    </tr>
-    <tr>
-      <th>beta</th>
-      <td><p>A matrix of the prior parameter for each stage. Impossible stage combinations marked with NA_real_.</p></td>
-    </tr>
-    <tr>
-      <th>priorweight</th>
-      <td><p>total weight for each column of prior as a percentage of sample size or 1 if negative</p></td>
-    </tr>
-    <tr>
-      <th>returnType</th>
-      <td><p>A character vector describing the desired return value. Defaults to "F" the fertility matrix</p></td>
-    </tr>
-    </table>
-    
-    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
-
-    <p>The return value depends on parameter returnType.</p><ul>
-<li><p>A - the summed matrix "filled in" using a Gamma prior</p></li>
-<li><p>F - just the filled in fertility matrix</p></li>
-<li><p>ab - the posterior parameters alpha and beta as a list.</p></li>
+    <div id="raretrans-2-0-0-alpha" class="section level1">
+<h1 class="page-header">
+<a href="#raretrans-2-0-0-alpha" class="anchor"></a>raretrans 2.0.0-alpha</h1>
+<div id="breaking-changes" class="section level2">
+<h2 class="hasAnchor">
+<a href="#breaking-changes" class="anchor"></a>Breaking changes</h2>
+<ul>
+<li>Fixed Issue <a href='https://github.com/atyre2/raretrans/issues/2'>#2</a>, which means code that worked with v1.0.0 will not work without warnings, and will likely produce incorrect results.</li>
 </ul>
-
-    
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>Assumes that only one stage reproduces ... needs generalizing.</p>
-    
-
+</div>
+<div id="minor-fixes" class="section level2">
+<h2 class="hasAnchor">
+<a href="#minor-fixes" class="anchor"></a>Minor fixes</h2>
+<ul>
+<li>Added a <code>NEWS.md</code> file to track changes to the package.</li>
+</ul>
+</div>
+</div>
+    <div id="raretrans-1-0-0" class="section level1">
+<h1 class="page-header">
+<a href="#raretrans-1-0-0" class="anchor"></a>raretrans 1.0.0</h1>
+<ul>
+<li>First version of package, used to create figures in Tremblay et al. (submitted)</li>
+</ul>
+</div>
   </div>
+
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-    <h2>Contents</h2>
-    <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
-      
-      <li><a href="#value">Value</a></li>
-
-      <li><a href="#details">Details</a></li>
-          </ul>
-
+    <div id="tocnav">
+      <h2>Contents</h2>
+      <ul class="nav nav-pills nav-stacked">
+        <li><a href="#raretrans-2-0-0-alpha">2.0.0</a></li>
+        <li><a href="#raretrans-1-0-0">1.0.0</a></li>
+      </ul>
+    </div>
   </div>
+
 </div>
 
       <footer>
