@@ -1,7 +1,7 @@
 Package: raretrans
 Type: Package
 Title: Bayesian Priors for Matrix Population Models
-Version: 2.0.0.9000
+Version: 1.0.1.9000
 Authors@R: c(
     person("Andrew", "Tyre", email = "atyre2@unl.edu", role = "cre",
     comment = c(ORCID = "0000-0001-9736-641X")),
