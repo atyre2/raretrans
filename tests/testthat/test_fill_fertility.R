@@ -16,8 +16,13 @@ TF <- popbio::projection.matrix(as.data.frame(onepop),
   fertility = "fertility", sort = c("s", "j", "a"), TF = TRUE
 )
 
+TFmissing <- list(matrix(c(.1, .1, .1, .1, .1, .1, .1, .1, NA_real_), nrow = 3, ncol = 3, byrow = TRUE),
+               matrix(c(.1, .1, .1, .1, .1, .1, .1, .1, NA_real_), nrow = 3, ncol = 3, byrow = TRUE))
+
 N <- get_state_vector(onepop, stage = stage, sort = c("s", "j", "a"))
 
+Nmissing <- c(NA_real_, NA_real_, NA_real_)
+Nzeros <- c(0, 0, 0)
 
 alpha <- matrix(c(
   NA_real_, NA_real_, 1,
@@ -30,6 +35,9 @@ beta <- matrix(c(
   NA_real_, NA_real_, NA_real_
 ), nrow = 3, ncol = 3, byrow = TRUE)
 
+smatrix <- matrix(c("a", "b", "c", "d", "e", "f", "g", "h", "i"), nrow = 3, ncol = 3, byrow = TRUE)
+
+negmatrix <- matrix(c(-1, -1, -1, -1, -1, -1, -1, -1, -1), nrow = 3, ncol = 3, byrow = TRUE)
 
 test_that("args are correct", {
   expect_length(TF, 2)
@@ -85,4 +93,8 @@ test_that("fill fertility throws errors and warnings with invalid arguments", {
   ))
   expect_error(fill_fertility(TF, N, alpha = c(NA_real_, NA_real_, 1e-05, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_), beta = beta))
   expect_error(fill_fertility(TF, N, alpha = alpha, beta = c(NA_real_, NA_real_, 1e-05, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_)))
+  expect_error(fill_fertility(TF, N, alpha = smatrix, beta = beta))
+  expect_error(fill_fertility(TF, Nzeros, alpha = alpha, beta = negmatrix))
+  expect_error(fill_fertility(TF, Nmissing, alpha = alpha, beta = beta))
+  expect_error(fill_fertility(TFmissing, N, alpha = alpha, beta = beta))
 })
