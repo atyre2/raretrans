@@ -48,4 +48,5 @@ test_that("errors are thrown", {
   ))
   expect_error(sim_transitions(TF, N, P = RLT_Tprior, alpha = c(NA_real_, NA_real_, 1e-05, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_), beta = beta))
   expect_error(sim_transitions(TF, N, P = RLT_Tprior, alpha = alpha, beta = c(NA_real_, NA_real_, 1e-05, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_)))
+  expect_error(sim_transitions(TF, N, P = matrix(c(1, 2, 3, 4), ncol = 2, nrow = 2, byrow = TRUE), alpha = alpha, beta = beta))
 })
