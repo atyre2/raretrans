@@ -121,10 +121,6 @@ fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
     stop("No reproducing stages in N, and no positive values in beta.")
   }
 
-  # shouldn't be any missing values in the output
-  if (any(is.na(Ffilled))) {
-    stop("Missing values in filled fertility matrix: check inputs for missing values.")
-  }
   if (returnType == "A") {
     return(Tmat + Ffilled)
   } else if (returnType == "F") {
