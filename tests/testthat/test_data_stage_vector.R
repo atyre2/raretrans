@@ -30,7 +30,3 @@ test_that("State vector works with dataframes too", {
   expect_equal(get_state_vector(testdata, sort = c("j", "m", "a", "p")), expected = c(2, 0, 3, 1))
 })
 
-test_that("State vector produces error when missing column", {
-  expect_error(get_state_vector(testdata, stage = "foo"))
-  expect_error(get_state_vector(testdata, stage = foo))
-})
