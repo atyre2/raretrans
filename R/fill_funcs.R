@@ -162,7 +162,6 @@ get_state_vector <- function(transitions, stage = NULL,
   return(as.vector(tf))
 }
 
-#' @export
 check_TF <- function(TF) {
 
   if(typeof(TF) != "list") {
