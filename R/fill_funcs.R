@@ -144,7 +144,6 @@ fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight =
 #' @return a vector of the counts of observations in each level of stage.
 #' @export
 #'
-
 get_state_vector <- function(transitions, stage = NULL,
                              sort = NULL) {
   if (missing(stage)) {
@@ -162,3 +161,27 @@ get_state_vector <- function(transitions, stage = NULL,
   tf <- table(transitions[[stage]])[sort]
   return(as.vector(tf))
 }
+
+check_TF <- function(TF) {
+
+  if(typeof(TF) != "list") {
+    stop("TF must be a list of 2 matrices with equal dimensions")
+  }
+  if(length(TF) != 2) {
+    stop("TF must be a list of 2 matrices with equal dimensions")
+  }
+  if(is.null(TF$T) || is.null(TF$T)) {
+    stop("the matrices in TF must be named 'T' and 'F'")
+  }
+  Tmat <- TF$T
+  Fmat <- TF$F
+
+  if(!identical(dim(Tmat), dim(Fmat))) {
+    stop("The transition matrix's dimensions don't match the fertility matrix's dimensions")
+  }
+  if(dim(Tmat)[1] != dim(Tmat)[2]) {
+    stop("T and F must be square matrices")
+  }
+
+}
+
