@@ -19,6 +19,7 @@
 #' @export
 #'
 fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "T") {
+  check_TF(TF)
   Tmat <- TF$T
   Fmat <- TF$F
   order <- dim(Tmat)[1]
@@ -79,6 +80,7 @@ fill_transitions <- function(TF, N, P = NULL, priorweight = -1, returnType = "T"
 #' @export
 #'
 fill_fertility <- function(TF, N, alpha = 0.00001, beta = 0.00001, priorweight = -1, returnType = "F") {
+  check_TF(TF)
   Tmat <- TF$T
   Fmat <- TF$F
   order <- dim(Tmat)[1]
