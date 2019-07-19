@@ -356,10 +356,10 @@
 <p>Obtaining credible intervals on the asymptotic growth rate, <span class="math inline">\(\lambda\)</span>, requires simulating matrices from the posterior distributions. This is somewhat complicated to do correctly, and we have written a function <code><a href="../reference/sim_transitions.html">raretrans::sim_transitions()</a></code> to generate a list of simulated matrices given the observed matrix and prior specifications.</p>
 <div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" data-line-number="1"><span class="kw"><a href="../reference/sim_transitions.html">sim_transitions</a></span>(TF, N, <span class="dt">P =</span> RLT_Tprior, <span class="dt">alpha =</span> alpha, <span class="dt">beta =</span> beta, <span class="dt">priorweight =</span> <span class="fl">0.5</span>)</a></code></pre></div>
 <pre><code>## [[1]]
-##              [,1]       [,2]         [,3]
-## [1,] 0.3140828178 0.02590449 0.0000000000
-## [2,] 0.3337127386 0.64780192 0.0002954301
-## [3,] 0.0005094581 0.13445799 0.9322539353</code></pre>
+##              [,1]         [,2]        [,3]
+## [1,] 1.402772e-01 0.0002463551 0.000000000
+## [2,] 2.672746e-01 0.5123892147 0.000437414
+## [3,] 1.104568e-06 0.4062464340 0.797359985</code></pre>
 <p>Now we simulate 1000 times, calculate the leading eigenvalue of each matrix, and draw a histogram.</p>
 <div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb36-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Random">set.seed</a></span>(<span class="dv">8390278</span>)  <span class="co"># make this part reproducible</span></a>
 <a class="sourceLine" id="cb36-2" data-line-number="2">alpha2 &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/matrix">matrix</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="fl">0.025</span>, <span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, <span class="ot">NA_real_</span>, </a>
