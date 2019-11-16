@@ -28,8 +28,8 @@ rdirichlet <- function(n, alpha) {
 #' @param TF A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.
 #' @param N A vector of observed stages at start of transition.
 #' @param P A matrix of the priors for each column. Defaults to uniform.
-#' @param alpha A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_
-#' @param beta A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_
+#' @param alpha A matrix of the prior parameter for each stage. Impossible stage combinations marked with NA_real_.
+#' @param beta A matrix of the prior parameter for each stage. Impossible stage combinations marked with NA_real_.
 #' @param priorweight total weight for each column of prior as a percentage of sample size or 1 if negative
 #' @param samples The number of matrices to return.
 #'
@@ -49,22 +49,26 @@ sim_transitions <- function(TF, N, P = NULL, alpha = 0.00001, beta = 0.00001, pr
     }
   }
   TN <- fill_transitions(TF, N, P, priorweight, returnType = "TN")
+  # alpha and beta are checked in fill_fertility
   ab_post <- fill_fertility(TF, N, alpha = alpha, beta = beta, priorweight = priorweight, returnType = "ab")
-  alpha <- ab_post$alpha
-  beta <- ab_post$beta
+  alpha <- ab_post$alpha # these will now be square matrices
+  beta <- ab_post$beta # these will now be square matrices
 
   Amats <- list()
-  for (i in 1:samples) {
-    T_ <- matrix(0, nrow = order, ncol = order)
-    F_ <- matrix(0, nrow = order, ncol = order)
+  for(s in 1:samples){
+    T_ <- matrix(0, nrow=order, ncol=order)
+    F_ <- matrix(0, nrow=order, ncol=order)
 
-    for (j in 1:order) {
-      T_[, j] <- rdirichlet(1, TN[, j])[1:order]
-      if (!is.na(alpha[j])) {
-        F_[1, j] <- stats::rgamma(1, shape = alpha[j], rate = beta[j])
+    for(j in 1:order){ # looping over the column of the matrix
+      T_[,j] <- rdirichlet(1, TN[,j])[1:order]
+      for (i in 1:order){ # loop over rows as well to generate fertilities
+        if (!is.na(alpha[i,j])){
+          F_[i,j] <- stats::rgamma(1, shape = alpha[i,j], rate = beta[i,j])
+        }
       }
+
     }
-    Amats[[i]] <- T_ + F_
+    Amats[[s]] <- T_ + F_
   }
 
 

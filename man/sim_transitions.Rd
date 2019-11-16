@@ -14,9 +14,9 @@ sim_transitions(TF, N, P = NULL, alpha = 1e-05, beta = 1e-05,
 
 \item{P}{A matrix of the priors for each column. Defaults to uniform.}
 
-\item{alpha}{A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_}
+\item{alpha}{A matrix of the prior parameter for each stage. Impossible stage combinations marked with NA_real_.}
 
-\item{beta}{A vector of the prior parameter for each stage. Stages that can't reproduce are NA_real_}
+\item{beta}{A matrix of the prior parameter for each stage. Impossible stage combinations marked with NA_real_.}
 
 \item{priorweight}{total weight for each column of prior as a percentage of sample size or 1 if negative}
 
