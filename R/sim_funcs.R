@@ -55,7 +55,7 @@ sim_transitions <- function(TF, N, P = NULL, alpha = 0.00001, beta = 0.00001, pr
   beta <- ab_post$beta # these will now be square matrices
 
   Amats <- list()
-  for(i in 1:samples){
+  for(s in 1:samples){
     T_ <- matrix(0, nrow=order, ncol=order)
     F_ <- matrix(0, nrow=order, ncol=order)
 
@@ -68,7 +68,7 @@ sim_transitions <- function(TF, N, P = NULL, alpha = 0.00001, beta = 0.00001, pr
       }
 
     }
-    Amats[[i]] <- T_ + F_
+    Amats[[s]] <- T_ + F_
   }
 
 
