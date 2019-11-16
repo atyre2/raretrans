@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 library(dplyr)
 
 context("simulate transitions")
@@ -51,9 +50,6 @@ test_that("errors are thrown", {
   expect_error(sim_transitions(TF, N, P = RLT_Tprior, alpha = alpha, beta = c(NA_real_, NA_real_, 1e-05, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_, NA_real_)))
   expect_error(sim_transitions(TF, N, P = matrix(c(1, 2, 3, 4), ncol = 2, nrow = 2, byrow = TRUE), alpha = alpha, beta = beta))
 })
-=======
-
-context("sim transitions")
 
 RLT_Tprior <- matrix(c(0.9474, 0.0, 0.0, 0,
                        0.0211, 0.9371, 0,   0.0,
@@ -100,4 +96,4 @@ test_that("return is correct length and type, with no missing values", {
 
 
 
->>>>>>> matrix_priors
+
