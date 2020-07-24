@@ -29,6 +29,7 @@ natural way.
 library(tidyverse)
 library(popbio)
 library(raretrans)
+library(huxtable)
 
 # Raymond's theme modifications
 rlt_theme <- theme(axis.title.y = element_text(colour="grey20",size=15,face="bold"),
@@ -43,4 +44,35 @@ Stephen Beissinger [-@beissinger1995snailkite] developed a PVA for the
 endangered snail kite in the Florida Everglades. A key piece of that 
 problem was a periodic variation in water levels caused by management. Kites had
 lower survival and reproduction when water levels were drawn down in 
-dry years to support irrigation.
+dry years to support irrigation. Data on radio telemetered animals and nest
+success were available for "high water" years, and anecdotal evidence was used
+to guesstimate values for "drought" and "lag" years. The model used three age 
+classes because "[a] finer age-structured model was not feasible due to small sample sizes of age-specific demographic data". Standard deviations and ranges were
+provided for each of the parameters, although no information was given about 
+how stochastic values were simulated. 
+```{r}
+b1995_table2 <- tribble(
+  ~env_state, ~age_class, ~mean_ns, ~sd_ns, ~range_ns, ~prop_nesting, ~attempts, ~mean_s, ~sd_s, ~range_s,
+  "", "", "Nesting success", "","", "", "", "Annual survival", "","",
+  "Environmental state", "Age Class", "Mean", "SD","Range", "Proportion Nesting", "Nesting attempts per year", "Mean", "SD", "Range",
+  "Drought year", "Fledgling", "0.00", "0.00", "0.00-0.00", "0.00", "0.00", "0.50","0.10", "0.30-0.80",
+  "", "Subadult", "0.03", "0.10", "0.00-0.25", "0.15", "1.00", "0.60", "0.10", "0.40-0.90",
+  "", "Adult", "0.03", "0.10", "0.00-0.25", "0.15", "1.00", "0.60", "0.10", "0.40-0.90",
+  "Lag year", "Fledgling", "0.00", "0.00", "0.00-0.00", "0.00", "0.00", "0.85","0.03", "0.75-0.92",
+  "", "Subadult", "0.16", "0.10", "0.04-0.33", "0.15", "1.00", "0.90", "0.03", "0.80-0.95",
+  "", "Adult",  "0.16", "0.10", "0.04-0.33", "0.80", "1.50", "0.90", "0.03", "0.80-0.95",
+  "High year", "Fledgling", "0.00", "0.00", "0.00-0.00", "0.00", "0.00", "0.90","0.03", "0.75-0.92",
+  "", "Subadult", "0.30", "0.10", "0.1-0.40", "0.25", "1.00", "0.95", "0.03", "0.85-0.98",
+  "", "Adult", "0.30", "0.10", "0.1-0.40", "1.00", "2.20", "0.95", "0.03", "0.85-0.98"
+)
+huxtable(b1995_table2) %>% 
+  set_colspan(row = 1, col = c(3,8), value = 3) %>% 
+  theme_article(header_col = FALSE) %>% 
+  set_bottom_border(row = 1, col = everywhere, value = 0) %>% 
+  set_bottom_border(row = 2, col = everywhere, value = 1)
+```
+
+
+## Survival values
+
+
