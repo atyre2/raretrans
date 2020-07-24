@@ -119,10 +119,10 @@ kite_parms %>%
   mutate_if(is.numeric, ~format(.x, digits = 2)) %>% 
   bind_rows(tibble(env_state = c("","Environmental State"),
                    age_class = c("", "Age Class"),
-                   alpha_ns = c("Nest Success", "\alpha"),
-                   beta_ns = c("", "\beta"),
-                   alpha_s = c("Survival", "\alpha"),
-                   beta_s = c("", "\beta")), .) %>% 
+                   alpha_ns = c("Nest Success", "\\alpha"),
+                   beta_ns = c("", "\\beta"),
+                   alpha_s = c("Survival", "\\alpha"),
+                   beta_s = c("", "\\beta")), .) %>% 
   hux() %>% 
   set_escape_contents(row = 2, col = 3:6, value = FALSE) %>% 
   theme_article(header_col = FALSE)
@@ -131,3 +131,12 @@ kite_parms %>%
 
 One of the benefits of articulating the beliefs this way is that the reader can
 immediately see how much confidence the analyst has placed in each of the parameter estimates.
+The sum of $\alpha$ and $\beta$ is effective sample size. So we have less confidence in the 
+estimates of nest success in lag and drought years than high water years, which is consistent
+what is known. However, within each environmental state we have more confidence in the survival
+estimates of fledgling than subadult or adult stages, and less confidence in
+estimates from high water years than lag years. Both of these are inconsistent with
+prior beliefs, but are a consequence of fixing the standard deviation of the estimates. 
+Fixing the standard deviation gives a consistent effect on the belief about
+precision if the parameter is normally distributed, because the mean and standard deviation
+are independent. This is not true of a Beta distribution. 
