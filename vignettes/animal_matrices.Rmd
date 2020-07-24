@@ -73,6 +73,18 @@ huxtable(b1995_table2) %>%
 ```
 
 
+
 ## Survival values
 
+In stage structured matrices generally, the survival component of the matrix is
+a multinomial because of the possibility of transitioning between more than 2 
+stages. In an age structured matrix like this one, the only possibilities are
+survival to the next stage or death, so a simple $Beta(\alpha, \beta)$ prior
+is all that is needed. The mean is given by $\alpha / \left(\alpha + \beta\right)$,
+while the variance of the distribution is 
 
+$$
+var(X) = \frac{\alpha \beta}{\left(\alpha + \beta\right)^2\left(\alpha + \beta + 1\right)}
+$$
+
+We have a mean and standard deviation
