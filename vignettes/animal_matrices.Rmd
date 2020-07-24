@@ -1,6 +1,8 @@
 ---
 title: "Matrices of animal populations"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    fig_caption: yes
 vignette: >
   %\VignetteIndexEntry{Matrices of animal populations}
   %\VignetteEngine{knitr::rmarkdown}
@@ -11,7 +13,8 @@ bibliography: references.bib
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  message = FALSE
 )
 ```
 
@@ -69,7 +72,8 @@ huxtable(b1995_table2) %>%
   set_colspan(row = 1, col = c(3,8), value = 3) %>% 
   theme_article(header_col = FALSE) %>% 
   set_bottom_border(row = 1, col = everywhere, value = 0) %>% 
-  set_bottom_border(row = 2, col = everywhere, value = 1)
+  set_bottom_border(row = 2, col = everywhere, value = 1) %>% 
+  set_caption("Table 1: Snail kite vital rates from [@beissinger1995snailkite], Table 2.")
 ```
 
 
@@ -87,7 +91,7 @@ $$
 var(X) = \frac{\alpha \beta}{\left(\alpha + \beta\right)^2\left(\alpha + \beta + 1\right)}
 $$
 
-We have a mean and standard deviation, and can obtain $\alpha$ and $\beta$ as follows
+We have a mean and standard deviation, and can obtain approximate $\alpha$ and $\beta$ as follows
 
 $$
 \begin{align*}
@@ -106,7 +110,7 @@ kite_parms <- b1995_table2 %>%
   slice(-(1:2)) %>% # remove top two rows
   separate(col = range_ns, into = c("min_ns","max_ns"), sep = "-") %>% 
   separate(col = range_s, into = c("min_s","max_s"), sep = "-") %>% 
-  mutate_at(.vars = 3:12, .funs = as.numeric) %>% 
+  mutate_at(.vars = 3:12, .funs = as.numeric) %>% # convert to numeric
   mutate(nu_ns = mean_ns * (1 - mean_ns) / sd_ns^2,
          alpha_ns = mean_ns * nu_ns,
          beta_ns = (1-mean_ns)*nu_ns,
@@ -119,13 +123,15 @@ kite_parms %>%
   mutate_if(is.numeric, ~format(.x, digits = 2)) %>% 
   bind_rows(tibble(env_state = c("","Environmental State"),
                    age_class = c("", "Age Class"),
-                   alpha_ns = c("Nest Success", "\\alpha"),
-                   beta_ns = c("", "\\beta"),
-                   alpha_s = c("Survival", "\\alpha"),
-                   beta_s = c("", "\\beta")), .) %>% 
+                   alpha_ns = c("Nest Success", "$\\alpha$"),
+                   beta_ns = c("", "$\\beta$"),
+                   alpha_s = c("Survival", "$\\alpha$"),
+                   beta_s = c("", "$\\beta$")), .) %>% 
   hux() %>% 
   set_escape_contents(row = 2, col = 3:6, value = FALSE) %>% 
-  theme_article(header_col = FALSE)
+  theme_article(header_col = FALSE) %>% 
+  set_na_string(value = "") %>% 
+  set_caption("Table 2: Values of $\\alpha$ and $\\beta$ for each age class and environmental state.")
   
 ```
 
@@ -137,6 +143,41 @@ what is known. However, within each environmental state we have more confidence 
 estimates of fledgling than subadult or adult stages, and less confidence in
 estimates from high water years than lag years. Both of these are inconsistent with
 prior beliefs, but are a consequence of fixing the standard deviation of the estimates. 
-Fixing the standard deviation gives a consistent effect on the belief about
+Fixing the standard deviation gives a consistent belief about
 precision if the parameter is normally distributed, because the mean and standard deviation
 are independent. This is not true of a Beta distribution. 
+
+```{r}
+kite_parms2 <- kite_parms %>% 
+  mutate(env_state = rep(env_state[c(1,4,7)], each = 3),
+         n_ns = alpha_ns + beta_ns,
+         n_s = alpha_s + beta_s,
+         lwr_ns = pbeta(min_ns, alpha_ns, beta_ns),
+         upr_ns = pbeta(max_ns, alpha_ns, beta_ns),
+         lwr_s = pbeta(min_s, alpha_s, beta_s),
+         upr_s = pbeta(max_s, alpha_s, beta_s),
+         plot_ns = map2(alpha_ns, beta_ns, ~tibble(x = seq(0,1,0.01),
+                                                   d_ns = dbeta(x, .x, .y))),
+         plot_s = map2(alpha_s, beta_s, ~tibble(x = seq(0,1,0.01),
+                                                d_s = dbeta(x, .x, .y)))) %>% 
+  unnest() %>% 
+  mutate(env_state = factor(env_state, levels = c("Drought year","Lag year", "High year")),
+         age_class = factor(age_class, levels = c("Fledgling", "Subadult", "Adult")))
+ggplot(data = filter(kite_parms2, age_class != "Fledgling"),
+       mapping = aes(x = x, y = d_ns)) + 
+  geom_area() + 
+  facet_grid(env_state~age_class) +
+  labs(x = "Nest success", y = "Density")+
+  theme_classic()
+```
+
+```{r}
+ggplot(data = filter(kite_parms2),
+       mapping = aes(x = x, y = d_s)) + 
+  geom_area() + 
+  facet_grid(env_state~age_class) +
+  labs(x = "Nest success", y = "Density")+
+  theme_classic()
+```
+
+# Literature cited
