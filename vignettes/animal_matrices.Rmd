@@ -87,4 +87,47 @@ $$
 var(X) = \frac{\alpha \beta}{\left(\alpha + \beta\right)^2\left(\alpha + \beta + 1\right)}
 $$
 
-We have a mean and standard deviation
+We have a mean and standard deviation, and can obtain $\alpha$ and $\beta$ as follows
+
+$$
+\begin{align*}
+\nu = & \frac{\mu\left(1-\mu\right)}{var} \\
+\alpha = & \nu\mu \\
+\beta = & \left(1-\mu\right) \nu
+\end{align*}
+
+$$
+
+as long as $\mu\left(1-\mu\right) < var$. This condition is met for all the values in 
+Beissinger's Table 2. 
+
+```{r}
+kite_parms <- b1995_table2 %>% 
+  slice(-(1:2)) %>% # remove top two rows
+  separate(col = range_ns, into = c("min_ns","max_ns"), sep = "-") %>% 
+  separate(col = range_s, into = c("min_s","max_s"), sep = "-") %>% 
+  mutate_at(.vars = 3:12, .funs = as.numeric) %>% 
+  mutate(nu_ns = mean_ns * (1 - mean_ns) / sd_ns^2,
+         alpha_ns = mean_ns * nu_ns,
+         beta_ns = (1-mean_ns)*nu_ns,
+         nu_s = mean_s * (1 - mean_s) / sd_s^2,
+         alpha_s = mean_s * nu_s,
+         beta_s = (1-mean_s)*nu_s) %>% 
+  mutate_if(is.numeric, ~ifelse(is.nan(.x), NA_real_, .x))
+kite_parms %>% 
+  select(env_state, age_class, alpha_ns, beta_ns, alpha_s, beta_s) %>% 
+  mutate_if(is.numeric, ~format(.x, digits = 2)) %>% 
+  bind_rows(tibble(env_state = c("","Environmental State"),
+                   age_class = c("", "Age Class"),
+                   alpha_ns = c("Nest Success", "\alpha"),
+                   beta_ns = c("", "\beta"),
+                   alpha_s = c("Survival", "\alpha"),
+                   beta_s = c("", "\beta")), .) %>% 
+  hux() %>% 
+  set_escape_contents(row = 2, col = 3:6, value = FALSE) %>% 
+  theme_article(header_col = FALSE)
+  
+```
+
+One of the benefits of articulating the beliefs this way is that the reader can
+immediately see how much confidence the analyst has placed in each of the parameter estimates.
