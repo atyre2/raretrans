@@ -51,8 +51,9 @@ dry years to support irrigation. Data on radio telemetered animals and nest
 success were available for "high water" years, and anecdotal evidence was used
 to guesstimate values for "drought" and "lag" years. The model used three age 
 classes because "[a] finer age-structured model was not feasible due to small sample sizes of age-specific demographic data". Standard deviations and ranges were
-provided for each of the parameters, although no information was given about 
-how stochastic values were simulated. 
+provided for some of the parameters. The methods describe survival values as drawn from
+a normal distribution. 
+
 ```{r}
 b1995_table2 <- tribble(
   ~env_state, ~age_class, ~mean_ns, ~sd_ns, ~range_ns, ~prop_nesting, ~attempts, ~mean_s, ~sd_s, ~range_s,
@@ -75,8 +76,6 @@ huxtable(b1995_table2) %>%
   set_bottom_border(row = 2, col = everywhere, value = 1) %>% 
   set_caption("Table 1: Snail kite vital rates from [@beissinger1995snailkite], Table 2.")
 ```
-
-
 
 ## Survival values
 
@@ -176,8 +175,22 @@ ggplot(data = filter(kite_parms2),
        mapping = aes(x = x, y = d_s)) + 
   geom_area() + 
   facet_grid(env_state~age_class) +
-  labs(x = "Nest success", y = "Density")+
+  labs(x = "Annual survival", y = "Density")+
   theme_classic()
 ```
+
+The differences in confidence are not easy to see in the density plots.
+
+## Reproductive rates
+
+[@beissinger1995snailkite] only provides standard deviations for nest success, the
+probability of a nest fledging one or more chicks (Table 1). The reproductive rates 
+of the matrices are the product of nest success, the number of young fledged per 
+successful nest, the proportion of the population nesting, and the number of
+nest attempts per year. Other than nest success all of these are treated as
+fixed values. A value for the number of fledglings per successful nest was
+not provided, but [@snyder1989snailkite] had an average of ~ 2 per nest across
+all years. 
+
 
 # Literature cited
