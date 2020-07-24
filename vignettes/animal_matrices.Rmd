@@ -20,6 +20,9 @@ work for animal matrices too. Small sample sizes can comprimise the estimation o
 survival and reproduction, especially if the analyst believes that matrix entries
 should vary by age, sex, or other environmental conditions. In some cases there
 are no available data, and the analysis proceeds using "guesses", AKA prior beliefs.
+Using simple prior distributions for these parameters enables the calculation
+of credible intervals for both matrix entries and derived quantities in a
+natural way.
 
 
 ```{r setup}
@@ -36,3 +39,8 @@ rlt_theme <- theme(axis.title.y = element_text(colour="grey20",size=15,face="bol
 
 # Snail kites
 
+Stephen Beissinger [-@beissinger1995snailkite] developed a PVA for the 
+endangered snail kite in the Florida Everglades. A key piece of that 
+problem was a periodic variation in water levels caused by management. Kites had
+lower survival and reproduction when water levels were drawn down in 
+dry years to support irrigation.
