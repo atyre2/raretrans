@@ -5,6 +5,7 @@ vignette: >
   %\VignetteIndexEntry{Matrices of animal populations}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
 ---
 
 ```{r, include = FALSE}
@@ -14,6 +15,24 @@ knitr::opts_chunk$set(
 )
 ```
 
+Although the paper focuses on a dataset of a perennial plant, the same principles 
+work for animal matrices too. Small sample sizes can comprimise the estimation of 
+survival and reproduction, especially if the analyst believes that matrix entries
+should vary by age, sex, or other environmental conditions. In some cases there
+are no available data, and the analysis proceeds using "guesses", AKA prior beliefs.
+
+
 ```{r setup}
+library(tidyverse)
+library(popbio)
 library(raretrans)
+
+# Raymond's theme modifications
+rlt_theme <- theme(axis.title.y = element_text(colour="grey20",size=15,face="bold"),
+        axis.text.x = element_text(colour="grey20",size=15, face="bold"),
+        axis.text.y = element_text(colour="grey20",size=15,face="bold"),  
+        axis.title.x = element_text(colour="grey20",size=15,face="bold"))
 ```
+
+# Snail kites
+
