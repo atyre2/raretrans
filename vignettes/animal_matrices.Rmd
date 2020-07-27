@@ -18,8 +18,8 @@ knitr::opts_chunk$set(
 )
 ```
 
-Although the paper focuses on a dataset of a perennial plant, the same principles 
-work for animal matrices too. Small sample sizes can comprimise the estimation of 
+Although the paper focuses on a perennial plant data set, the same principles 
+work for animal matrices too. Small sample sizes can compromise the estimation of 
 survival and reproduction, especially if the analyst believes that matrix entries
 should vary by age, sex, or other environmental conditions. In some cases there
 are no available data, and the analysis proceeds using "guesses", AKA prior beliefs.
@@ -190,7 +190,56 @@ successful nest, the proportion of the population nesting, and the number of
 nest attempts per year. Other than nest success all of these are treated as
 fixed values. A value for the number of fledglings per successful nest was
 not provided, but [@snyder1989snailkite] had an average of ~ 2 per nest across
-all years. 
+all sites and years. Although this value could be used as is, the authors' Table 5
+provides actual counts of young per successful nest, 55, 110, and 47 nests having
+1, 2 or 3 young respectively. This knowledge is perfectly represented as a 
+multinomial variable with a Dirichlet prior. Although the mean success does not
+vary across environmental states, the number of nests sampled does, and this
+should be reflected in the degree of confidence placed in each distribution. 
+[@beissinger1995snailkite] used normal distributions for the uncertainty
+in nest success, but Table 3 in Snyder et al. [-@snyder1989snailkite] provides
+values that can be converted into Beta priors for a binomial variable. 
+
+```{r}
+repro_parms <- tribble(
+  ~env_state, ~age_class, ~prior_young, ~alpha_ns, ~beta_ns,
+  "Drought year", "Subadult", c(1, 3, 1), 3, 91,
+  "Drought year", "Adult", c(1, 3, 1), 3, 91,
+  "Lag year", "Subadult", c(6, 25, 8), 11, 58,
+  "Lag year", "Adult", c(6, 25, 8), 11, 58,
+  "High year", "Subadult", c(48, 82, 38), 100, 236,
+  "High year", "Adult", c(48, 82, 38), 100, 236
+)
+
+repro_parms2 <- repro_parms %>% 
+  mutate(n_ns = alpha_ns + beta_ns,
+         plot_ns = map2(alpha_ns, beta_ns, ~tibble(x = seq(0,1,0.01),
+                                                   d_ns = dbeta(x, .x, .y)))) %>% 
+  unnest(plot_ns) %>% 
+  mutate(env_state = factor(env_state, levels = c("Drought year","Lag year", "High year")),
+         age_class = factor(age_class, levels = c("Fledgling", "Subadult", "Adult")))
+ggplot(data = filter(repro_parms2, age_class != "Fledgling"),
+       mapping = aes(x = x, y = d_ns)) + 
+  geom_area() + 
+  facet_grid(env_state~age_class) +
+  labs(x = "Nest success", y = "Density")+
+  theme_classic()
+```
+The confidence implied by the choices of the mean and variance in Beissinger [-@beissinger1995snailkite] 
+is much less than the confidence implied by the sample sizes given in 
+Snyder et al. [-@snyder1989snailkite]. It is possible that this is a deliberate
+choice because uncertainty in the other components of reproductive success was
+assumed to be zero.
+
+Another advantage of using simple count priors for binomial and multinomial
+variables is that sampling from those variables automatically obeys restrictions
+on the numeric values. Beissinger [-@beissinger1995snailkite] sampled from
+normal distributions for survival and nest success. Many of these samples
+would have fallen outside the range [0,1] for a probability. How these are
+treated would affect the distribution of uncertainty, and consequently the
+estimated probability of extinction.
+
+
 
 
 # Literature cited
