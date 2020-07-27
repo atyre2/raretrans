@@ -14,8 +14,11 @@ bibliography: references.bib
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  message = FALSE
+  message = FALSE,
+  fig.width = 7,
+  fig.height = 5
 )
+options(huxtable.add_colnames = FALSE)
 ```
 
 Although the paper focuses on a perennial plant data set, the same principles 
@@ -92,14 +95,14 @@ $$
 
 We have a mean and standard deviation, and can obtain approximate $\alpha$ and $\beta$ as follows
 
-$$
+
 \begin{align*}
 \nu = & \frac{\mu\left(1-\mu\right)}{var} \\
 \alpha = & \nu\mu \\
 \beta = & \left(1-\mu\right) \nu
 \end{align*}
 
-$$
+
 
 as long as $\mu\left(1-\mu\right) < var$. This condition is met for all the values in 
 Beissinger's Table 2. 
@@ -129,7 +132,7 @@ kite_parms %>%
   hux() %>% 
   set_escape_contents(row = 2, col = 3:6, value = FALSE) %>% 
   theme_article(header_col = FALSE) %>% 
-  set_na_string(value = "") %>% 
+  set_na_string(value = " ") %>% 
   set_caption("Table 2: Values of $\\alpha$ and $\\beta$ for each age class and environmental state.")
   
 ```
@@ -159,11 +162,11 @@ kite_parms2 <- kite_parms %>%
                                                    d_ns = dbeta(x, .x, .y))),
          plot_s = map2(alpha_s, beta_s, ~tibble(x = seq(0,1,0.01),
                                                 d_s = dbeta(x, .x, .y)))) %>% 
-  unnest() %>% 
+  unnest(cols = c("plot_ns", "plot_s"), names_repair = "unique") %>% 
   mutate(env_state = factor(env_state, levels = c("Drought year","Lag year", "High year")),
          age_class = factor(age_class, levels = c("Fledgling", "Subadult", "Adult")))
 ggplot(data = filter(kite_parms2, age_class != "Fledgling"),
-       mapping = aes(x = x, y = d_ns)) + 
+       mapping = aes(x = x...25, y = d_ns)) + 
   geom_area() + 
   facet_grid(env_state~age_class) +
   labs(x = "Nest success", y = "Density")+
@@ -172,7 +175,7 @@ ggplot(data = filter(kite_parms2, age_class != "Fledgling"),
 
 ```{r}
 ggplot(data = filter(kite_parms2),
-       mapping = aes(x = x, y = d_s)) + 
+       mapping = aes(x = x...25, y = d_s)) + 
   geom_area() + 
   facet_grid(env_state~age_class) +
   labs(x = "Annual survival", y = "Density")+
@@ -183,20 +186,23 @@ The differences in confidence are not easy to see in the density plots.
 
 ## Reproductive rates
 
-[@beissinger1995snailkite] only provides standard deviations for nest success, the
+Beissinger [-@beissinger1995snailkite] only provides standard deviations for nest success, the
 probability of a nest fledging one or more chicks (Table 1). The reproductive rates 
 of the matrices are the product of nest success, the number of young fledged per 
 successful nest, the proportion of the population nesting, and the number of
 nest attempts per year. Other than nest success all of these are treated as
 fixed values. A value for the number of fledglings per successful nest was
-not provided, but [@snyder1989snailkite] had an average of ~ 2 per nest across
+not provided, but Snyder et al. [-@snyder1989snailkite] had an average of ~ 2 per nest across
 all sites and years. Although this value could be used as is, the authors' Table 5
 provides actual counts of young per successful nest, 55, 110, and 47 nests having
 1, 2 or 3 young respectively. This knowledge is perfectly represented as a 
 multinomial variable with a Dirichlet prior. Although the mean success does not
 vary across environmental states, the number of nests sampled does, and this
-should be reflected in the degree of confidence placed in each distribution. 
-[@beissinger1995snailkite] used normal distributions for the uncertainty
+should be reflected in the degree of confidence placed in each distribution. This
+representation also includes demographic stochasticity, so we will use a fixed
+value of 2 in what follows. 
+
+Beissinger [-@beissinger1995snailkite] used normal distributions for the uncertainty
 in nest success, but Table 3 in Snyder et al. [-@snyder1989snailkite] provides
 values that can be converted into Beta priors for a binomial variable. 
 
@@ -236,10 +242,57 @@ variables is that sampling from those variables automatically obeys restrictions
 on the numeric values. Beissinger [-@beissinger1995snailkite] sampled from
 normal distributions for survival and nest success. Many of these samples
 would have fallen outside the range [0,1] for a probability. How these are
-treated would affect the distribution of uncertainty, and consequently the
+exceptions are treated would affect the distribution of uncertainty, and consequently the
 estimated probability of extinction.
 
+# Building the matrices
 
+Now that we have distributions for the matrix entries, we can create a function
+that returns a matrix with values sampled from the relevant distributions.
 
+```{r}
+# fix up parameter dataframes
+surv_parms <- kite_parms %>% 
+  mutate(env_state = rep(env_state[c(1,4,7)], each = 3)) 
+repro_parms <- repro_parms %>% 
+  left_join(select(surv_parms, env_state, age_class, prop_nesting, attempts))
+snailkite_A <- function(e_state = "High year", 
+                        s_parms = surv_parms,
+                        r_parms = repro_parms){
+  # assumes young per successful nest fixed at 2
+  A <- matrix(0, nrow = 3, ncol = 3)
+  surv_parms <- filter(s_parms, env_state == e_state)
+  repro_parms <- filter(r_parms, env_state == e_state)
+  surv <- rbeta(3, surv_parms$alpha_s, surv_parms$beta_s)
+  A[2,1] <- surv[2]
+  A[3,2] <- A[3,3] <- surv[3]
+  ns <- rbeta(2, repro_parms$alpha_ns, repro_parms$beta_ns)
+  A[1,2:3] <- repro_parms$prop_nesting * repro_parms$attempts * ns * 2 * surv[1]
+  A
+}
+snailkite_A()
+snailkite_A("Drought year")
+snailkite_A("Lag year")
+```
+
+We can then draw many samples of each matrix to obtain credible intervals
+on derived quantities like the asymptotic growth rate $\lambda$. 
+
+```{r}
+results <- tibble(
+  e_state = factor(rep(c("Drought year", "Lag year", "High year"), each = 100),
+                   levels = c("Drought year", "Lag year", "High year")),
+  A = map(e_state, snailkite_A),
+  lambda = map_dbl(A, lambda)
+)
+ggplot(data = results,
+       mapping = aes(x = lambda)) + 
+  geom_histogram(binwidth = 0.05) + 
+  facet_wrap(~e_state) +
+  rlt_theme
+```
+
+We can reproduce extinction risk plots as in Beissinger [-@beissinger1995snailkite],
+if that is necessary. 
 
 # Literature cited
