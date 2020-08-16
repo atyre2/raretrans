@@ -171,17 +171,17 @@ RLT_Fprior <- matrix(c(0.0, 0.0, 0.025,
 
 wUnifTable <- bind_cols(BaseTable, BaseTable[,5:7], BaseTable[,5:7])
 wUnifTable[1:3, 8:10] <- fill_transitions(allA$TF[[144]], allA$N[[144]])
-wUnifTable[4, 8:10] <- 1-colSums(wUnifTable[1:3, 8:10])
+wUnifTable[4, 8:10] <- as.list(1-colSums(wUnifTable[1:3, 8:10]))
 wUnifTable[5:7, 8:10] <- fill_transitions(allA$TF[[205]], allA$N[[205]])
-wUnifTable[8, 8:10] <- 1-colSums(wUnifTable[5:7, 8:10])
+wUnifTable[8, 8:10] <- as.list(1-colSums(wUnifTable[5:7, 8:10]))
 wUnifTable[9:11, 8:10] <- fill_transitions(allA$TF[[71]], allA$N[[71]])
-wUnifTable[12, 8:10] <- 1-colSums(wUnifTable[9:11, 8:10])
+wUnifTable[12, 8:10] <- as.list(1-colSums(wUnifTable[9:11, 8:10]))
 wUnifTable[1:3, 11:13] <- fill_transitions(allA$TF[[144]], allA$N[[144]], P = RLT_Tprior, priorweight = -1)
-wUnifTable[4, 11:13] <- 1-colSums(wUnifTable[1:3, 11:13])
+wUnifTable[4, 11:13] <- as.list(1-colSums(wUnifTable[1:3, 11:13]))
 wUnifTable[5:7, 11:13] <- fill_transitions(allA$TF[[205]], allA$N[[205]], P = RLT_Tprior, priorweight = -1)
-wUnifTable[8, 11:13] <- 1-colSums(wUnifTable[5:7, 11:13])
+wUnifTable[8, 11:13] <- as.list(1-colSums(wUnifTable[5:7, 11:13]))
 wUnifTable[9:11, 11:13] <- fill_transitions(allA$TF[[71]], allA$N[[71]], P = RLT_Tprior, priorweight = -1)
-wUnifTable[12, 11:13] <- 1-colSums(wUnifTable[9:11, 11:13])
+wUnifTable[12, 11:13] <- as.list(1-colSums(wUnifTable[9:11, 11:13]))
 knitr::kable(wUnifTable, caption = "Two problematic matrices and the matrix with the largest sample size; $\\lambda$ = 0, 1, and 0.92 for population 905, 914 and 205 respectively. The six columns on the right show the effect of assuming a uniform prior for transitions with a total weight of 1, and an RLT prior with total weight equal to 1.  Where columns do not sum to 1 the remaining probability represents mortality.", digits=3, escape = TRUE)
 ```
 
@@ -473,11 +473,11 @@ mnCI <- list(ci_95 = MultinomialCI::multinomialCI(c(1, 7, 0, 3), alpha = 0.05),
   map(as_data_frame) %>%
   bind_rows(.id = "interval_width")%>%
   mutate(p = rep(c(1, 7, 0, 3) / 11, times=3),
-         prior = factor("None", levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N")), 
+         prior = factor("None", levels = c("None", "Uninformative", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N")), 
          transition =  factor(rep(c("s to s", "s to j", "s to a", "s to m"), times=3), levels = c("s to s", "s to j", "s to a", "s to m"))) %>%
   filter(transition != "s to m")
 
-xx <- crossing(prior = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N"),
+xx <- crossing(prior = c("None", "Uninformative", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N"),
          transition = c("s to s", "s to j", "s to a", "s to m"),
          prob = seq(0.001,0.999, 0.001))
 params <- tribble(
@@ -486,10 +486,10 @@ params <- tribble(
   "None", "s to j",     7,    0,
   "None", "s to a",     0,    0,
   "None", "s to m",     3,    0,
-  "Uniform", "s to s",     1,.25,    
-  "Uniform", "s to j",     7,.25,
-  "Uniform", "s to a",     0,.25,
-  "Uniform", "s to m",     3,.25,
+  "Uninformative", "s to s",     1,.25,    
+  "Uninformative", "s to j",     7,.25,
+  "Uninformative", "s to a",     0,.25,
+  "Uninformative", "s to m",     3,.25,
   "RLT, w = 1", "s to s",     1,.25,    
   "RLT, w = 1", "s to j",     7,.05,
   "RLT, w = 1", "s to a",     0,.01,
@@ -525,14 +525,14 @@ xx <- left_join(xx, params, by = c("prior", "transition")) %>%
          in90 = cump > 0.05 & cump < 0.95,
          in80 = cump > 0.1 & cump < 0.9,
          in50 = cump > 0.25 & cump < 0.75,
-         prior = factor(prior, levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N")),
+         prior = factor(prior, levels = c("None", "Uninformative", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N")),
          transition = factor(transition, levels = c("s to s", "s to j", "s to a", "s to m"))) 
 
 #xx$layer <- forcats::fct_collapse(xx$layer,
 #                                  full = c("full", "ufull"),
 #                                  `95%` = c("95%", "u95%"),
 #                                  `90%` = c("90%", "u90%"))
-params$prior <- factor(params$prior, levels = c("None", "Uniform", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N"))
+params$prior <- factor(params$prior, levels = c("None", "Uninformative", "RLT, w = 1", "RLT, w = 0.5N", "RLT, w = N"))
 params$transition <- factor(params$transition, levels = c("s to s", "s to j", "s to a", "s to m"))
 
 
@@ -577,7 +577,7 @@ Obtaining credible intervals on $\lambda$ requires simulation, because it is dif
 #71 popn 250 year 5 lambda = 0.93
 diffPriors_lci <- list()
 samples = 10000
-diffPriors_lci[["Uniform"]] <- tibble(A = sim_transitions(allA$TF[[71]], 
+diffPriors_lci[["Uninformative"]] <- tibble(A = sim_transitions(allA$TF[[71]], 
                                                           allA$N[[71]], 
                                                           samples = samples), 
                                       lprior = map_dbl(A, lambda))
@@ -607,7 +607,7 @@ diffPriors_lci[["RLT, weight = N"]] <- tibble(A = sim_transitions(allA$TF[[71]],
                                               lprior = map_dbl(A, lambda))
 
 diffPriors_lci <- bind_rows(diffPriors_lci, .id="prior")
-diffPriors_lci$prior <- factor(diffPriors_lci$prior, levels = c("Uniform", "RLT, weight = 1",
+diffPriors_lci$prior <- factor(diffPriors_lci$prior, levels = c("Uninformative", "RLT, weight = 1",
                                                                 "RLT, weight = 0.5N", "RLT, weight = N"))
 
 diffPriors_lci_sum <- group_by(diffPriors_lci, prior) %>% 
