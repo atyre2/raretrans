@@ -4,7 +4,9 @@
 \name{L_elto}
 \alias{L_elto}
 \title{transition and recruitment data for \emph{L. elto}}
-\format{A data frame with 5233 rows and 13 variables}
+\format{
+A data frame with 5233 rows and 13 variables
+}
 \source{
 Raymond L. Tremblay, University of Puerto Rico, Unpublished data.
 }

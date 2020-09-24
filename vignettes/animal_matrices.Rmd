@@ -1,7 +1,7 @@
 ---
 title: "Matrices of animal populations"
 output: 
-  rmarkdown::html_vignette:
+  rmarkdown::pdf_document:
     fig_caption: yes
 vignette: >
   %\VignetteIndexEntry{Matrices of animal populations}
@@ -14,11 +14,10 @@ bibliography: references.bib
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  message = FALSE,
-  fig.width = 7,
-  fig.height = 5
+  message = FALSE
 )
-options(huxtable.add_colnames = FALSE)
+options(huxtable.add_colnames = FALSE,
+        digits = 3)
 ```
 
 Although the paper focuses on a perennial plant data set, the same principles 
@@ -30,11 +29,14 @@ Using simple prior distributions for these parameters enables the calculation
 of credible intervals for both matrix entries and derived quantities in a
 natural way.
 
+This example does not use the `raretrans` functions, because the information in
+Beissinger [-@beissinger1995snailkite] is provided as means and standard 
+deviations, not as numbers of transitions. 
+
 
 ```{r setup}
 library(tidyverse)
 library(popbio)
-library(raretrans)
 library(huxtable)
 
 # Raymond's theme modifications
@@ -61,7 +63,8 @@ a normal distribution.
 b1995_table2 <- tribble(
   ~env_state, ~age_class, ~mean_ns, ~sd_ns, ~range_ns, ~prop_nesting, ~attempts, ~mean_s, ~sd_s, ~range_s,
   "", "", "Nesting success", "","", "", "", "Annual survival", "","",
-  "Environmental state", "Age Class", "Mean", "SD","Range", "Proportion Nesting", "Nesting attempts per year", "Mean", "SD", "Range",
+  "Environmental state", "Age Class", "Mean", "SD","Range", "Proportion Nesting", 
+  "Nesting attempts per year", "Mean", "SD", "Range",
   "Drought year", "Fledgling", "0.00", "0.00", "0.00-0.00", "0.00", "0.00", "0.50","0.10", "0.30-0.80",
   "", "Subadult", "0.03", "0.10", "0.00-0.25", "0.15", "1.00", "0.60", "0.10", "0.40-0.90",
   "", "Adult", "0.03", "0.10", "0.00-0.25", "0.15", "1.00", "0.60", "0.10", "0.40-0.90",
@@ -70,14 +73,17 @@ b1995_table2 <- tribble(
   "", "Adult",  "0.16", "0.10", "0.04-0.33", "0.80", "1.50", "0.90", "0.03", "0.80-0.95",
   "High year", "Fledgling", "0.00", "0.00", "0.00-0.00", "0.00", "0.00", "0.90","0.03", "0.75-0.92",
   "", "Subadult", "0.30", "0.10", "0.1-0.40", "0.25", "1.00", "0.95", "0.03", "0.85-0.98",
-  "", "Adult", "0.30", "0.10", "0.1-0.40", "1.00", "2.20", "0.95", "0.03", "0.85-0.98"
-)
+  "", "Adult", "0.30", "0.10", "0.1-0.40", "1.00", "2.20", "0.95", "0.03", "0.85-0.98")
+
 huxtable(b1995_table2) %>% 
   set_colspan(row = 1, col = c(3,8), value = 3) %>% 
   theme_article(header_col = FALSE) %>% 
+  set_width(0.9) %>% 
+  set_col_width(c(0.15, 0.1, 0.075, 0.075, 0.1, 0.15, 0.15, 0.075, 0.075, 0.1)) %>% 
+  set_position("left") %>% 
   set_bottom_border(row = 1, col = everywhere, value = 0) %>% 
   set_bottom_border(row = 2, col = everywhere, value = 1) %>% 
-  set_caption("Table 1: Snail kite vital rates from [@beissinger1995snailkite], Table 2.")
+  set_caption("Snail kite vital rates from Beissinger (1995), Table 2.")
 ```
 
 ## Survival values
@@ -90,21 +96,21 @@ is all that is needed. The mean is given by $\alpha / \left(\alpha + \beta\right
 while the variance of the distribution is 
 
 $$
-var(X) = \frac{\alpha \beta}{\left(\alpha + \beta\right)^2\left(\alpha + \beta + 1\right)}
+\sigma^2 = \frac{\alpha \beta}{\left(\alpha + \beta\right)^2\left(\alpha + \beta + 1\right)}
 $$
 
-We have a mean and standard deviation, and can obtain approximate $\alpha$ and $\beta$ as follows
+We have a mean and standard deviation from Table 1, and can obtain approximate $\alpha$ and $\beta$ as follows
 
 
 \begin{align*}
-\nu = & \frac{\mu\left(1-\mu\right)}{var} \\
+\nu = & \frac{\mu\left(1-\mu\right)}{\sigma^2} \\
 \alpha = & \nu\mu \\
 \beta = & \left(1-\mu\right) \nu
 \end{align*}
 
 
 
-as long as $\mu\left(1-\mu\right) < var$. This condition is met for all the values in 
+as long as $\mu\left(1-\mu\right) < \sigma^2$. This condition is met for all the values in 
 Beissinger's Table 2. 
 
 ```{r}
@@ -112,44 +118,55 @@ kite_parms <- b1995_table2 %>%
   slice(-(1:2)) %>% # remove top two rows
   separate(col = range_ns, into = c("min_ns","max_ns"), sep = "-") %>% 
   separate(col = range_s, into = c("min_s","max_s"), sep = "-") %>% 
-  mutate_at(.vars = 3:12, .funs = as.numeric) %>% # convert to numeric
+  mutate(across(.cols = 3:12, .fns = as.numeric)) %>% # convert to numeric
   mutate(nu_ns = mean_ns * (1 - mean_ns) / sd_ns^2,
          alpha_ns = mean_ns * nu_ns,
          beta_ns = (1-mean_ns)*nu_ns,
          nu_s = mean_s * (1 - mean_s) / sd_s^2,
          alpha_s = mean_s * nu_s,
          beta_s = (1-mean_s)*nu_s) %>% 
-  mutate_if(is.numeric, ~ifelse(is.nan(.x), NA_real_, .x))
+  # set infinite vales to missing
+  mutate(across(where(is.numeric), ~ifelse(is.nan(.x), NA_real_, .x))) 
 kite_parms %>% 
   select(env_state, age_class, alpha_ns, beta_ns, alpha_s, beta_s) %>% 
-  mutate_if(is.numeric, ~format(.x, digits = 2)) %>% 
+  mutate(across(where(is.numeric), ~format(.x, digits = 2))) %>% 
   bind_rows(tibble(env_state = c("","Environmental State"),
                    age_class = c("", "Age Class"),
                    alpha_ns = c("Nest Success", "$\\alpha$"),
                    beta_ns = c("", "$\\beta$"),
                    alpha_s = c("Survival", "$\\alpha$"),
                    beta_s = c("", "$\\beta$")), .) %>% 
+  mutate(across(.cols = 3:6, ~case_when(grepl("NA",.x) ~ " ", 
+                                        TRUE ~ .x))) %>% 
+#  filter(age_class != "Fledgling") %>% 
   hux() %>% 
   set_escape_contents(row = 2, col = 3:6, value = FALSE) %>% 
   theme_article(header_col = FALSE) %>% 
   set_na_string(value = " ") %>% 
-  set_caption("Table 2: Values of $\\alpha$ and $\\beta$ for each age class and environmental state.")
+  set_position("left") %>% 
+  set_caption("Values of $\\alpha$ and $\\beta$ for each age class and 
+              environmental state. Fledglings have zero probability of 
+              nest success in all environmental states.")
   
 ```
 
 One of the benefits of articulating the beliefs this way is that the reader can
 immediately see how much confidence the analyst has placed in each of the parameter estimates.
 The sum of $\alpha$ and $\beta$ is effective sample size. So we have less confidence in the 
-estimates of nest success in lag and drought years than high water years, which is consistent
-what is known. However, within each environmental state we have more confidence in the survival
+estimates of nest success in lag and drought years than high water years, as stated
+in Beissinger [-@beissinger1995snailkite]. However, within each environmental 
+state we have more confidence in the survival
 estimates of fledgling than subadult or adult stages, and less confidence in
 estimates from high water years than lag years. Both of these are inconsistent with
-prior beliefs, but are a consequence of fixing the standard deviation of the estimates. 
+the prior beliefs stated by Beissinger[-@beissinger1995snailkite], but are a 
+consequence of fixing the standard deviation of the estimates. 
 Fixing the standard deviation gives a consistent belief about
 precision if the parameter is normally distributed, because the mean and standard deviation
 are independent. This is not true of a Beta distribution. 
 
 ```{r}
+pdf_seq <- seq(-0.2,1.2,0.001)
+plot_colors <- RColorBrewer::brewer.pal(3, "RdYlBu")
 kite_parms2 <- kite_parms %>% 
   mutate(env_state = rep(env_state[c(1,4,7)], each = 3),
          n_ns = alpha_ns + beta_ns,
@@ -158,31 +175,42 @@ kite_parms2 <- kite_parms %>%
          upr_ns = pbeta(max_ns, alpha_ns, beta_ns),
          lwr_s = pbeta(min_s, alpha_s, beta_s),
          upr_s = pbeta(max_s, alpha_s, beta_s),
-         plot_ns = map2(alpha_ns, beta_ns, ~tibble(x = seq(0,1,0.01),
-                                                   d_ns = dbeta(x, .x, .y))),
-         plot_s = map2(alpha_s, beta_s, ~tibble(x = seq(0,1,0.01),
-                                                d_s = dbeta(x, .x, .y)))) %>% 
-  unnest(cols = c("plot_ns", "plot_s"), names_repair = "unique") %>% 
+         plot_ns = map2(alpha_ns, beta_ns, ~tibble(x_ns = pdf_seq,
+                                                   d_ns = dbeta(x_ns, .x, .y))),
+         plot_ns_norm = map2(mean_ns, sd_ns, ~tibble(x_nsn = pdf_seq,
+                                                     d_ns_norm = dnorm(x_nsn, .x, .y),
+                                                     d_ns_tnorm = dnorm(x_nsn, .x, .y)/
+                                                       pnorm(0, .x, .y, lower.tail = FALSE))),
+         plot_s = map2(alpha_s, beta_s, ~tibble(x_s = pdf_seq,
+                                                d_s = dbeta(x_s, .x, .y))),
+         plot_s_norm = map2(mean_s, sd_s, ~tibble(x_sn = pdf_seq,
+                                                  d_s_norm = dnorm(x_sn, .x, .y),
+                                                  d_s_tnorm = dnorm(x_sn, .x, .y)/
+                                                    pnorm(1, .x, .y))),
+  ) %>% 
+  unnest(cols = c("plot_ns", "plot_s", "plot_ns_norm","plot_s_norm"), 
+         names_repair = "unique") %>% 
   mutate(env_state = factor(env_state, levels = c("Drought year","Lag year", "High year")),
          age_class = factor(age_class, levels = c("Fledgling", "Subadult", "Adult")))
-ggplot(data = filter(kite_parms2, age_class != "Fledgling"),
-       mapping = aes(x = x...25, y = d_ns)) + 
-  geom_area() + 
-  facet_grid(env_state~age_class) +
-  labs(x = "Nest success", y = "Density")+
-  theme_classic()
+
 ```
 
-```{r}
-ggplot(data = filter(kite_parms2),
-       mapping = aes(x = x...25, y = d_s)) + 
-  geom_area() + 
-  facet_grid(env_state~age_class) +
+```{r survival-fig, warning=FALSE, fig.cap = "Probability distributions of annual survival by stage and environmental state. Beta distributions are red, truncated normal distributions are blue. Areas of overlap appear gray."}
+ggplot(data = kite_parms2) + 
+  geom_area(mapping = aes(x = x_s, y = d_s), alpha = 0.75, fill = plot_colors[1], color=plot_colors[1], size = 1) + 
+  geom_area(mapping = aes(x = x_sn, y = d_s_tnorm), alpha = 0.75, fill = plot_colors[3], color = plot_colors[3], size = 1) +
+  facet_grid(env_state~age_class, scales = "free_x") +
+  scale_x_continuous(limits = c(0,1)) + 
   labs(x = "Annual survival", y = "Density")+
   theme_classic()
 ```
 
-The differences in confidence are not easy to see in the density plots.
+The differences in confidence are not easy to see in the density plots. The
+normal distribution is an excellent approximation to the beta distribution
+except for subadult and adult stages in high water years. Then the
+normal distribution has ~5% probability of values above 1. This was accounted
+for by rejecting inadmissible values and drawing another (Beissinger, Personal communication).
+
 
 ## Reproductive rates
 
@@ -206,10 +234,12 @@ Beissinger [-@beissinger1995snailkite] used normal distributions for the uncerta
 in nest success, but Table 3 in Snyder et al. [-@snyder1989snailkite] provides
 values that can be converted into Beta priors for a binomial variable. 
 
-```{r}
+```{r ns-figure-data}
 repro_parms <- tribble(
+  # prior_young is vector of nests with 1, 2, or 3 young. 
+  # alpha_ns and beta_ns are the number of successful and unsuccessful nests
   ~env_state, ~age_class, ~prior_young, ~alpha_ns, ~beta_ns,
-  "Drought year", "Subadult", c(1, 3, 1), 3, 91,
+  "Drought year", "Subadult", c(1, 3, 1), 3, 91, 
   "Drought year", "Adult", c(1, 3, 1), 3, 91,
   "Lag year", "Subadult", c(6, 25, 8), 11, 58,
   "Lag year", "Adult", c(6, 25, 8), 11, 58,
@@ -219,18 +249,30 @@ repro_parms <- tribble(
 
 repro_parms2 <- repro_parms %>% 
   mutate(n_ns = alpha_ns + beta_ns,
-         plot_ns = map2(alpha_ns, beta_ns, ~tibble(x = seq(0,1,0.01),
+         plot_ns = map2(alpha_ns, beta_ns, ~tibble(x = pdf_seq,
                                                    d_ns = dbeta(x, .x, .y)))) %>% 
   unnest(plot_ns) %>% 
   mutate(env_state = factor(env_state, levels = c("Drought year","Lag year", "High year")),
          age_class = factor(age_class, levels = c("Fledgling", "Subadult", "Adult")))
+
+```
+
+```{r ns-figure, warning = FALSE, fig.cap="Prior beliefs about nest success using Beta distributions parameterized directly from Synder et al. (yellow, 1989), Beta distributions parameterized from Beissinger (red, 1995), and normal distributions from Beissinger (blue, 1995)." }
+
 ggplot(data = filter(repro_parms2, age_class != "Fledgling"),
        mapping = aes(x = x, y = d_ns)) + 
-  geom_area() + 
-  facet_grid(env_state~age_class) +
-  labs(x = "Nest success", y = "Density")+
-  theme_classic()
+  geom_area(fill = plot_colors[2], alpha = 0.75, color=plot_colors[2], size = 1) + #Synder etal 1989
+  geom_area(data = filter(kite_parms2, age_class != "Fledgling"), #Beissinger 1995
+       mapping = aes(x = x_ns, y = d_ns), fill = plot_colors[1], alpha = 0.75, color=plot_colors[1], size = 1) + 
+  geom_area(data = filter(kite_parms2, age_class != "Fledgling"), #Beissinger 1995
+       mapping = aes(x = x_ns, y = d_ns_tnorm), fill = plot_colors[3], alpha = 0.75, color=plot_colors[3], size = 1) +   
+  facet_grid(env_state~age_class, scales = "free_y") + 
+  scale_x_continuous(limits = c(0,0.6)) +
+#  scale_y_continuous(limits = c(0,30)) +
+  labs(x = "Nest success", y = "Density") +
+  rlt_theme
 ```
+
 The confidence implied by the choices of the mean and variance in Beissinger [-@beissinger1995snailkite] 
 is much less than the confidence implied by the sample sizes given in 
 Snyder et al. [-@snyder1989snailkite]. It is possible that this is a deliberate
@@ -241,9 +283,14 @@ Another advantage of using simple count priors for binomial and multinomial
 variables is that sampling from those variables automatically obeys restrictions
 on the numeric values. Beissinger [-@beissinger1995snailkite] sampled from
 normal distributions for survival and nest success. Many of these samples
-would have fallen outside the range [0,1] for a probability. How these are
-exceptions are treated would affect the distribution of uncertainty, and consequently the
-estimated probability of extinction.
+would have fallen outside the range [0,1] for a probability. Values outside this
+range were rejected and resampled (Beissinger, personal communication), giving 
+"truncated" normal distributions. For nest success, this creates noticeable
+differences only in lag and drought years. In drought years particularly, the 
+truncated normal distribution produces nest success values much higher than
+either of the parameterizations of the Beta distribution. The mean of the
+truncated normal is `r integrate(function(x)x*dnorm(x, mean = 0.03, sd = 0.1)/pnorm(0, mean = 0.03, sd = 0.1, lower.tail = FALSE), lower = 0, upper  = 1)$value`, 3 times larger than the intended
+mean.
 
 # Building the matrices
 

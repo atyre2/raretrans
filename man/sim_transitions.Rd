@@ -4,8 +4,15 @@
 \alias{sim_transitions}
 \title{Simulate population projection matrices}
 \usage{
-sim_transitions(TF, N, P = NULL, alpha = 1e-05, beta = 1e-05,
-  priorweight = -1, samples = 1)
+sim_transitions(
+  TF,
+  N,
+  P = NULL,
+  alpha = 1e-05,
+  beta = 1e-05,
+  priorweight = -1,
+  samples = 1
+)
 }
 \arguments{
 \item{TF}{A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.}

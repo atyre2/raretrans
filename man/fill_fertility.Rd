@@ -4,8 +4,14 @@
 \alias{fill_fertility}
 \title{Combine prior and data for fertility matrix}
 \usage{
-fill_fertility(TF, N, alpha = 1e-05, beta = 1e-05, priorweight = -1,
-  returnType = "F")
+fill_fertility(
+  TF,
+  N,
+  alpha = 1e-05,
+  beta = 1e-05,
+  priorweight = -1,
+  returnType = "F"
+)
 }
 \arguments{
 \item{TF}{A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.}

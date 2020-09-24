@@ -4,7 +4,7 @@ output:
   rmarkdown::html_vignette:
     fig_caption: yes
 vignette: >
-  %\VignetteIndexEntry{Working with a single population and transition period}
+  %\VignetteIndexEntry{Working with a single population and transition}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---

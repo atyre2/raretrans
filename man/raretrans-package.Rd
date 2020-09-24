@@ -22,7 +22,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Andrew Tyre \email{atyre2@unl.edu} (0000-0001-9736-641X)
+\strong{Maintainer}: Andrew Tyre \email{atyre2@unl.edu} (\href{https://orcid.org/0000-0001-9736-641X}{ORCID})
 
 Authors:
 \itemize{
