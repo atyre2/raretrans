@@ -50,6 +50,10 @@ The function `raretrans::sim_transition` doesn't quite do what we
 want because it returns matrices, and we want the underlying observations.
 Maybe that's what sim_transition should do, but it doesn't.
 
+```{r}
+TF <- splitA(calathea$pooled, r = 1, c = 3:8)
+sim_observations(TF)
+```
 
 # Literature cited
 

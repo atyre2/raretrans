@@ -78,16 +78,51 @@ sim_transitions <- function(TF, N, P = NULL, alpha = 0.00001, beta = 0.00001, pr
 #' Simulate observations from a given matrix
 #'
 #' @param TF A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.
-#' @param samples integer. Number of observations to generate from matrix
+#' @param N integer. Number of plants to assume in the population.
+#' @param samples integer. Number of observations to generate from matrix.
 #'
 #' @return
 #' @export
 #'
-sim_observations <- function(TF, samples = 1){
+sim_observations <- function(TF, N = 100, samples = 1){
+  raretrans:::check_TF(TF)
   Tmat <- TF$T
   Fmat <- TF$F
   order <- dim(Tmat)[1]
+  A <- Tmat + Fmat
+  eigen_results <- eigen.analysis(A)
+  # augment Tmat with row for dead
+  Tmat2 <- matrix(NA, nrow = order+1, ncol = order)
+  Tmat2[1:order, ] <- Tmat
+  Tmat2[order+1, ] <- 1 - colSums(Tmat)
+  # check that all columns add to 1
+  if(any(abs(colSums(Tmat2)-1) > 1e-5)) stop("column sums not equal to 1")
 
-  df <- data.frame(X = 0)
+  if (!is.null(dimnames(Tmat))){
+    stage_names <- c(dimnames(Tmat)[[1]], "dead")
+  } else {
+    stage_names <- c(paste0("stage:", 1:order), "dead")
+  }
+
+  for (s in 1:samples){
+    results <- data.frame(stage = rep(NA_character_, N),
+                          fate = rep(NA_character_, N),
+                          fertility = rep(NA_real_, N))
+    Ninit <- rmultinom(1, size = N, prob = eigen_results$stable.stage)
+    stages <- list()
+    fates <- list()
+    fertilities <- list()
+    for (o in 1:order){
+      if (Ninit[o] > 0){
+        stages <- append(stages, rep(stage_names[o], Ninit[o]))
+        fates <- append(fates, stage_names[rmultinom(1, size = Ninit[o], prob = Tmat2[,o])])
+        fertilities <- append(fertilities, )
+      }
+    }
+    results$stage <- stages
+    results$fate <- fates
+  }
+
+  df <- results
   return(df)
 }
