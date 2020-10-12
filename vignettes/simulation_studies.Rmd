@@ -1,0 +1,56 @@
+---
+title: "Simulation Studies"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Simulation Studies}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+options(huxtable.add_colnames = FALSE,
+        digits = 3)
+```
+
+```{r setup}
+library(raretrans)
+library(tidyverse)
+library(popbio)
+library(huxtable)
+
+# Raymond's theme modifications
+rlt_theme <- theme(axis.title.y = element_text(colour="grey20",size=15,face="bold"),
+        axis.text.x = element_text(colour="grey20",size=15, face="bold"),
+        axis.text.y = element_text(colour="grey20",size=15,face="bold"),  
+        axis.title.x = element_text(colour="grey20",size=15,face="bold"))
+```
+
+Reviewers have asked for a simulation study to confirm that the approach works. 
+We will start with two different "true" matrices, simulate observed data from
+these, and then use different priors to evaluate how the method works. 
+
+# Calathea, an understory herb
+
+The first example comes from `popbio::calathea` containing matrices publised in
+Horvitz and Schemske (1995). There are 4 plots and up to 5 years of transitions,
+as well as a pooled matrix. Many of the transitions are very small probabilities.
+
+
+```{r}
+calathea$pooled
+```
+
+We begin by simulating a data frame with N observations of plants. 
+The initial population will be sampled from the stable stage distribution.
+The function `raretrans::sim_transition` doesn't quite do what we 
+want because it returns matrices, and we want the underlying observations.
+Maybe that's what sim_transition should do, but it doesn't.
+
+
+# Literature cited
+
+Horvitz, C.C. and D.W. Schemske. 1995. Spatiotemporal variation in demographic transitions of a tropical understory herb: Projection matrix analysis. Ecological Monographs 65:155-192.

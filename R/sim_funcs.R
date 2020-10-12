@@ -74,3 +74,20 @@ sim_transitions <- function(TF, N, P = NULL, alpha = 0.00001, beta = 0.00001, pr
 
   return(Amats)
 }
+
+#' Simulate observations from a given matrix
+#'
+#' @param TF A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.
+#' @param samples integer. Number of observations to generate from matrix
+#'
+#' @return
+#' @export
+#'
+sim_observations <- function(TF, samples = 1){
+  Tmat <- TF$T
+  Fmat <- TF$F
+  order <- dim(Tmat)[1]
+
+  df <- data.frame(X = 0)
+  return(df)
+}
