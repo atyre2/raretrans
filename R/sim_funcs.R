@@ -116,7 +116,7 @@ sim_observations <- function(TF, N = 100, samples = 1){
       if (Ninit[o] > 0){
         stages <- append(stages, rep(stage_names[o], Ninit[o]))
         fates <- append(fates, stage_names[rmultinom(1, size = Ninit[o], prob = Tmat2[,o])])
-        fertilities <- append(fertilities, )
+        fertilities <- append(fertilities, rpois(Ninit[o], lambda = Fmat[1, o]))
       }
     }
     results$stage <- stages
