@@ -12,7 +12,7 @@ sim_observations(TF, N = 100)
 \item{N}{integer. Number of plants to assume in the population.}
 }
 \value{
-
+A data.frame with 3 columns for stage, fate, and fertility. Both stage and fate are returned as ordered factors.
 }
 \description{
 Simulate observations from a given matrix
@@ -25,5 +25,5 @@ not.
 \examples{
 data(calathea, package = "popbio")
 TF <- splitA(calathea$pooled, r = 1, c = 3:8)
-sim_observations(TF)
+sim_observations(TF, 10)
 }

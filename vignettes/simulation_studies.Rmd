@@ -63,14 +63,55 @@ OK, so seems to work with the modified `projection_matrix`. Now we
 generate a number of samples to work with, calculating some 
 matrix statistics along the way.
 
-```{r}
+```{r, warning=FALSE}
 results <- tibble(observations = map(1:100, function(x)sim_observations(TF, N = 100)),
-       A = map(observations, projection_matrix, fertility = "fertility"),
-       lambda = map_dbl(A, lambda),
-       ergodic = map_lgl(A, popdemo::isErgodic),
-       irreducible = map_lgl(A, popdemo::isIrreducible))
+       TF = map(observations, projection_matrix, fertility = "fertility", TF = TRUE),
+       N = map(observations, get_state_vector),
+       Tunif = map2(TF, N, fill_transitions),
+       Funif = map2(TF, N, fill_fertility),
+       A = map(TF, ~.x$T+.x$F),
+       Aunif = map2(Tunif, Funif, ~.x + .y)) %>% 
+  mutate(lambdaraw = map_dbl(A, lambda),
+         lambdaunif = map_dbl(Aunif, lambda))
+ggplot(data = results) + 
+  geom_point(mapping = aes(x = lambdaraw, y = lambdaunif)) + 
+  geom_hline(yintercept = lambda(TF$T + TF$F))
+```
+The uniform prior clearly causes issues by creating values of 1 in the fertility 
+matrix for all stages that are not represented in the sample. 
+
+Now we need to create some priors for this plant. Start with samples of size 1
+for transitions known to be possible. Fertility priors will be 0 except 
+for stages known to reproduce, and these will be set close to zero.
+
+```{r}
+transition_prior <- rbind(TF$T > 0, rep(1, times = ncol(TF$T)))
+column_sums <- apply(transition_prior, 2, sum)
+transition_prior <- sweep(transition_prior, 2, column_sums, `/` )
+fertility_alpha <- TF$F * 0
+fertility_alpha[1, 3:8] <- 1e-5
+fertility_beta <- TF$F * 0 + (1-1e-5) # to keep sum = 1 
+results <- tibble(observations = map(1:100, function(x)sim_observations(TF, N = 100)),
+       TF = map(observations, projection_matrix, fertility = "fertility", TF = TRUE),
+       N = map(observations, get_state_vector),
+       Tunif = map2(TF, N, fill_transitions, P = transition_prior),
+       Funif = map2(TF, N, fill_fertility, alpha = fertility_alpha, beta = fertility_beta),
+       A = map(TF, ~.x$T+.x$F),
+       Aunif = map2(Tunif, Funif, ~.x + .y)) %>% 
+  mutate(lambdaraw = map_dbl(A, lambda),
+         lambdaunif = map_dbl(Aunif, lambda))
+ggplot(data = results) + 
+  geom_point(mapping = aes(x = lambdaraw, y = lambdaunif)) + 
+  geom_hline(yintercept = lambda(TF$T + TF$F))
 ```
 
+Let's take a look at the matrix that results in the largest posterior lambda.
+
+```{r}
+pick <- which.max(results$lambdaunif)
+results$Tunif[[pick]]
+results$Funif[[pick]]
+```
 
 
 # Literature cited
