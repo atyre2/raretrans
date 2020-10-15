@@ -3,6 +3,7 @@
 export(fill_fertility)
 export(fill_transitions)
 export(get_state_vector)
+export(projection_matrix)
 export(rdirichlet)
 export(sim_observations)
 export(sim_transitions)

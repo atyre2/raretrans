@@ -4,18 +4,26 @@
 \alias{sim_observations}
 \title{Simulate observations from a given matrix}
 \usage{
-sim_observations(TF, N = 100, samples = 1)
+sim_observations(TF, N = 100)
 }
 \arguments{
 \item{TF}{A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.}
 
 \item{N}{integer. Number of plants to assume in the population.}
-
-\item{samples}{integer. Number of observations to generate from matrix.}
 }
 \value{
 
 }
 \description{
 Simulate observations from a given matrix
+}
+\details{
+Currently the function assumes individuals
+are allowed to reproduce regardless of whether they survive to the next census or
+not.
+}
+\examples{
+data(calathea, package = "popbio")
+TF <- splitA(calathea$pooled, r = 1, c = 3:8)
+sim_observations(TF)
 }

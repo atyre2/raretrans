@@ -52,8 +52,26 @@ Maybe that's what sim_transition should do, but it doesn't.
 
 ```{r}
 TF <- splitA(calathea$pooled, r = 1, c = 3:8)
-sim_observations(TF)
+df <- sim_observations(TF)
+tail(df) # more interesting
 ```
+
+```{r}
+projection_matrix(df, stage = "stage", fate = "fate", fertility = "fertility")
+```
+OK, so seems to work with the modified `projection_matrix`. Now we
+generate a number of samples to work with, calculating some 
+matrix statistics along the way.
+
+```{r}
+results <- tibble(observations = map(1:100, function(x)sim_observations(TF, N = 100)),
+       A = map(observations, projection_matrix, fertility = "fertility"),
+       lambda = map_dbl(A, lambda),
+       ergodic = map_lgl(A, popdemo::isErgodic),
+       irreducible = map_lgl(A, popdemo::isIrreducible))
+```
+
+
 
 # Literature cited
 

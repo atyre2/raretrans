@@ -79,12 +79,21 @@ sim_transitions <- function(TF, N, P = NULL, alpha = 0.00001, beta = 0.00001, pr
 #'
 #' @param TF A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.
 #' @param N integer. Number of plants to assume in the population.
-#' @param samples integer. Number of observations to generate from matrix.
 #'
-#' @return
+#' @details Currently the function assumes individuals
+#' are allowed to reproduce regardless of whether they survive to the next census or
+#' not.
+#'
+#'
+#'
+#' @return A data.frame with 3 columns for stage, fate, and fertility. Both stage and fate are returned as ordered factors.
 #' @export
 #'
-sim_observations <- function(TF, N = 100, samples = 1){
+#' @examples
+#' data(calathea, package = "popbio")
+#' TF <- splitA(calathea$pooled, r = 1, c = 3:8)
+#' sim_observations(TF, 10)
+sim_observations <- function(TF, N = 100){
   raretrans:::check_TF(TF)
   Tmat <- TF$T
   Fmat <- TF$F
@@ -104,25 +113,26 @@ sim_observations <- function(TF, N = 100, samples = 1){
     stage_names <- c(paste0("stage:", 1:order), "dead")
   }
 
-  for (s in 1:samples){
-    results <- data.frame(stage = rep(NA_character_, N),
-                          fate = rep(NA_character_, N),
-                          fertility = rep(NA_real_, N))
-    Ninit <- rmultinom(1, size = N, prob = eigen_results$stable.stage)
-    stages <- list()
-    fates <- list()
-    fertilities <- list()
-    for (o in 1:order){
-      if (Ninit[o] > 0){
-        stages <- append(stages, rep(stage_names[o], Ninit[o]))
-        fates <- append(fates, stage_names[rmultinom(1, size = Ninit[o], prob = Tmat2[,o])])
-        fertilities <- append(fertilities, rpois(Ninit[o], lambda = Fmat[1, o]))
-      }
+  results <- data.frame(stage = rep(NA_character_, N),
+                        fate = rep(NA_character_, N),
+                        fertility = rep(NA_real_, N))
+  Ninit <- rmultinom(1, size = N, prob = eigen_results$stable.stage)
+  stages <- list()
+  fates <- list()
+  fertilities <- list()
+  for (o in 1:order){
+    if (Ninit[o] > 0){
+      stages <- append(stages, rep(stage_names[o], Ninit[o]))
+      tfate <- rmultinom(1, size = Ninit[o], prob = Tmat2[,o])
+      tfate2 <- rep(stage_names, times = tfate)
+      tfate3 <- tfate2[sample(Ninit[o])]
+      fates <- append(fates, tfate3)
+      fertilities <- append(fertilities, rpois(Ninit[o], lambda = Fmat[1, o]))
     }
-    results$stage <- stages
-    results$fate <- fates
   }
+  results$stage <- ordered(unlist(stages), stage_names[1:order])
+  results$fate <- ordered(unlist(fates), stage_names[1:order])
+  results$fertility <- unlist(fertilities)
 
-  df <- results
-  return(df)
+  return(results)
 }
