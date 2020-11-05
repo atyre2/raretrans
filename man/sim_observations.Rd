@@ -4,12 +4,14 @@
 \alias{sim_observations}
 \title{Simulate observations from a given matrix}
 \usage{
-sim_observations(TF, N = 100)
+sim_observations(TF, N = 100, initial_stages = NULL)
 }
 \arguments{
 \item{TF}{A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.}
 
 \item{N}{integer. Number of plants to assume in the population.}
+
+\item{initial_stages}{real. vector of weights to use when generating intial population.}
 }
 \value{
 A data.frame with 3 columns for stage, fate, and fertility. Both stage and fate are returned as ordered factors.

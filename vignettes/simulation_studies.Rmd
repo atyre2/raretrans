@@ -20,6 +20,7 @@ options(huxtable.add_colnames = FALSE,
 library(raretrans)
 library(tidyverse)
 library(popbio)
+library(popdemo)
 library(huxtable)
 
 # Raymond's theme modifications
@@ -35,9 +36,10 @@ these, and then use different priors to evaluate how the method works.
 
 # Calathea, an understory herb
 
-The first example comes from `popbio::calathea` containing matrices publised in
+The first example comes from `popbio::calathea` containing matrices published in
 Horvitz and Schemske (1995). There are 4 plots and up to 5 years of transitions,
-as well as a pooled matrix. Many of the transitions are very small probabilities.
+as well as a pooled matrix. Many of the transitions are very small probabilities. The pooled matrix is both ergodic and irreducible, and has a population growth rate of 
+`r (true_lambda <- lambda(calathea$pooled))`. 
 
 
 ```{r}
@@ -57,7 +59,7 @@ tail(df) # more interesting
 ```
 
 ```{r}
-projection_matrix(df, stage = "stage", fate = "fate", fertility = "fertility")
+projection_matrix(df, stage = "stage", fate = "fate", fertility = "Sd")
 ```
 OK, so seems to work with the modified `projection_matrix`. Now we
 generate a number of samples to work with, calculating some 
@@ -65,7 +67,7 @@ matrix statistics along the way.
 
 ```{r, warning=FALSE}
 results <- tibble(observations = map(1:100, function(x)sim_observations(TF, N = 100)),
-       TF = map(observations, projection_matrix, fertility = "fertility", TF = TRUE),
+       TF = map(observations, projection_matrix, fertility = "Sd", TF = TRUE),
        N = map(observations, get_state_vector),
        Tunif = map2(TF, N, fill_transitions),
        Funif = map2(TF, N, fill_fertility),
@@ -92,28 +94,197 @@ fertility_alpha <- TF$F * 0
 fertility_alpha[1, 3:8] <- 1e-5
 fertility_beta <- TF$F * 0 + (1-1e-5) # to keep sum = 1 
 results <- tibble(observations = map(1:100, function(x)sim_observations(TF, N = 100)),
-       TF = map(observations, projection_matrix, fertility = "fertility", TF = TRUE),
+       TF = map(observations, projection_matrix, fertility = "Sd", TF = TRUE),
        N = map(observations, get_state_vector),
        Tunif = map2(TF, N, fill_transitions, P = transition_prior),
        Funif = map2(TF, N, fill_fertility, alpha = fertility_alpha, beta = fertility_beta),
        A = map(TF, ~.x$T+.x$F),
        Aunif = map2(Tunif, Funif, ~.x + .y)) %>% 
   mutate(lambdaraw = map_dbl(A, lambda),
+         bootraw = map(observations, boot.transitions, iterations = 1000),
+         lci_raw = map_dbl(bootraw, ~quantile(.$lambda, p = 0.025)),
+         uci_raw = map_dbl(bootraw, ~quantile(.$lambda, p = 0.975)),
          lambdaunif = map_dbl(Aunif, lambda))
 ggplot(data = results) + 
   geom_point(mapping = aes(x = lambdaraw, y = lambdaunif)) + 
-  geom_hline(yintercept = lambda(TF$T + TF$F))
+  geom_hline(yintercept = lambda(TF$T + TF$F)) + 
+  geom_errorbarh(mapping = aes(xmin = lci_raw, xmax = uci_raw, y = lambdaunif))
 ```
 
-Let's take a look at the matrix that results in the largest posterior lambda.
+OK, that looks shit. Bootstrapping from problematic matrices leads to non-sensical confidence limits?
 
 ```{r}
-pick <- which.max(results$lambdaunif)
-results$Tunif[[pick]]
-results$Funif[[pick]]
+ggplot(data = results) +
+  geom_point(mapping = aes(x = 1:100, y = lambdaraw)) + 
+  geom_errorbar(mapping = aes(x = 1:100, ymin = lci_raw, ymax = uci_raw))
 ```
 
+Ok, I want to look carefully at the bootstrapping results for matrix 3, which is one of the ones where it is non-sensical.
 
+```{r}
+testdata <- results$observations[[3]]
+testboot <- boot.transitions(testdata, iterations = 10000)
+quantile(testboot$lambda, p = c(0, 0.025, 0.975, 1))
+results$lambdaraw[[3]]
+```
+
+So it is just really bad. The only CI that make sense are the ones where the observed lambda is > 1. 
+
+Try a simulation where the initial population are all above ground plants in the stable stage distribution (remove seeds)
+
+```{r}
+initial_stages <- c(0, 1, 1, 1, 1, 1, 1, 1)
+
+results <- tibble(observations = map(1:100, 
+                                     function(x) sim_observations(TF, N = 100, initial_stages = initial_stages)),
+       TF = map(observations, projection_matrix, fertility = "Sd", TF = TRUE),
+       N = map(observations, get_state_vector),
+       Tunif = map2(TF, N, fill_transitions, P = transition_prior),
+       Funif = map2(TF, N, fill_fertility, alpha = fertility_alpha, beta = fertility_beta),
+       A = map(TF, ~.x$T+.x$F),
+       Aunif = map2(Tunif, Funif, ~.x + .y)) %>% 
+  mutate(lambdaraw = map_dbl(A, lambda),
+         bootraw = map(observations, boot.transitions, iterations = 1000),
+         lci_raw = map_dbl(bootraw, ~quantile(.$lambda, p = 0.025)),
+         uci_raw = map_dbl(bootraw, ~quantile(.$lambda, p = 0.975)),
+         lambdaunif = map_dbl(Aunif, lambda))
+ggplot(data = results) +
+  geom_point(mapping = aes(x = 1:100, y = lambdaraw)) + 
+  geom_errorbar(mapping = aes(x = 1:100, ymin = lci_raw, ymax = uci_raw))
+```
+
+In some ways this is worse -- none of the matrices get lambda > 1. It's almost so bad as to be unbelievable. What about a larger sample size, and
+only plants > 1 year old?
+
+```{r}
+initial_stages <- c(1, 1, 1, 1, 1, 1, 1, 1)
+true_lambda <- lambda(TF$T + TF$F)
+results <- tibble(observations = map(1:100, 
+                                     function(x) sim_observations(TF, N = 500, initial_stages = initial_stages)),
+       TF = map(observations, projection_matrix, fertility = "Sd", TF = TRUE),
+       N = map(observations, get_state_vector),
+       Tunif = map2(TF, N, fill_transitions, P = transition_prior),
+       Funif = map2(TF, N, fill_fertility, alpha = fertility_alpha, beta = fertility_beta),
+       A = map(TF, ~.x$T+.x$F),
+       Aunif = map2(Tunif, Funif, ~.x + .y)) %>% 
+  mutate(lambdaraw = map_dbl(A, lambda),
+         bootraw = map(observations, boot.transitions, iterations = 1000),
+         lci_raw = map_dbl(bootraw, ~quantile(.$lambda, p = 0.025)),
+         uci_raw = map_dbl(bootraw, ~quantile(.$lambda, p = 0.975)),
+         lambdaunif = map_dbl(Aunif, lambda))
+results <- mutate(results,
+                  goodci = lci_raw < true_lambda & uci_raw > true_lambda,
+                  sensibleci = lci_raw < lambdaraw & uci_raw > lambdaraw)
+ggplot(data = results) +
+  geom_point(mapping = aes(x = 1:100, y = lambdaraw)) + 
+  geom_errorbar(mapping = aes(x = 1:100, ymin = lci_raw, ymax = uci_raw,
+                              color = goodci)) +
+  geom_hline(yintercept = lambda(TF$T + TF$F), linetype = 2, color = "blue")
+```
+
+OK, you have to have all stages included in the observation or you can't 
+estimate the transitions! Duh ... 
+
+With a sample of 500 individuals only `r sum(results$goodci)` intervals
+include the true population growth rate. Indeed, only `r sum(results$sensibleci)`
+intervals even include the observed growth rate. 
+
+## Intervals from Bayesian posterior
+
+```{r}
+results <- results %>% 
+  mutate(sim_TF = map2(TF, N, function(.x, .y) sim_transitions(TF = .x, 
+                      N = .y, P = transition_prior, 
+                      alpha = fertility_alpha, beta = fertility_beta, 
+                      samples = 1000)))
+results <- results %>% 
+  mutate(sim_lambdas = map(sim_TF, function(ll) map_dbl(ll, lambda)),
+         sim_lci = map_dbl(sim_lambdas, quantile, p = 0.025),
+         sim_uci = map_dbl(sim_lambdas, quantile, p = 0.975),
+         good_sci = sim_lci < true_lambda & sim_uci > true_lambda,
+         sensible_sci = sim_lci < lambdaunif & sim_uci > lambdaunif)
+ggplot(data = results) +
+  geom_point(mapping = aes(x = 1:100, y = lambdaunif)) + 
+  geom_errorbar(mapping = aes(x = 1:100, ymin = sim_lci, ymax = sim_uci,
+                              color = good_sci)) +
+  geom_hline(yintercept = lambda(TF$T + TF$F), linetype = 2, color = "blue")
+```
+
+So the coverage property of the posterior credible interval is much better. Moreover,
+`r sum(results$sensible_sci)` out of 100 intervals are sensible in the sense that
+the estimate from the observed data is inside the credible interval.
+
+What about relative width of the intervals?
+
+# what about conflicting priors?
+
+One thing that might concern users is if the prior knowledge is incorrect or
+misleading in some way. What are some ways this might happen? Missing possible
+transitions? Including impossible transitions? Getting
+
+
+# What about a different sampling strategy? 
+
+If an ecologist uses a fixed area to get the sample, then using the stable stage
+distribution would be a good initial vector. However, rarer stages could be
+oversampled by searching for them. 
+
+```{r}
+initial_stages <- c(0.5, 1, 1, 1, 1, 2, 2, 5)
+true_lambda <- lambda(TF$T + TF$F)
+results <- tibble(observations = map(1:100, 
+                                     function(x) sim_observations(TF, N = 500, initial_stages = initial_stages)),
+       TF = map(observations, projection_matrix, fertility = "Sd", TF = TRUE),
+       N = map(observations, get_state_vector),
+       Tunif = map2(TF, N, fill_transitions, P = transition_prior),
+       Funif = map2(TF, N, fill_fertility, alpha = fertility_alpha, beta = fertility_beta),
+       A = map(TF, ~.x$T+.x$F),
+       Aunif = map2(Tunif, Funif, ~.x + .y)) %>% 
+  mutate(lambdaraw = map_dbl(A, lambda),
+         bootraw = map(observations, boot.transitions, iterations = 1000),
+         lci_raw = map_dbl(bootraw, ~quantile(.$lambda, p = 0.025)),
+         uci_raw = map_dbl(bootraw, ~quantile(.$lambda, p = 0.975)),
+         lambdaunif = map_dbl(Aunif, lambda))
+results <- mutate(results,
+                  goodci = lci_raw < true_lambda & uci_raw > true_lambda,
+                  sensibleci = lci_raw < lambdaraw & uci_raw > lambdaraw)
+ggplot(data = results) +
+  geom_point(mapping = aes(x = 1:100, y = lambdaraw)) + 
+  geom_errorbar(mapping = aes(x = 1:100, ymin = lci_raw, ymax = uci_raw,
+                              color = goodci)) +
+  geom_hline(yintercept = lambda(TF$T + TF$F), linetype = 2, color = "blue")
+```
+
+The bootstrapped intervals are even worse!! How about the Bayesian approach with
+oversampled data?
+
+
+```{r}
+results <- results %>% 
+  mutate(sim_TF = map2(TF, N, function(.x, .y) sim_transitions(TF = .x, 
+                      N = .y, P = transition_prior, 
+                      alpha = fertility_alpha, beta = fertility_beta, 
+                      samples = 1000)))
+results <- results %>% 
+  mutate(sim_lambdas = map(sim_TF, function(ll) map_dbl(ll, lambda)),
+         sim_lci = map_dbl(sim_lambdas, quantile, p = 0.025),
+         sim_uci = map_dbl(sim_lambdas, quantile, p = 0.975),
+         good_sci = sim_lci < true_lambda & sim_uci > true_lambda,
+         sensible_sci = sim_lci < lambdaunif & sim_uci > lambdaunif)
+ggplot(data = results) +
+  geom_point(mapping = aes(x = 1:100, y = lambdaunif)) + 
+  geom_errorbar(mapping = aes(x = 1:100, ymin = sim_lci, ymax = sim_uci,
+                              color = good_sci)) +
+  geom_hline(yintercept = lambda(TF$T + TF$F), linetype = 2, color = "blue")
+```
+
+These are still much better. 
+
+# Caveats
+
+Simulating matrices from the posterior ignores correlations between vital rates,
+which might cause the credible intervals to be too narrow. I wonder if 
+applying bootstrapped samples to the priors would be better? 
 # Literature cited
 
 Horvitz, C.C. and D.W. Schemske. 1995. Spatiotemporal variation in demographic transitions of a tropical understory herb: Projection matrix analysis. Ecological Monographs 65:155-192.

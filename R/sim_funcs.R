@@ -79,6 +79,7 @@ sim_transitions <- function(TF, N, P = NULL, alpha = 0.00001, beta = 0.00001, pr
 #'
 #' @param TF A list of two matrices, T and F, as ouput by \code{\link[popbio]{projection.matrix}}.
 #' @param N integer. Number of plants to assume in the population.
+#' @param initial_stages real. vector of weights to use when generating intial population.
 #'
 #' @details Currently the function assumes individuals
 #' are allowed to reproduce regardless of whether they survive to the next census or
@@ -93,7 +94,7 @@ sim_transitions <- function(TF, N, P = NULL, alpha = 0.00001, beta = 0.00001, pr
 #' data(calathea, package = "popbio")
 #' TF <- splitA(calathea$pooled, r = 1, c = 3:8)
 #' sim_observations(TF, 10)
-sim_observations <- function(TF, N = 100){
+sim_observations <- function(TF, N = 100, initial_stages = NULL){
   raretrans:::check_TF(TF)
   Tmat <- TF$T
   Fmat <- TF$F
@@ -113,10 +114,14 @@ sim_observations <- function(TF, N = 100){
     stage_names <- c(paste0("stage:", 1:order), "dead")
   }
 
-  results <- data.frame(stage = rep(NA_character_, N),
-                        fate = rep(NA_character_, N),
-                        fertility = rep(NA_real_, N))
-  Ninit <- rmultinom(1, size = N, prob = eigen_results$stable.stage)
+  # generate initial population
+  if (is.null(initial_stages)){
+    Ninit <- rmultinom(1, size = N, prob = eigen_results$stable.stage)
+  } else {
+    prob = eigen_results$stable.stage
+    prob = prob * initial_stages / sum(prob * initial_stages)
+    Ninit <- rmultinom(1, size = N, prob = prob)
+  }
   stages <- list()
   fates <- list()
   fertilities <- list()
@@ -130,9 +135,11 @@ sim_observations <- function(TF, N = 100){
       fertilities <- append(fertilities, rpois(Ninit[o], lambda = Fmat[1, o]))
     }
   }
-  results$stage <- ordered(unlist(stages), stage_names[1:order])
-  results$fate <- ordered(unlist(fates), stage_names[1:order])
-  results$fertility <- unlist(fertilities)
+
+
+  results <- data.frame(stage = ordered(unlist(stages), stage_names[1:order]),
+                        fate = ordered(unlist(fates), stage_names[1:order]))
+  results[,stage_names[1]] <- unlist(fertilities)
 
   return(results)
 }
