@@ -83,10 +83,16 @@ The uniform prior clearly causes issues by creating values of 1 in the fertility
 matrix for all stages that are not represented in the sample. 
 
 Now we need to create some priors for this plant. Start with samples of size 1
-for transitions known to be possible. Fertility priors will be 0 except 
+for transitions known to be possible. 
+
+fix it so prior is > 0 but very small unless zeros are "structural".
+Structural zeros should never be updated even if an observation is made. 
+
+Fertility priors will be 0 except 
 for stages known to reproduce, and these will be set close to zero.
 
 ```{r}
+set.seed(9347905)
 transition_prior <- rbind(TF$T > 0, rep(1, times = ncol(TF$T)))
 column_sums <- apply(transition_prior, 2, sum)
 transition_prior <- sweep(transition_prior, 2, column_sums, `/` )
@@ -122,41 +128,19 @@ ggplot(data = results) +
 Ok, I want to look carefully at the bootstrapping results for matrix 3, which is one of the ones where it is non-sensical.
 
 ```{r}
-testdata <- results$observations[[3]]
+testdata <- results$observations[[13]]
 testboot <- boot.transitions(testdata, iterations = 10000)
 quantile(testboot$lambda, p = c(0, 0.025, 0.975, 1))
-results$lambdaraw[[3]]
+results$lambdaraw[[13]]
 ```
 
 So it is just really bad. The only CI that make sense are the ones where the observed lambda is > 1. 
 
-Try a simulation where the initial population are all above ground plants in the stable stage distribution (remove seeds)
+
+What about a larger sample size, and only plants > 1 year old?
 
 ```{r}
-initial_stages <- c(0, 1, 1, 1, 1, 1, 1, 1)
-
-results <- tibble(observations = map(1:100, 
-                                     function(x) sim_observations(TF, N = 100, initial_stages = initial_stages)),
-       TF = map(observations, projection_matrix, fertility = "Sd", TF = TRUE),
-       N = map(observations, get_state_vector),
-       Tunif = map2(TF, N, fill_transitions, P = transition_prior),
-       Funif = map2(TF, N, fill_fertility, alpha = fertility_alpha, beta = fertility_beta),
-       A = map(TF, ~.x$T+.x$F),
-       Aunif = map2(Tunif, Funif, ~.x + .y)) %>% 
-  mutate(lambdaraw = map_dbl(A, lambda),
-         bootraw = map(observations, boot.transitions, iterations = 1000),
-         lci_raw = map_dbl(bootraw, ~quantile(.$lambda, p = 0.025)),
-         uci_raw = map_dbl(bootraw, ~quantile(.$lambda, p = 0.975)),
-         lambdaunif = map_dbl(Aunif, lambda))
-ggplot(data = results) +
-  geom_point(mapping = aes(x = 1:100, y = lambdaraw)) + 
-  geom_errorbar(mapping = aes(x = 1:100, ymin = lci_raw, ymax = uci_raw))
-```
-
-In some ways this is worse -- none of the matrices get lambda > 1. It's almost so bad as to be unbelievable. What about a larger sample size, and
-only plants > 1 year old?
-
-```{r}
+set.seed(384768697)
 initial_stages <- c(1, 1, 1, 1, 1, 1, 1, 1)
 true_lambda <- lambda(TF$T + TF$F)
 results <- tibble(observations = map(1:100, 
@@ -182,12 +166,11 @@ ggplot(data = results) +
   geom_hline(yintercept = lambda(TF$T + TF$F), linetype = 2, color = "blue")
 ```
 
-OK, you have to have all stages included in the observation or you can't 
-estimate the transitions! Duh ... 
-
 With a sample of 500 individuals only `r sum(results$goodci)` intervals
 include the true population growth rate. Indeed, only `r sum(results$sensibleci)`
 intervals even include the observed growth rate. 
+
+To ensure this is not an artifact -- simulate observations from a "good" matrix and calculate bootstrap intervals. 
 
 ## Intervals from Bayesian posterior
 
@@ -230,6 +213,8 @@ distribution would be a good initial vector. However, rarer stages could be
 oversampled by searching for them. 
 
 ```{r}
+
+set.seed(5786576)
 initial_stages <- c(0.5, 1, 1, 1, 1, 2, 2, 5)
 true_lambda <- lambda(TF$T + TF$F)
 results <- tibble(observations = map(1:100, 
@@ -260,6 +245,7 @@ oversampled data?
 
 
 ```{r}
+# no set seed because using results from previous chunk.
 results <- results %>% 
   mutate(sim_TF = map2(TF, N, function(.x, .y) sim_transitions(TF = .x, 
                       N = .y, P = transition_prior, 
@@ -285,6 +271,13 @@ These are still much better.
 Simulating matrices from the posterior ignores correlations between vital rates,
 which might cause the credible intervals to be too narrow. I wonder if 
 applying bootstrapped samples to the priors would be better? 
+But the more I think about it, the less worried I am about that. I think the 
+correlation between vital rates is in variation over time, and we’re just looking 
+at a single transition. 
+
+
+
+
 # Literature cited
 
 Horvitz, C.C. and D.W. Schemske. 1995. Spatiotemporal variation in demographic transitions of a tropical understory herb: Projection matrix analysis. Ecological Monographs 65:155-192.
